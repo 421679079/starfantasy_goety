@@ -1,0 +1,76 @@
+{
+  "original_apostle_ambient": {
+    "sounds": [{"name": "goety:apostle_ambient", "type": "event"}],
+    "subtitle": "subtitle.goety.apostle_ambient"
+  },
+  "original_apostle_hurt": {
+    "sounds": [{"name": "goety:apostle_hurt", "type": "event"}],
+    "subtitle": "subtitle.goety.apostle_hurt"
+  },
+  "original_apostle_death": {
+    "sounds": [{"name": "goety:apostle_death", "type": "event"}],
+    "subtitle": "subtitle.goety.apostle_death"
+  },
+  "apostle_moe_hurt": {
+    "sounds": [
+      "starfantasy_goety:entity/apostle/hurt_1",
+      "starfantasy_goety:entity/apostle/hurt_2",
+      "starfantasy_goety:entity/apostle/hurt_3",
+      "starfantasy_goety:entity/apostle/hurt_4"
+    ],
+    "subtitle": "subtitle.goety.apostle_hurt"
+  },
+  "apollyon_bgm": {
+    "sounds": [
+      {
+        "name": "starfantasy_goety:music/the_extreme",
+        "stream": true
+      }
+    ]
+  },
+  "death_explosion": {
+    "sounds": [
+      "starfantasy_goety:death_explosion"
+    ]
+  },
+  "cast_profane": {
+    "sounds": [
+      "starfantasy_goety:cast_profane"
+    ]
+  },
+  "cast_glorious": {
+    "sounds": [
+      "starfantasy_goety:cast_glorious"
+    ]
+  },
+  "cast_obsidian": {
+    "sounds": [
+      "starfantasy_goety:cast_obsidian"
+    ]
+  },
+  "cast_hades": {
+    "sounds": [
+      "starfantasy_goety:cast_hades"
+    ]
+  },
+  "summon_hades": {
+    "sounds": [
+      "starfantasy_goety:summon_hades"
+    ]
+  },
+  "attack_hades": {
+    "sounds": [
+      "starfantasy_goety:attack_hades"
+    ]
+  },
+  "summon_apostle": {
+    "sounds": [
+      "starfantasy_goety:summon_apostle"
+    ]
+  },
+  "summon_start": {
+    "sounds": [
+      "starfantasy_goety:summon_start"
+    ]
+  }
+}

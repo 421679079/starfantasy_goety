@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "top": "starfantasy_goety:block/underworld_altar_top",
+    "side": "minecraft:block/polished_blackstone",
+    "bottom": "minecraft:block/polished_deepslate"
+  }
+}

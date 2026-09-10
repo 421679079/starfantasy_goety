@@ -1,0 +1,19 @@
+{
+  "structures": [
+    {
+      "structure": "starfantasy_goety:church",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "salt": 913784621,
+    "spacing": 384,
+    "separation": 313,
+    "locate_offset": [
+      8,
+      31,
+      8
+    ]
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "type": "goety:ritual",
+  "ritual_type": "goety:craft",
+  "activation_item": {
+    "item": "goety:abyss_staff"
+  },
+  "craftType": "deep",
+  "soulCost": 1,
+  "duration": 10,
+  "ingredients": [
+    {
+      "item": "starfantasy_goety:halo_of_the_abhorrent"
+    },
+    {
+      "item": "goety:abyss_crown"
+    },
+    {
+      "item": "goety:abyss_robe"
+    }
+  ],
+  "result": {
+    "item": "starfantasy_goety:abyss_staff_2"
+  }
+}

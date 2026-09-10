@@ -1,0 +1,18 @@
+{
+  "type": "starfantasy_goety:church",
+  "biomes": "#starfantasy_goety:has_structure/church",
+  "step": "top_layer_modification",
+  "terrain_adaptation": "none",
+  "spawn_overrides": {
+    "monster": {
+      "bounding_box": "full",
+      "spawns": []
+    },
+    "creature": { "bounding_box": "full", "spawns": [] },
+    "ambient": { "bounding_box": "full", "spawns": [] },
+    "axolotls": { "bounding_box": "full", "spawns": [] },
+    "underground_water_creature": { "bounding_box": "full", "spawns": [] },
+    "water_creature": { "bounding_box": "full", "spawns": [] },
+    "water_ambient": { "bounding_box": "full", "spawns": [] }
+  }
+}

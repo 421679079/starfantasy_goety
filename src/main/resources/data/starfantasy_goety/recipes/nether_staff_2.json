@@ -1,0 +1,24 @@
+{
+  "type": "goety:ritual",
+  "ritual_type": "goety:craft",
+  "activation_item": {
+    "item": "goety:nether_staff"
+  },
+  "craftType": "expert_nether",
+  "soulCost": 1,
+  "duration": 10,
+  "ingredients": [
+    {
+      "item": "starfantasy_goety:halo_of_the_pyre_lord"
+    },
+    {
+      "item": "goety:nether_crown"
+    },
+    {
+      "item": "goety:nether_robe"
+    }
+  ],
+  "result": {
+    "item": "starfantasy_goety:nether_staff_2"
+  }
+}

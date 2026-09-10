@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "values": [
+    "starfantasy_goety:underworld_altar",
+    "goety:apparition_door",
+    "minecraft:chest",
+    { "id": "lootr:lootr_chest", "required": false }
+  ]
+}

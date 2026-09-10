@@ -1,0 +1,24 @@
+{
+  "type": "goety:ritual",
+  "ritual_type": "goety:craft",
+  "activation_item": {
+    "item": "goety:wild_staff"
+  },
+  "craftType": "overgrown",
+  "soulCost": 1,
+  "duration": 10,
+  "ingredients": [
+    {
+      "item": "starfantasy_goety:halo_of_the_defiler"
+    },
+    {
+      "item": "goety:wild_crown"
+    },
+    {
+      "item": "goety:wild_robe"
+    }
+  ],
+  "result": {
+    "item": "starfantasy_goety:wild_staff_2"
+  }
+}

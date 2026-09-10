@@ -1,0 +1,51 @@
+{
+  "type": "goety:ritual",
+  "ritual_type": "goety:craft",
+  "activation_item": {
+    "item": "starfantasy_goety:halo_of_hades"
+  },
+  "craftType": "magic",
+  "soulCost": 1,
+  "duration": 10,
+  "ingredients": [
+    {
+      "item": "goety:nameless_staff"
+    },
+    {
+      "item": "starfantasy_goety:ominous_staff_2"
+    },
+    {
+      "item": "starfantasy_goety:geo_staff_2"
+    },
+    {
+      "item": "starfantasy_goety:wind_staff_2"
+    },
+    {
+      "item": "starfantasy_goety:storm_staff_2"
+    },
+    {
+      "item": "starfantasy_goety:frost_staff_2"
+    },
+    {
+      "item": "starfantasy_goety:wild_staff_2"
+    },
+    {
+      "item": "starfantasy_goety:abyss_staff_2"
+    },
+    {
+      "item": "starfantasy_goety:void_staff_2"
+    },
+    {
+      "item": "starfantasy_goety:nether_staff_2"
+    },
+    {
+      "item": "starfantasy_goety:halo_of_the_profane"
+    },
+    {
+      "item": "starfantasy_goety:halo_of_the_glorious"
+    }
+  ],
+  "result": {
+    "item": "starfantasy_goety:final_staff"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "type": "goety:ritual",
+  "ritual_type": "goety:craft",
+  "activation_item": {
+    "item": "goety:necro_staff"
+  },
+  "craftType": "necroturgy",
+  "soulCost": 1,
+  "duration": 10,
+  "ingredients": [
+    {
+      "item": "starfantasy_goety:halo_of_the_risen"
+    },
+    {
+      "item": "goety:necro_crown"
+    },
+    {
+      "item": "goety:necro_cape"
+    }
+  ],
+  "result": {
+    "item": "goety:nameless_staff"
+  }
+}

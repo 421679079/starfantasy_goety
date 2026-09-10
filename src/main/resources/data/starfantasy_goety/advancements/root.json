@@ -1,0 +1,21 @@
+{
+  "display": {
+    "icon": {
+      "item": "starfantasy_goety:final_staff"
+    },
+    "title": {
+      "translate": "advancements.starfantasy_goety.root.title"
+    },
+    "description": {
+      "translate": "advancements.starfantasy_goety.root.description"
+    },
+    "background": "minecraft:textures/block/netherrack.png",
+    "show_toast": false,
+    "announce_to_chat": false
+  },
+  "criteria": {
+    "tick": {
+      "trigger": "minecraft:tick"
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "display": {
+    "icon": {
+      "item": "starfantasy_goety:halo_of_hades"
+    },
+    "title": {
+      "translate": "advancements.starfantasy_goety.goodbye_apollyon.title"
+    },
+    "description": {
+      "translate": "advancements.starfantasy_goety.goodbye_apollyon.description"
+    },
+    "frame": "challenge"
+  },
+  "parent": "starfantasy_goety:root",
+  "criteria": {
+    "apollyon": {
+      "trigger": "minecraft:player_killed_entity",
+      "conditions": {
+        "entity": {
+          "type": "starfantasy_goety:apollyon"
+        }
+      }
+    }
+  }
+}

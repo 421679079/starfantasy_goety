@@ -1,0 +1,17 @@
+{
+  "parent": "starfantasy_goety:root",
+  "display": {
+    "icon": { "item": "starfantasy_goety:halo_of_the_atrocious" },
+    "title": { "translate": "advancements.starfantasy_goety.unclean_divinity.title" },
+    "description": { "translate": "advancements.starfantasy_goety.unclean_divinity.description" },
+    "frame": "task"
+  },
+  "criteria": {
+    "halo": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [{ "tag": "starfantasy_goety:halo_of_apostle" }]
+      }
+    }
+  }
+}

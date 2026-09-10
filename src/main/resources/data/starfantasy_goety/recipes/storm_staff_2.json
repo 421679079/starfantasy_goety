@@ -1,0 +1,24 @@
+{
+  "type": "goety:ritual",
+  "ritual_type": "goety:craft",
+  "activation_item": {
+    "item": "goety:storm_staff"
+  },
+  "craftType": "storm",
+  "soulCost": 1,
+  "duration": 10,
+  "ingredients": [
+    {
+      "item": "starfantasy_goety:halo_of_the_terrible"
+    },
+    {
+      "item": "goety:storm_crown"
+    },
+    {
+      "item": "goety:storm_robe"
+    }
+  ],
+  "result": {
+    "item": "starfantasy_goety:storm_staff_2"
+  }
+}

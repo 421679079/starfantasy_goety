@@ -1,0 +1,24 @@
+{
+  "type": "goety:ritual",
+  "ritual_type": "goety:craft",
+  "activation_item": {
+    "item": "goety:frost_staff"
+  },
+  "craftType": "frost",
+  "soulCost": 1,
+  "duration": 10,
+  "ingredients": [
+    {
+      "item": "starfantasy_goety:halo_of_the_cruel"
+    },
+    {
+      "item": "goety:frost_crown"
+    },
+    {
+      "item": "goety:frost_robe"
+    }
+  ],
+  "result": {
+    "item": "starfantasy_goety:frost_staff_2"
+  }
+}

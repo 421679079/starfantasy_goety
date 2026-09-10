@@ -1,0 +1,24 @@
+{
+  "type": "goety:ritual",
+  "ritual_type": "goety:craft",
+  "activation_item": {
+    "item": "goety:wind_staff"
+  },
+  "craftType": "sky",
+  "soulCost": 1,
+  "duration": 10,
+  "ingredients": [
+    {
+      "item": "starfantasy_goety:halo_of_the_great_shadow"
+    },
+    {
+      "item": "goety:wind_crown"
+    },
+    {
+      "item": "goety:wind_robe"
+    }
+  ],
+  "result": {
+    "item": "starfantasy_goety:wind_staff_2"
+  }
+}

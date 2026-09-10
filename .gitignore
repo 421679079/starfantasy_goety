@@ -1,0 +1,47 @@
+# Keep build scripts; exclude downloaded binaries and generated output.
+.gradle/
+build/
+out/
+bin/
+run/
+gradle/
+gradlew
+gradlew.bat
+deps/
+private-deps/
+.deps/
+libs/
+*.jar
+*.class
+*.args
+*.zip
+*.7z
+*.rar
+
+# Machine-specific files
+.idea/
+.vscode/
+.settings/
+.classpath
+.project
+*.iml
+workspace.local.ps1
+AGENTS.md
+HANDOFF*.md
+*_HANDOFF*.md
+logs/
+crash-reports/
+*.log
+mods/
+/config/
+saves/
+Thumbs.db
+.DS_Store
+
+# Hades-specific assets must not enter this public source snapshot.
+/src/main/resources/assets/**/hades*
+/src/main/resources/assets/**/*hades*
+/model_sources/**/hades*
+
+# PNG, OGG, NBT, and BBMODEL files are intentionally not globally ignored.
+# Editable Apostle models and their corresponding runtime resources belong here.

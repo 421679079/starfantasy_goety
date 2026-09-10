@@ -1,0 +1,24 @@
+{
+  "type": "goety:ritual",
+  "ritual_type": "goety:craft",
+  "activation_item": {
+    "item": "goety:ominous_staff"
+  },
+  "craftType": "magic",
+  "soulCost": 1,
+  "duration": 10,
+  "ingredients": [
+    {
+      "item": "starfantasy_goety:halo_of_the_witch_king"
+    },
+    {
+      "item": "goety:grand_turban"
+    },
+    {
+      "item": "goety:grand_robe"
+    }
+  ],
+  "result": {
+    "item": "starfantasy_goety:ominous_staff_2"
+  }
+}
