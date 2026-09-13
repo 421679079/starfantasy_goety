@@ -21,6 +21,10 @@ public final class ChurchContent {
             new UnderworldAltarBlock(BlockBehaviour.Properties.copy(Blocks.CHISELED_POLISHED_BLACKSTONE)
                     .strength(-1, 3600000).noLootTable()));
     public static final RegistryObject<Item> ALTAR_ITEM = ITEMS.register("underworld_altar", () -> new BlockItem(ALTAR.get(), new Item.Properties()));
+    public static final RegistryObject<EternalRespawnAnchorBlock> ETERNAL_RESPAWN_ANCHOR = BLOCKS.register("eternal_respawn_anchor", () ->
+            new EternalRespawnAnchorBlock(BlockBehaviour.Properties.copy(Blocks.RESPAWN_ANCHOR).lightLevel(state -> 15)));
+    public static final RegistryObject<Item> ETERNAL_RESPAWN_ANCHOR_ITEM = ITEMS.register("eternal_respawn_anchor", () ->
+            new BlockItem(ETERNAL_RESPAWN_ANCHOR.get(), new Item.Properties()));
     public static final RegistryObject<BlockEntityType<UnderworldAltarEntity>> ALTAR_ENTITY = BLOCK_ENTITIES.register("underworld_altar", () ->
             BlockEntityType.Builder.of(UnderworldAltarEntity::new, ALTAR.get()).build(null));
     public static final RegistryObject<StructureType<ChurchStructure>> CHURCH = STRUCTURES.register("church", () -> () -> ChurchStructure.CODEC);

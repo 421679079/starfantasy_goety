@@ -1,0 +1,25 @@
+{
+  "type": "goety:ritual",
+  "ritual_type": "goety:summon_tamed_no_variant",
+  "activation_item": { "item": "starfantasy_goety:halo_of_hades" },
+  "craftType": "sabbath",
+  "entity_to_summon": "starfantasy_goety:hades_servant",
+  "soulCost": 1,
+  "duration": 15,
+  "summonLife": -1,
+  "ingredients": [
+    { "item": "starfantasy_goety:halo_of_the_risen" },
+    { "item": "starfantasy_goety:halo_of_the_abhorrent" },
+    { "item": "starfantasy_goety:halo_of_the_defiler" },
+    { "item": "starfantasy_goety:halo_of_the_dark" },
+    { "item": "starfantasy_goety:halo_of_the_great_shadow" },
+    { "item": "starfantasy_goety:halo_of_the_witch_king" },
+    { "item": "starfantasy_goety:halo_of_the_pyre_lord" },
+    { "item": "starfantasy_goety:halo_of_the_profane" },
+    { "item": "starfantasy_goety:halo_of_the_cruel" },
+    { "item": "starfantasy_goety:halo_of_the_terrible" },
+    { "item": "starfantasy_goety:halo_of_the_glorious" },
+    { "item": "starfantasy_goety:halo_of_the_atrocious" }
+  ],
+  "result": { "item": "goety:jei_dummy/none" }
+}

@@ -24,7 +24,7 @@ public final class ApostleBeamRenderer
 
     public ApostleBeamRenderer(EntityRendererProvider.Context context) {
         super(context);
-        this.f_114477_ = ApostleBeamEntity.LENGTH;
+        this.f_114477_ = 0.0F; // Visual-only effect: no vanilla ground shadow.
     }
 
     @Override

@@ -24,7 +24,7 @@ public final class ApollyonPageantBeamRenderer
 
     public ApollyonPageantBeamRenderer(EntityRendererProvider.Context context) {
         super(context);
-        this.f_114477_ = ApollyonPageantBeamEntity.LENGTH;
+        this.f_114477_ = 0.0F; // Visual-only effect: no vanilla ground shadow.
     }
 
     @Override

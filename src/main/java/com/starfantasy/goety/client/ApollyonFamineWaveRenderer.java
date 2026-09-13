@@ -21,7 +21,7 @@ public final class ApollyonFamineWaveRenderer
 
     public ApollyonFamineWaveRenderer(EntityRendererProvider.Context context) {
         super(context);
-        this.f_114477_ = ApollyonFamineWaveEntity.MAX_RADIUS;
+        this.f_114477_ = 0.0F; // Visual-only effect: no vanilla ground shadow.
     }
 
     @Override

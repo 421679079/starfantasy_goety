@@ -5,6 +5,7 @@ import com.Polarice3.Goety.common.effects.GoetyEffects;
 import com.Polarice3.Goety.common.entities.projectiles.IceChunk;
 import com.Polarice3.Goety.init.ModSounds;
 import com.Polarice3.Goety.utils.ModDamageSource;
+import com.starfantasy.goety.combat.ApollyonDamageSources;
 import com.Polarice3.Goety.utils.ServerParticleUtil;
 import com.starfantasy.library.vfx.StarFantasyVfx;
 import net.minecraft.nbt.CompoundTag;
@@ -280,7 +281,7 @@ public final class ApollyonIceChunkEntity extends IceChunk {
         if (target == null || boss.isFriendlyEntity(target) || !target.m_6084_()) {
             return;
         }
-        if (target.m_6469_(ModDamageSource.indirectFreeze(this, boss),
+        if (target.m_6469_(ApollyonDamageSources.front(target, ModDamageSource.indirectFreeze(this, boss)),
                 boss.scaleOutgoingDamage(FROST_DAMAGE))) {
             target.m_7292_(new MobEffectInstance(
                     (MobEffect) GoetyEffects.STUNNED.get(), STUN_DURATION_TICKS));

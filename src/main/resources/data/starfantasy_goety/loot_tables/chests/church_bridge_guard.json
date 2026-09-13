@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [{ "type": "minecraft:item", "name": "goety:dark_wand" }]
+    },
+    {
+      "rolls": 1,
+      "entries": [{ "type": "minecraft:item", "name": "goety:totem_of_souls", "functions": [{ "function": "minecraft:set_nbt", "tag": "{Souls:10000,\"Max Souls\":10000}" }] }]
+    },
+    {
+      "rolls": 1,
+      "entries": [{ "type": "minecraft:item", "name": "minecraft:cooked_porkchop", "functions": [{ "function": "minecraft:set_count", "count": 24 }] }]
+    }
+  ]
+}

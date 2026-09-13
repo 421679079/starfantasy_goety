@@ -102,7 +102,8 @@ import java.util.UUID;
  * A deliberately small Apostle-like combatant. It borrows the Cultist pose model,
  * but none of Apostle's phase, weather, summoning or world-changing mechanics.
  */
-public final class ApollyonEntity extends Cultist implements RangedAttackMob, GeoEntity {
+public final class ApollyonEntity extends Cultist implements RangedAttackMob, GeoEntity,
+        com.starfantasy.goety.combat.ApollyonDeathInventory.Encounter {
     public static final int DEATH_ANIMATION_TICKS = 80;
     private static final int DEATH_RISE_START_TICK = 8;
     private static final int DEATH_RISE_END_TICK = 72;
@@ -192,6 +193,7 @@ public final class ApollyonEntity extends Cultist implements RangedAttackMob, Ge
     public static final double ARENA_RADIUS = ARENA_SIZE * 0.5D;
     public static final double ARENA_VISUAL_HEIGHT = 4.0D;
     public static final float ARENA_WALL_ALPHA = 0.3F;
+    private static final double ARENA_DISENGAGE_DISTANCE_SQR = 48.0D * 48.0D;
     private static final int HOME_RETURN_CHECK_TICKS = 20;
     private static final double ARENA_COLLISION_INSET = 0.02D;
     private static final int SAFE_BOUNDARY_KNOCKBACK_INTERVAL_TICKS = 10;
@@ -339,6 +341,10 @@ public final class ApollyonEntity extends Cultist implements RangedAttackMob, Ge
 
     @Override
     public void m_8119_() {
+        this.m_20095_();
+        if (!this.m_9236_().f_46443_) {
+            this.clearDistantAggro();
+        }
         super.m_8119_();
         if (this.m_9236_().f_46443_) {
             if (this.f_19804_.m_135370_(PAGEANT_RETURN_RAINBOW)) {
@@ -378,6 +384,7 @@ public final class ApollyonEntity extends Cultist implements RangedAttackMob, Ge
             this.pageant.tickPersistentCompanion();
             LivingEntity target = this.m_5448_();
             this.tickArenaState(target);
+            target = this.m_5448_();
             if (this.pageant.isCombatLocked()) {
                 this.shotWarnings.removeIf(warning -> !warning.m_6084_());
                 return;
@@ -676,7 +683,7 @@ public final class ApollyonEntity extends Cultist implements RangedAttackMob, Ge
         }
         if (source != null && source.m_269533_(DamageTypeTags.f_268731_)) {
             double magicReduction = Mth.m_14008_(
-                    ApollyonConfig.magicDamageReduction(), 0.0D, 1.0D);
+                    ApollyonConfig.magicDamageReduction(), -1.0D, 1.0D);
             amount = (float) (amount * (1.0D - magicReduction));
         }
         double fixedReduction = Mth.m_14008_(
@@ -838,6 +845,16 @@ public final class ApollyonEntity extends Cultist implements RangedAttackMob, Ge
     @Override
     public MobType m_6336_() {
         return MobType.f_21641_;
+    }
+
+    @Override
+    public void m_7311_(int ticks) {
+        super.m_7311_(Math.min(0, ticks));
+    }
+
+    @Override
+    public boolean m_6060_() {
+        return false;
     }
 
     @Override
@@ -1044,6 +1061,10 @@ public final class ApollyonEntity extends Cultist implements RangedAttackMob, Ge
 
     private void tickArenaState(LivingEntity target) {
         this.ensureArenaHome();
+        if (target != null && !this.isWithinArenaCombatRange(target)) {
+            this.clearDistantAggro();
+            target = null;
+        }
         boolean wasActive = this.isArenaActive();
         boolean active = target != null && target.m_6084_();
 
@@ -1087,8 +1108,8 @@ public final class ApollyonEntity extends Cultist implements RangedAttackMob, Ge
         }
         // Membership is resolved before the pageant decides whether the arena is
         // empty. A tracked player who was knocked beyond radius 20 is constrained
-        // first and remains a participant; only an actually invalid player is
-        // removed and allowed to contribute to an encounter reset.
+        // first and remains a participant while within the 48-block combat range.
+        // Players beyond that range leave the encounter without being pulled back.
         this.applyArenaMembership();
         this.constrainArenaPlayers();
     }
@@ -1100,8 +1121,40 @@ public final class ApollyonEntity extends Cultist implements RangedAttackMob, Ge
         return this.isHorizontalPositionInsideArena(target.m_20182_(), ARENA_RADIUS);
     }
 
+    public boolean isWithinArenaCombatRange(LivingEntity target) {
+        Vec3 home = this.arenaHomeInitialized ? this.arenaHomePosition() : this.m_20182_();
+        return target != null && target.m_9236_() == this.m_9236_()
+                && target.m_20182_().m_82557_(home) <= ARENA_DISENGAGE_DISTANCE_SQR;
+    }
+
+    @Override
+    public boolean m_6779_(LivingEntity target) {
+        return this.isWithinArenaCombatRange(target) && super.m_6779_(target);
+    }
+
+    private void clearDistantAggro() {
+        LivingEntity target = this.m_5448_();
+        if (target != null && !this.isWithinArenaCombatRange(target)) {
+            this.m_6710_(null);
+            this.m_21573_().m_26573_();
+            this.clearPendingTeleport();
+        }
+        LivingEntity attacker = this.m_21188_();
+        if (attacker != null && !this.isWithinArenaCombatRange(attacker)) {
+            this.m_6703_(null);
+        }
+        LivingEntity victim = this.m_21214_();
+        if (victim != null && !this.isWithinArenaCombatRange(victim)) {
+            this.m_21335_(null);
+        }
+        if (this.f_20888_ != null && !this.isWithinArenaCombatRange(this.f_20888_)) {
+            this.m_6598_(null);
+        }
+    }
+
     private void teleportArenaTargetHome(LivingEntity target) {
-        if (!(this.m_9236_() instanceof ServerLevel level) || target == null) {
+        if (!(this.m_9236_() instanceof ServerLevel level)
+                || !this.isWithinArenaCombatRange(target)) {
             return;
         }
         Vec3 from = target.m_20182_();
@@ -1133,7 +1186,8 @@ public final class ApollyonEntity extends Cultist implements RangedAttackMob, Ge
             presentPlayers.add(player.m_20148_());
             double offsetX = player.m_20185_() - home.f_82479_;
             double offsetZ = player.m_20189_() - home.f_82481_;
-            if (offsetX * offsetX + offsetZ * offsetZ <= ARENA_RADIUS * ARENA_RADIUS) {
+            if (offsetX * offsetX + offsetZ * offsetZ <= ARENA_RADIUS * ARENA_RADIUS
+                    && this.isWithinArenaCombatRange(player)) {
                 this.arenaPlayers.add(player.m_20148_());
             }
         }
@@ -1153,7 +1207,8 @@ public final class ApollyonEntity extends Cultist implements RangedAttackMob, Ge
                 this.safeBoundaryKnockbackReadyTicks.remove(playerUuid);
                 continue;
             }
-            if (!player.m_6084_() || player.m_7500_() || player.m_5833_()) {
+            if (!player.m_6084_() || player.m_7500_() || player.m_5833_()
+                    || !this.isWithinArenaCombatRange(player)) {
                 iterator.remove();
                 this.safeBoundaryKnockbackReadyTicks.remove(playerUuid);
                 continue;
@@ -1163,6 +1218,9 @@ public final class ApollyonEntity extends Cultist implements RangedAttackMob, Ge
     }
 
     private void constrainArenaEntity(LivingEntity player) {
+        if (!this.isWithinArenaCombatRange(player)) {
+            return;
+        }
         Vec3 home = this.arenaHomePosition();
         double offsetX = player.m_20185_() - home.f_82479_;
         double offsetZ = player.m_20189_() - home.f_82481_;
@@ -1230,6 +1288,7 @@ public final class ApollyonEntity extends Cultist implements RangedAttackMob, Ge
                         player.m_20148_(), Long.MIN_VALUE);
                 if (now >= readyTick) {
                     this.safeBoundaryKnockbackReadyTicks.put(player.m_20148_(), now + 20);
+                    player.f_19802_ = 0;
                     player.m_6469_(player.m_269291_().m_269341_(), 20.0F);
                     if (player.m_6084_()) {
                         player.m_147207_(new MobEffectInstance(
@@ -1282,6 +1341,10 @@ public final class ApollyonEntity extends Cultist implements RangedAttackMob, Ge
 
     public boolean isPageantCombatLocked() {
         return this.pageant.isCombatLocked();
+    }
+
+    public ApollyonPageantApostleEntity pageantRedirectTarget(LivingEntity attacker) {
+        return this.pageant.redirectTarget(attacker);
     }
 
     public boolean isPageantBoundaryLethal() {
@@ -1343,11 +1406,22 @@ public final class ApollyonEntity extends Cultist implements RangedAttackMob, Ge
         for (UUID playerUuid : this.arenaPlayers) {
             ServerPlayer player = level.m_7654_().m_6846_().m_11259_(playerUuid);
             if (player != null && player.m_9236_() == level
-                    && player.m_6084_() && !player.m_7500_() && !player.m_5833_()) {
+                    && player.m_6084_() && !player.m_7500_() && !player.m_5833_()
+                    && this.isWithinArenaCombatRange(player)) {
                 players.add(player);
             }
         }
         return players;
+    }
+
+    @Override
+    public boolean isInventoryProtectedParticipant(UUID player) {
+        // A dying player is no longer alive, so validArenaPlayers() would exclude them.
+        // The current target also covers a lethal opening hit before the first membership tick.
+        LivingEntity target = this.m_5448_();
+        return (this.isArenaActive() || this.pageant.isCombatLocked() || target != null)
+                && (this.arenaPlayers.contains(player)
+                    || target instanceof ServerPlayer && target.m_20148_().equals(player));
     }
 
     public void clearCombatForPageant() {

@@ -6,19 +6,22 @@ import com.starfantasy.library.vfx.client.StarFantasyStarArrowVisualRenderer;
 import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.util.Mth;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import software.bernie.geckolib.renderer.GeoEntityRenderer;
+import software.bernie.geckolib.core.object.Color;
 
 public final class HadesGeoRenderer extends GeoEntityRenderer<HadesEntity> {
     /*
      * Matches the two-times-scaled model's visible bounds, with a small margin
      * for animated bones at the edges.
      */
-    private static final double CULLING_HALF_WIDTH = 31.0D;
+    private static final double CULLING_HALF_WIDTH = 48.0D;
     private static final double CULLING_MIN_Y_OFFSET = -7.0D;
     private static final double CULLING_MAX_Y_OFFSET = 43.0D;
     private static final Vec3 CHARGE_FOCUS = new Vec3(0.0D, 14.0D, 4.0D);
@@ -31,6 +34,27 @@ public final class HadesGeoRenderer extends GeoEntityRenderer<HadesEntity> {
         super(context, new HadesGeoModel());
         this.f_114477_ = 0.0F;
         this.withScale(2.0F);
+    }
+
+    @Override
+    public Color getRenderColor(HadesEntity entity, float partialTick, int packedLight) {
+        float opacity = entity.isPlayingDeathAnimation()
+                ? deathOpacity(entity.getDeathAnimationTicks() + partialTick) : 1.0F;
+        return Color.ofRGBA(1.0F, 1.0F, 1.0F, opacity);
+    }
+
+    static float deathOpacity(float deathAge) {
+        float progress = Mth.m_14036_(
+                (deathAge - (HadesEntity.DEATH_ANIMATION_TICKS - 40)) / 40.0F, 0.0F, 1.0F);
+        return 1.0F - 0.8F * progress;
+    }
+
+    @Override
+    public RenderType getRenderType(HadesEntity entity, ResourceLocation texture,
+                                    MultiBufferSource buffer, float partialTick) {
+        return entity.isPlayingDeathAnimation()
+                ? RenderType.m_110473_(texture)
+                : super.getRenderType(entity, texture, buffer, partialTick);
     }
 
     @Override
@@ -84,8 +108,8 @@ public final class HadesGeoRenderer extends GeoEntityRenderer<HadesEntity> {
                 0.58F, 0.18F, 1.0F, 1.0F);
     }
 
-    private void renderCharge(
-            HadesEntity entity, float partialTick, PoseStack poseStack,
+    static void renderCharge(
+            net.minecraft.world.entity.Entity entity, float partialTick, PoseStack poseStack,
             MultiBufferSource buffer, Vec3 focus, int afterglowAge,
             float red, float green, float blue, float visualScale) {
         float age = entity.f_19797_ + partialTick;

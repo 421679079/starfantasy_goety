@@ -13,14 +13,15 @@ public final class ApollyonConfig {
     public static final double DEFAULT_APOSTLE_GLORIOUS_HEALTH = 100.0D;
     public static final double DEFAULT_APOSTLE_RISEN_HEALTH = 120.0D;
     public static final double DEFAULT_APOSTLE_WITCH_KING_HEALTH = 120.0D;
-    public static final double DEFAULT_APOSTLE_BOW_DAMAGE = 12.0D;
+    public static final double DEFAULT_APOSTLE_BOW_DAMAGE = 9.0D;
     public static final double DEFAULT_APOSTLE_DAMAGE_CAP = 20.0D;
     public static final double DEFAULT_APOSTLE_DAMAGE_REDUCTION = 0.25D;
     public static final double DEFAULT_APOSTLE_ARMOR = 6.0D;
-    public static final double DEFAULT_APOSTLE_MAGIC_DAMAGE_REDUCTION = 0.35D;
+    public static final double DEFAULT_APOSTLE_MAGIC_DAMAGE_REDUCTION = -0.5D;
 
     public static final ForgeConfigSpec SPEC;
     private static final ForgeConfigSpec.BooleanValue HARD_MODE;
+    private static final ForgeConfigSpec.BooleanValue TRANSITION_PAGEANT;
 
     private static final ForgeConfigSpec.DoubleValue BOSS_HEALTH;
     private static final ForgeConfigSpec.DoubleValue HEALTH_REGENERATION;
@@ -48,6 +49,10 @@ public final class ApollyonConfig {
 
     public static boolean hardMode() {
         return HARD_MODE.get();
+    }
+
+    public static boolean transitionPageant() {
+        return TRANSITION_PAGEANT.get();
     }
 
     public static double bossHealth() {
@@ -140,12 +145,15 @@ public final class ApollyonConfig {
         HARD_MODE = builder
                 .comment("是否开启困难模式")
                 .define("hard_mode", false);
+        TRANSITION_PAGEANT = builder
+                .comment("是否开启转阶段运动会")
+                .define("transitionPageant", true);
         BOSS_HEALTH = builder
                 .comment("最大生命值。")
                 .defineInRange("bossHealth", DEFAULT_BOSS_HEALTH, 1.0D, 100000.0D);
         HEALTH_REGENERATION = builder
                 .comment("每秒生命恢复")
-                .defineInRange("healthRegeneration", 2.0D, 0.0D, 100000.0D);
+                .defineInRange("healthRegeneration", 1.0D, 0.0D, 100000.0D);
         ARMOR = builder
                 .comment("护甲&盔甲韧性。")
                 .defineInRange("armor", DEFAULT_ARMOR, 0.0D, 1000.0D);
@@ -157,7 +165,7 @@ public final class ApollyonConfig {
                 .defineInRange("damageTakenMultiplier", 0.5D, 0.0D, 1000.0D);
         MAGIC_DAMAGE_REDUCTION = builder
                 .comment("魔法抗性。")
-                .defineInRange("magicDamageReduction", 0.35D, 0.0D, 1.0D);
+                .defineInRange("magicDamageReduction", 0.35D, -1.0D, 1.0D);
         FIXED_DAMAGE_REDUCTION = builder
                 .comment("常驻减伤。")
                 .defineInRange("fixedDamageReduction", 0.25D, 0.0D, 1.0D);
@@ -208,7 +216,7 @@ public final class ApollyonConfig {
         APOSTLE_MAGIC_DAMAGE_REDUCTION = builder
                 .comment("运动会阶段，使徒的魔法抗性。")
                 .defineInRange("magicDamageReduction", DEFAULT_APOSTLE_MAGIC_DAMAGE_REDUCTION,
-                        0.0D, 1.0D);
+                        -1.0D, 1.0D);
         builder.pop();
         builder.pop();
         SPEC = builder.build();

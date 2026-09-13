@@ -2,6 +2,7 @@ package com.starfantasy.goety.registry;
 
 import com.starfantasy.goety.StarFantasyGoetyMod;
 import com.starfantasy.goety.entity.HadesEntity;
+import com.starfantasy.goety.entity.HadesServantEntity;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
@@ -30,5 +31,14 @@ public final class HadesEntityRegistry {
 
     public static void init(IEventBus modBus) {
         ENTITY_TYPES.register(modBus);
+        modBus.addListener((net.minecraftforge.event.entity.EntityAttributeCreationEvent event) ->
+                event.put(HADES_SERVANT.get(), HadesServantEntity.createAttributes().m_22265_()));
     }
+
+    public static final RegistryObject<EntityType<HadesServantEntity>> HADES_SERVANT =
+            ENTITY_TYPES.register("hades_servant", () -> EntityType.Builder
+                    .m_20704_(HadesServantEntity::new, MobCategory.CREATURE)
+                    .m_20699_(3.0F, 10.0F)
+                    .m_20702_(128).m_20717_(1)
+                    .m_20712_(StarFantasyGoetyMod.MODID + ":hades_servant"));
 }

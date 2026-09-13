@@ -97,7 +97,7 @@ public final class ApollyonFangFeastSpell {
             }
             for (Vec3 point : points) {
                 if (intersects(target.m_20191_(), point)) {
-                    if (target.m_6469_(boss.m_269291_().m_269104_(boss, boss), DAMAGE)) {
+                    if (target.m_6469_(ApollyonDamageSources.front(target, boss.m_269291_().m_269104_(boss, boss)), DAMAGE)) {
                         dealtDamage = true;
                     }
                     break;

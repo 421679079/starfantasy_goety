@@ -42,6 +42,8 @@ public final class HaloItemRegistry {
             registerSchool("halo_of_the_atrocious", SpellType.GEOMANCY);
     public static final RegistryObject<Item> HALO_OF_HADES =
             ITEMS.register("halo_of_hades", HaloCurioItem::hades);
+    public static final RegistryObject<Item> FADED_HALO =
+            ITEMS.register("faded_halo", com.starfantasy.goety.item.FadedHaloItem::new);
 
     public static final List<RegistryObject<Item>> APOSTLE_HALOS = List.of(
             HALO_OF_THE_RISEN,

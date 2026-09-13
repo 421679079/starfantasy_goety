@@ -45,6 +45,15 @@ final class ApollyonDeathLight {
         }
     }
 
+    static void renderHadesServant(com.starfantasy.goety.entity.HadesServantEntity entity,
+                                   float partialTick, PoseStack poseStack, MultiBufferSource buffer) {
+        if (entity.deathAge() > 0) {
+            render(entity.deathAge(), HadesEntity.DEATH_ANIMATION_TICKS, partialTick,
+                    poseStack, buffer, 6.0D, 1.0F, HADES_MAX_BEAMS, 1163L,
+                    HADES_CORE, HADES_INNER, HADES_MID, HADES_OUTER);
+        }
+    }
+
     private static void render(
             int deathTicks, int durationTicks, float partialTick,
             PoseStack poseStack, MultiBufferSource buffer, double yOffset,

@@ -31,6 +31,9 @@ public final class HadesClawSlashEntity extends Entity {
     private static final EntityDataAccessor<Float> RADIUS =
             SynchedEntityData.m_135353_(HadesClawSlashEntity.class,
                     EntityDataSerializers.f_135029_);
+    private static final EntityDataAccessor<Float> VISUAL_SCALE =
+            SynchedEntityData.m_135353_(HadesClawSlashEntity.class, EntityDataSerializers.f_135029_);
+    private java.util.UUID ownerUuid;
     private static final EntityDataAccessor<Integer> MODE =
             SynchedEntityData.m_135353_(HadesClawSlashEntity.class,
                     EntityDataSerializers.f_135028_);
@@ -54,20 +57,21 @@ public final class HadesClawSlashEntity extends Entity {
     }
 
     public static HadesClawSlashEntity spawn(
-            HadesEntity source, Vec3 position, float radius) {
+            Entity source, Vec3 position, float radius) {
         if (source == null || position == null || source.m_9236_().f_46443_) {
             return null;
         }
         HadesClawSlashEntity slash = new HadesClawSlashEntity(
                 ApollyonEntityRegistry.HADES_CLAW_SLASH.get(), source.m_9236_());
         slash.f_19804_.m_135381_(MODE, MODE_ROUNDHOUSE);
+        slash.bindOwner(source);
         slash.f_19804_.m_135381_(RADIUS, Math.max(1.0F, radius));
         slash.m_6034_(position.f_82479_, position.f_82480_, position.f_82481_);
         return source.m_9236_().m_7967_(slash) ? slash : null;
     }
 
     public static HadesClawSlashEntity spawnRectangle(
-            HadesEntity source, Vec3 position, Vec3 direction,
+            Entity source, Vec3 position, Vec3 direction,
             float width, float length, boolean first) {
         if (source == null || position == null || direction == null
                 || source.m_9236_().f_46443_) {
@@ -76,6 +80,7 @@ public final class HadesClawSlashEntity extends Entity {
         HadesClawSlashEntity slash = new HadesClawSlashEntity(
                 ApollyonEntityRegistry.HADES_CLAW_SLASH.get(), source.m_9236_());
         slash.f_19804_.m_135381_(MODE, MODE_RECTANGLE);
+        slash.bindOwner(source);
         slash.f_19804_.m_135381_(DIRECTION_YAW, (float) Math.toDegrees(
                 Math.atan2(-direction.f_82479_, direction.f_82481_)));
         slash.f_19804_.m_135381_(WARNING_WIDTH, Math.max(1.0F, width));
@@ -86,7 +91,7 @@ public final class HadesClawSlashEntity extends Entity {
     }
 
     public static HadesClawSlashEntity spawnDiveRayLaser(
-            HadesEntity source, Vec3 position, Vec3 direction,
+            Entity source, Vec3 position, Vec3 direction,
             float width, float length) {
         if (source == null || position == null || direction == null
                 || source.m_9236_().f_46443_) {
@@ -95,6 +100,7 @@ public final class HadesClawSlashEntity extends Entity {
         HadesClawSlashEntity laser = new HadesClawSlashEntity(
                 ApollyonEntityRegistry.HADES_CLAW_SLASH.get(), source.m_9236_());
         laser.f_19804_.m_135381_(MODE, MODE_DIVE_RAY_LASER);
+        laser.bindOwner(source);
         laser.f_19804_.m_135381_(DIRECTION_YAW, (float) Math.toDegrees(
                 Math.atan2(-direction.f_82479_, direction.f_82481_)));
         laser.f_19804_.m_135381_(WARNING_WIDTH, Math.max(1.0F, width));
@@ -105,6 +111,7 @@ public final class HadesClawSlashEntity extends Entity {
 
     @Override
     protected void m_8097_() {
+        this.f_19804_.m_135372_(VISUAL_SCALE, 1.0F);
         this.f_19804_.m_135372_(RADIUS, 20.0F);
         this.f_19804_.m_135372_(MODE, MODE_ROUNDHOUSE);
         this.f_19804_.m_135372_(DIRECTION_YAW, 0.0F);
@@ -118,6 +125,13 @@ public final class HadesClawSlashEntity extends Entity {
         super.m_8119_();
         this.m_20242_(true);
         this.m_20256_(Vec3.f_82478_);
+        if (this.ownerUuid != null && this.m_9236_() instanceof net.minecraft.server.level.ServerLevel level) {
+            Entity owner = level.m_8791_(this.ownerUuid);
+            if (owner == null || !owner.m_6084_() || owner.m_213877_()) {
+                this.m_146870_();
+                return;
+            }
+        }
         if (!this.m_9236_().f_46443_ && this.f_19797_ >= this.lifetimeTicks()) {
             this.m_146870_();
         }
@@ -150,6 +164,8 @@ public final class HadesClawSlashEntity extends Entity {
 
     @Override
     protected void m_7378_(CompoundTag tag) {
+        this.ownerUuid = tag.m_128403_("Owner") ? tag.m_128342_("Owner") : null;
+        this.f_19804_.m_135381_(VISUAL_SCALE, tag.m_128441_("VisualScale") ? tag.m_128457_("VisualScale") : 1.0F);
         this.f_19804_.m_135381_(RADIUS, Math.max(1.0F, tag.m_128457_(RADIUS_TAG)));
         this.f_19804_.m_135381_(MODE, tag.m_128451_(MODE_TAG));
         this.f_19804_.m_135381_(DIRECTION_YAW, tag.m_128457_(DIRECTION_YAW_TAG));
@@ -163,6 +179,8 @@ public final class HadesClawSlashEntity extends Entity {
 
     @Override
     protected void m_7380_(CompoundTag tag) {
+        if (this.ownerUuid != null) tag.m_128362_("Owner", this.ownerUuid);
+        tag.m_128350_("VisualScale", this.visualScale());
         tag.m_128350_(RADIUS_TAG, this.radius());
         tag.m_128405_(MODE_TAG, this.mode());
         tag.m_128350_(DIRECTION_YAW_TAG, this.directionYaw());
@@ -179,6 +197,17 @@ public final class HadesClawSlashEntity extends Entity {
     public float radius() {
         return this.f_19804_.m_135370_(RADIUS);
     }
+
+    private void bindOwner(Entity source) {
+        this.ownerUuid = source.m_20148_();
+        this.f_19804_.m_135381_(VISUAL_SCALE, source instanceof HadesServantEntity ? 0.5F : 1.0F);
+    }
+
+    public void setVisualScale(float scale) {
+        this.f_19804_.m_135381_(VISUAL_SCALE, Math.max(0.01F, scale));
+    }
+
+    public float visualScale() { return Math.max(0.01F, this.f_19804_.m_135370_(VISUAL_SCALE)); }
 
     public int mode() {
         return this.f_19804_.m_135370_(MODE);

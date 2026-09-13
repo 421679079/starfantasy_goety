@@ -156,7 +156,7 @@ public final class ApollyonLightningStormManager {
             if (shouldSkip(boss, target)) {
                 continue;
             }
-            if (target.m_6469_(source, boss.scaleOutgoingDamage(LIGHTNING_DAMAGE))) {
+            if (target.m_6469_(ApollyonDamageSources.front(target, source), boss.scaleOutgoingDamage(LIGHTNING_DAMAGE))) {
                 target.m_7292_(new MobEffectInstance(
                         (MobEffect) GoetyEffects.SPASMS.get(),
                         SPASMS_DURATION_TICKS, SPASMS_AMPLIFIER));

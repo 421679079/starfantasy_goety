@@ -197,6 +197,7 @@ public final class ApollyonPageantController {
     private final ApollyonEntity boss;
     private int state = INACTIVE;
     private int stateTicks;
+    private int directTransitionHealTicks;
     private boolean cleanupAfterLoad;
     private int testPhase = 1;
     private final Vec3[] actorPositions = new Vec3[3];
@@ -290,7 +291,7 @@ public final class ApollyonPageantController {
             return false;
         }
         if (this.isValidPageantTarget(this.boss.m_5448_())) {
-            this.beginFade();
+            this.beginTransition();
         }
         return true;
     }
@@ -305,7 +306,7 @@ public final class ApollyonPageantController {
                     || !this.isValidPageantTarget(this.boss.m_5448_())) {
                 return;
             }
-            this.beginFade();
+            this.beginTransition();
         }
         if (this.cleanupAfterLoad) {
             this.cleanupAfterLoad = false;
@@ -317,7 +318,7 @@ public final class ApollyonPageantController {
         if (this.state == PENDING_RESTART) {
             this.boss.holdAtHomeForPageantRetry();
             if (target != null) {
-                this.beginFade();
+                this.beginTransition();
             }
             return;
         }
@@ -345,6 +346,32 @@ public final class ApollyonPageantController {
 
     public boolean isInvulnerable() {
         return this.isCombatLocked();
+    }
+
+    public ApollyonPageantApostleEntity redirectTarget(LivingEntity attacker) {
+        if (!(this.boss.m_9236_() instanceof ServerLevel level)) {
+            return null;
+        }
+        if (this.state == GLORIOUS_STAGE) {
+            ApollyonPageantApostleEntity glorious = actor(level, this.gloriousUuid);
+            return isAttackableActor(glorious) ? glorious : null;
+        }
+        ApollyonPageantApostleEntity nearest = null;
+        if (this.state == THIRD_DPS) {
+            for (UUID actorUuid : this.thirdActorUuids) {
+                ApollyonPageantApostleEntity candidate = actor(level, actorUuid);
+                if (isAttackableActor(candidate) && (nearest == null
+                        || attacker.m_20280_(candidate) < attacker.m_20280_(nearest))) {
+                    nearest = candidate;
+                }
+            }
+        }
+        return nearest;
+    }
+
+    private static boolean isAttackableActor(ApollyonPageantApostleEntity actor) {
+        return actor != null && actor.m_6084_() && actor.m_21223_() > 0.0F
+                && actor.isPageantDamageable() && !actor.isMonolithProtected();
     }
 
     public boolean keepsBossHidden() {
@@ -398,12 +425,22 @@ public final class ApollyonPageantController {
         tag.m_128405_(TEST_PHASE_TAG, this.testPhase);
     }
 
-    private void beginFade() {
+    private void beginTransition() {
         if (!(this.boss.m_9236_() instanceof ServerLevel level)) {
             return;
         }
         this.clearEncounter(level, true);
         this.boss.clearCombatForPageant();
+        if (!ApollyonConfig.transitionPageant()) {
+            // Enter at the return cue, without the fade-out or summoning delay.
+            // Healing runs alongside the final ceremony for its first 60 ticks.
+            this.haloOrbitEpoch = level.m_46467_();
+            this.setState(FIFTH_STAGE, 1.0F);
+            this.stateTicks = FIFTH_RETURN_TICK;
+            this.directTransitionHealTicks = FADE_TICKS;
+            this.returnForFifthStage(level);
+            return;
+        }
         this.setState(FADE_OUT, 1.0F);
         this.boss.holdForPageantTransition();
     }
@@ -416,9 +453,7 @@ public final class ApollyonPageantController {
         ServerParticleUtil.windParticle(level, ColorUtil.BLACK, 4.0F, 0.5F,
                 this.boss.m_19879_(), this.boss.m_20182_());
         float progress = Math.min(1.0F, this.stateTicks / (float) FADE_TICKS);
-        int remainingTicks = Math.max(1, FADE_TICKS - this.stateTicks + 1);
-        float missingHealth = Math.max(0.0F, this.boss.m_21233_() - this.boss.m_21223_());
-        this.boss.m_21153_(this.boss.m_21223_() + missingHealth / remainingTicks);
+        this.healTransition(FADE_TICKS - this.stateTicks + 1);
         this.boss.setPageantOpacity(1.0F - progress);
         if (this.stateTicks >= FADE_TICKS) {
             this.boss.m_21153_(this.boss.m_21233_());
@@ -426,12 +461,16 @@ public final class ApollyonPageantController {
             this.boss.snapHiddenForPageant();
             this.sendPageantMessage(
                     players,
-                    ApollyonConfig.hardMode()
-                            ? "message.starfantasy_goety.apollyon.boundary_execution_warning"
-                            : "message.starfantasy_goety.apollyon.boundary_damage_warning",
+                    "message.starfantasy_goety.apollyon.boundary_execution_warning",
                     ChatFormatting.RED);
             this.beginConfiguredPageant(level, target);
         }
+    }
+
+    private void healTransition(int remainingTicks) {
+        float missingHealth = Math.max(0.0F, this.boss.m_21233_() - this.boss.m_21223_());
+        this.boss.m_21153_(this.boss.m_21223_()
+                + missingHealth / Math.max(1, remainingTicks));
     }
 
     private void beginConfiguredPageant(ServerLevel level, LivingEntity target) {
@@ -597,6 +636,7 @@ public final class ApollyonPageantController {
     private boolean isValidPageantTarget(LivingEntity target) {
         if (target == null || !target.m_6084_() || target == this.boss
                 || target.m_9236_() != this.boss.m_9236_()
+                || !this.boss.isWithinArenaCombatRange(target)
                 || target instanceof ArmorStand || target instanceof ApollyonPageantOwned
                 || target instanceof Owned owned && owned.getTrueOwner() == this.boss
                 || this.boss.m_7307_(target)) {
@@ -723,8 +763,9 @@ public final class ApollyonPageantController {
             }
             return;
         }
-        // Ordinary damage: keep resistance, death prevention and damage events intact.
-        if (target.m_6469_(source, target.m_21233_() * 5.0F) && target.m_6084_()) {
+        // These three pageant punishments (lightning, monolith, scorpion vines)
+        // originate behind each victim; preserve damage events and death prevention.
+        if (target.m_6469_(ApollyonDamageSources.rear(target, source), target.m_21233_() * 5.0F) && target.m_6084_()) {
             target.m_147207_(new MobEffectInstance(effect, 1200, 3), this.boss);
             if (effect == GoetyEffects.SAPPED.get()) {
                 target.m_147207_(new MobEffectInstance(GoetyEffects.STUNNED.get(), 100), this.boss);
@@ -1703,7 +1744,7 @@ public final class ApollyonPageantController {
                     player.m_20191_(), center, FOURTH_ICE_RADIUS)) {
                 continue;
             }
-            if (player.m_6469_(source, FOURTH_ICE_DAMAGE)) {
+            if (player.m_6469_(ApollyonDamageSources.front(player, source), FOURTH_ICE_DAMAGE)) {
                 player.m_7292_(new MobEffectInstance(
                         (MobEffect) GoetyEffects.STUNNED.get(), FOURTH_STUN_TICKS));
             }
@@ -1721,6 +1762,9 @@ public final class ApollyonPageantController {
 
     private void tickFifthStage(ServerLevel level, List<ServerPlayer> players) {
         ++this.stateTicks;
+        if (this.directTransitionHealTicks > 0) {
+            this.healTransition(this.directTransitionHealTicks--);
+        }
         if (this.stateTicks < FIFTH_RETURN_TICK) {
             this.boss.holdHiddenForPageant();
         } else {
@@ -1728,12 +1772,7 @@ public final class ApollyonPageantController {
         }
 
         if (this.stateTicks == FIFTH_RETURN_TICK) {
-            this.boss.beginFinalPageantReturn();
-            this.spawnActorArrivalSmoke(level, this.boss.arenaHomePosition());
-            this.playSummonApostleSound(level, this.boss.arenaHomePosition());
-            this.playSoundAtHome(level,
-                    (SoundEvent) ModSounds.APOSTLE_PREPARE_SPELL.get(), 3.0F);
-            this.prepareInnerHalos(level);
+            this.returnForFifthStage(level);
         }
         if (this.stateTicks == FIFTH_DARKNESS_TICK) {
             this.syncDarkness(players, FIFTH_DARKNESS_END_TICK - this.stateTicks);
@@ -1793,6 +1832,15 @@ public final class ApollyonPageantController {
         if (this.stateTicks >= FIFTH_END_TICK) {
             this.finishPageant(level);
         }
+    }
+
+    private void returnForFifthStage(ServerLevel level) {
+        this.boss.beginFinalPageantReturn();
+        this.spawnActorArrivalSmoke(level, this.boss.arenaHomePosition());
+        this.playSummonApostleSound(level, this.boss.arenaHomePosition());
+        this.playSoundAtHome(level,
+                (SoundEvent) ModSounds.APOSTLE_PREPARE_SPELL.get(), 3.0F);
+        this.prepareInnerHalos(level);
     }
 
     private void prepareInnerHalos(ServerLevel level) {
@@ -1890,7 +1938,7 @@ public final class ApollyonPageantController {
             if (intersectsHorizontalCircle(player.m_20191_(), center, METEOR_RADIUS)
                     && player.m_20191_().f_82292_ >= center.f_82480_ - 1.0D
                     && player.m_20191_().f_82289_ <= center.f_82480_ + 6.0D) {
-                player.m_6469_(source, METEOR_DAMAGE);
+                player.m_6469_(ApollyonDamageSources.front(player, source), METEOR_DAMAGE);
             }
         }
     }
@@ -1901,6 +1949,11 @@ public final class ApollyonPageantController {
 
     public static void playPyroclastExplosion(
             ServerLevel level, Vec3 center, float visualSize) {
+        playPyroclastExplosion(level, center, visualSize, 4.0F);
+    }
+
+    public static void playPyroclastExplosion(
+            ServerLevel level, Vec3 center, float visualSize, float volume) {
         ColorUtil color = new ColorUtil(PYROCLAST_COLOR);
         float safeVisualSize = Math.max(0.1F, visualSize);
         level.m_8767_(new CircleExplodeParticleOption(color, safeVisualSize, 1),
@@ -1923,7 +1976,7 @@ public final class ApollyonPageantController {
                     1, 0.0D, 0.0D, 0.0D, 0.0D);
         }
         level.m_5594_(null, BlockPos.m_274561_(center.f_82479_, center.f_82480_, center.f_82481_),
-                SoundEvents.f_11913_, SoundSource.HOSTILE, 4.0F,
+                SoundEvents.f_11913_, SoundSource.HOSTILE, volume,
                 (1.0F + (level.m_213780_().m_188501_() - level.m_213780_().m_188501_()) * 0.2F) * 0.7F);
     }
 
@@ -2168,6 +2221,7 @@ public final class ApollyonPageantController {
     }
 
     private void clearEncounter(ServerLevel level, boolean clearPersistentState) {
+        this.directTransitionHealTicks = 0;
         this.releaseGloriousSlides(level);
         this.releaseFourthSlides(level);
         StarFantasyVfx.clearWarningsForOwner(this.boss);

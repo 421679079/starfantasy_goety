@@ -61,7 +61,7 @@ public final class HadesDiveRayLaserEntity extends Entity {
     }
 
     public static HadesDiveRayLaserEntity spawn(
-            HadesEntity owner, Vec3 origin, Vec3 forward,
+            Entity owner, Vec3 origin, Vec3 forward,
             double width, double length) {
         if (owner == null || origin == null || forward == null
                 || !owner.m_6084_() || owner.m_213877_()
@@ -226,8 +226,8 @@ public final class HadesDiveRayLaserEntity extends Entity {
             return false;
         }
         Entity entity = level.m_8791_(this.ownerUuid);
-        return entity instanceof HadesEntity hades
-                && hades.m_6084_() && !hades.m_213877_();
+        return (entity instanceof HadesEntity || entity instanceof HadesServantEntity)
+                && entity.m_6084_() && !entity.m_213877_();
     }
 
     private static float clamp01(float value) {

@@ -5,7 +5,7 @@ issueTrackerURL="https://github.com/421679079/starfantasy_goety/issues"
 
 [[mods]]
 modId="starfantasy_goety"
-version="0.2.1"
+version="0.4.3"
 displayName="Goety:StarFantasy"
 authors="Funits"
 description=""
@@ -41,7 +41,7 @@ side="BOTH"
 [[dependencies.starfantasy_goety]]
 modId="star_fantasy_library"
 mandatory=true
-versionRange="[0.1.58,)"
+versionRange="[0.1.63,)"
 ordering="AFTER"
 side="BOTH"
 

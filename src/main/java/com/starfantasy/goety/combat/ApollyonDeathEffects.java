@@ -44,6 +44,16 @@ public final class ApollyonDeathEffects {
                 SoundSource.HOSTILE, 2.0F, 1.0F);
     }
 
+    public static void explodeHadesServant(com.starfantasy.goety.entity.HadesServantEntity entity) {
+        if (!(entity.m_9236_() instanceof ServerLevel level)) return;
+        Vec3 center = entity.m_20182_().m_82520_(0.0D, 6.0D, 0.0D);
+        level.m_5594_(null,
+                BlockPos.m_274561_(center.f_82479_, center.f_82480_, center.f_82481_),
+                ApollyonSoundRegistry.DEATH_EXPLOSION.get(),
+                SoundSource.HOSTILE, 1.0F, 1.0F);
+        spawnSphere(level, center, ParticleTypes.f_123744_, 1.0D);
+    }
+
     private static void spawnSphere(
             ServerLevel level, Vec3 center, ParticleOptions particle, double speed) {
         double phi = Math.PI * (3.0D - Math.sqrt(5.0D));

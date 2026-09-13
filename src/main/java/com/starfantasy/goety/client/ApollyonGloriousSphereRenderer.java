@@ -21,7 +21,7 @@ public final class ApollyonGloriousSphereRenderer
 
     public ApollyonGloriousSphereRenderer(EntityRendererProvider.Context context) {
         super(context);
-        this.f_114477_ = ApollyonGloriousSphereEntity.MAX_RADIUS;
+        this.f_114477_ = 0.0F; // Visual-only effect: no vanilla ground shadow.
     }
 
     @Override

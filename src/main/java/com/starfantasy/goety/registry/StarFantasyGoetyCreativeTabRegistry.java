@@ -23,12 +23,15 @@ public final class StarFantasyGoetyCreativeTabRegistry {
                     .m_257737_(() -> HaloItemRegistry.HALO_OF_HADES.get().m_7968_())
                     .m_257501_((parameters, output) -> {
                         output.m_246326_((ItemLike)com.starfantasy.goety.church.ChurchContent.ALTAR_ITEM.get());
+                        output.m_246326_((ItemLike)com.starfantasy.goety.church.ChurchContent.ETERNAL_RESPAWN_ANCHOR_ITEM.get());
                         for (ResourceLocation staffId : StaffItemRegistry.STAFF_IDS) {
                             addStaff(output, staffId);
                         }
                         for (RegistryObject<Item> halo : HaloItemRegistry.ALL_HALOS) {
                             output.m_246326_((ItemLike)halo.get());
                         }
+                        output.m_246326_(HaloItemRegistry.FADED_HALO.get());
+                        output.m_246326_(com.starfantasy.goety.magic.guard.GuardFocusContent.GUARD_FOCUS.get());
                     })
                     .m_257652_()
     );

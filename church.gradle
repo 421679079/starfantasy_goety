@@ -1,0 +1,19 @@
+// Mojang-mapped compilation of the new church module; legacy sources remain SRG.
+plugins { id 'net.minecraftforge.gradle' version '[6.0,6.2)' }
+group = 'com.starfantasy'
+version = '0.4.3'
+java { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
+minecraft { mappings channel: 'official', version: '1.20.1' }
+sourceSets.main.java.srcDirs = ['src/church/java', 'src/mojang/java', 'tools/build-stubs']
+sourceSets.main.resources.srcDirs = []
+repositories { flatDir { dirs 'build/church-deps' } }
+dependencies {
+    minecraft 'net.minecraftforge:forge:1.20.1-47.4.10'
+    implementation project(':star_fantasy_library')
+    compileOnly fg.deobf('church.local:starfantasy_goety:0.1.258')
+    compileOnly fg.deobf('church.local:goety:2.5.52.4')
+    compileOnly fg.deobf('church.local:geckolib:4.8.4')
+    compileOnly fg.deobf('church.local:jade:11.13.2')
+}
+tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }
+tasks.named('jar').configure { archiveClassifier = 'church'; finalizedBy 'reobfJar' }

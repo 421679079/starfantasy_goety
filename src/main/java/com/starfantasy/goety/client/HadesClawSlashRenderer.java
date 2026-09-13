@@ -47,7 +47,7 @@ public final class HadesClawSlashRenderer extends EntityRenderer<HadesClawSlashE
 
     public HadesClawSlashRenderer(EntityRendererProvider.Context context) {
         super(context);
-        this.f_114477_ = 32.0F;
+        this.f_114477_ = 0.0F; // Visual-only effect: no vanilla ground shadow.
     }
 
     @Override
@@ -57,6 +57,9 @@ public final class HadesClawSlashRenderer extends EntityRenderer<HadesClawSlashE
         if (entity.isDiveRayLaser()) {
             renderDiveRayLaser(entity, age, poseStack, buffer);
         } else if (age >= 0.0F && age < HadesClawSlashEntity.LIFETIME_TICKS) {
+            poseStack.m_85836_();
+            float scale = entity.visualScale();
+            poseStack.m_85841_(scale, scale, scale);
             float sweep = Mth.m_14036_(age / SWEEP_TICKS, 0.0F, 1.0F) * TWO_PI;
             float fade = age <= SWEEP_TICKS ? 1.0F : Mth.m_14036_(
                     1.0F - (age - SWEEP_TICKS)
@@ -70,10 +73,11 @@ public final class HadesClawSlashRenderer extends EntityRenderer<HadesClawSlashE
             } else {
                 for (int claw = 0; claw < CLAW_COUNT; ++claw) {
                     float angularOffset = (claw - 1) * 0.035F;
-                    renderLayeredArc(consumer, matrix, entity.radius(),
+                    renderLayeredArc(consumer, matrix, entity.radius() / scale,
                             sweep + angularOffset, 1.0F + claw * 2.0F, fade);
                 }
             }
+            poseStack.m_85849_();
         }
         super.m_7392_(entity, yaw, partialTick, poseStack, buffer, packedLight);
     }
@@ -268,7 +272,7 @@ public final class HadesClawSlashRenderer extends EntityRenderer<HadesClawSlashE
             float laneOffset = (claw - 1) * 5.0F;
             renderLayeredRectangleArc(
                     consumer, matrix, entity.directionYaw(),
-                    entity.warningWidth(), entity.warningLength(),
+                    entity.warningWidth() / entity.visualScale(), entity.warningLength() / entity.visualScale(),
                     entity.curveSign(), laneOffset, tail, head, 1.0F, fade);
         }
     }

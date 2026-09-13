@@ -494,7 +494,6 @@ public final class HadesEntity extends Entity implements GeoEntity {
             this.playRoundhouseImpact(center);
             this.damageAnnulus(owner, center, ROUNDHOUSE_SAFE_RADIUS,
                     ROUNDHOUSE_WARNING_RADIUS,
-                    this.horizontalDirection(this.fixedPosition, owner.arenaHomePosition()),
                     ROUNDHOUSE_KNOCKBACK_SPEED);
             StarFantasyVfx.groundWarningAnnulusOwnedStatic(
                     owner, center, ROUNDHOUSE_PURPLE_HIT_TICK - ROUNDHOUSE_RED_HIT_TICK,
@@ -508,7 +507,6 @@ public final class HadesEntity extends Entity implements GeoEntity {
             this.playRoundhouseImpact(center);
             this.damageAnnulus(owner, center, ROUNDHOUSE_SECOND_SAFE_RADIUS,
                     ROUNDHOUSE_SECOND_WARNING_RADIUS,
-                    this.horizontalDirection(this.fixedPosition, owner.arenaHomePosition()),
                     ROUNDHOUSE_KNOCKBACK_SPEED);
         }
     }
@@ -779,17 +777,20 @@ public final class HadesEntity extends Entity implements GeoEntity {
 
     private void damageAnnulus(
             ApollyonEntity owner, Vec3 center, double innerRadius, double outerRadius,
-            Vec3 knockbackDirection, double knockbackSpeed) {
+            double knockbackSpeed) {
         double innerRadiusSqr = innerRadius * innerRadius;
         double outerRadiusSqr = outerRadius * outerRadius;
         for (LivingEntity player : ApollyonPageantController.arenaLivingTargets(owner)) {
             double dx = player.m_20185_() - center.f_82479_;
             double dz = player.m_20189_() - center.f_82481_;
             double distanceSqr = dx * dx + dz * dz;
-            if (distanceSqr > innerRadiusSqr && distanceSqr <= outerRadiusSqr
-                    && player.m_6469_(this.frontFacingMobAttack(owner, player),
-                    (float) (ApollyonConfig.hardMode() ? 100.0D : COOPERATIVE_DAMAGE))) {
-                this.applyKnockback(player, knockbackDirection, knockbackSpeed);
+            if (distanceSqr > innerRadiusSqr && distanceSqr <= outerRadiusSqr) {
+                player.f_19802_ = 0;
+                if (player.m_6469_(this.frontFacingMobAttack(owner, player),
+                        (float) (ApollyonConfig.hardMode() ? 100.0D : COOPERATIVE_DAMAGE))) {
+                    this.applyKnockback(player,
+                            this.horizontalDirection(center, player.m_20182_()), knockbackSpeed);
+                }
             }
         }
     }
@@ -851,10 +852,12 @@ public final class HadesEntity extends Entity implements GeoEntity {
             double across = delta.f_82479_ * right.f_82479_
                     + delta.f_82481_ * right.f_82481_;
             if (Math.abs(along) <= length * 0.5D
-                    && Math.abs(across) <= width * 0.5D
-                    && player.m_6469_(this.frontFacingDamageSource(player, base),
-                    (float) (ApollyonConfig.hardMode() ? 100.0D : COOPERATIVE_DAMAGE))) {
-                this.applyKnockback(player, forward, knockbackSpeed);
+                    && Math.abs(across) <= width * 0.5D) {
+                player.f_19802_ = 0;
+                if (player.m_6469_(this.frontFacingDamageSource(player, base),
+                        (float) (ApollyonConfig.hardMode() ? 100.0D : COOPERATIVE_DAMAGE))) {
+                    this.applyKnockback(player, forward, knockbackSpeed);
+                }
             }
         }
     }

@@ -2,6 +2,8 @@
   "replace": false,
   "values": [
     "starfantasy_goety:underworld_altar",
+    "starfantasy_goety:eternal_respawn_anchor",
+    { "id": "waystones:waystone", "required": false },
     "goety:apparition_door",
     "minecraft:chest",
     { "id": "lootr:lootr_chest", "required": false }

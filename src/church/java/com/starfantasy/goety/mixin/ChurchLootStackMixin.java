@@ -16,13 +16,19 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class ChurchLootStackMixin {
     private static final ResourceLocation STARFANTASY_CHURCH_SECRET =
             new ResourceLocation("starfantasy_goety", "chests/church_secret");
+    private static final ResourceLocation STARFANTASY_CHURCH_BULWARK =
+            new ResourceLocation("starfantasy_goety", "chests/church_bridge_bulwark");
+    private static final ResourceLocation STARFANTASY_CHURCH_GUARD =
+            new ResourceLocation("starfantasy_goety", "chests/church_bridge_guard");
 
     // Explicit SRG selector matches this project's production mixin convention.
     @Inject(method = "m_230924_(Lit/unimi/dsi/fastutil/objects/ObjectArrayList;ILnet/minecraft/util/RandomSource;)V",
             at = @At("HEAD"), cancellable = true, remap = false)
     private void starfantasy$keepRewardStacks(ObjectArrayList<ItemStack> stacks, int slots,
                                              RandomSource random, CallbackInfo callback) {
-        if (STARFANTASY_CHURCH_SECRET.equals(((LootTable)(Object)this).getLootTableId())) {
+        ResourceLocation id = ((LootTable)(Object)this).getLootTableId();
+        if (STARFANTASY_CHURCH_SECRET.equals(id) || STARFANTASY_CHURCH_BULWARK.equals(id)
+                || STARFANTASY_CHURCH_GUARD.equals(id)) {
             Util.shuffle(stacks, random);
             callback.cancel();
         }

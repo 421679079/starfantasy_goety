@@ -137,13 +137,23 @@ public final class ApollyonSummonManager {
     @SubscribeEvent
     public static void redirectProtectedPageantAttackers(LivingEvent.LivingTickEvent event) {
         if (!(event.getEntity() instanceof Mob mob) || !mob.m_6084_()
-                || !(mob.m_9236_() instanceof ServerLevel level)
-                || !(mob.m_5448_() instanceof ApollyonPageantApostleEntity protectedActor)) {
+                || !(mob.m_9236_() instanceof ServerLevel level)) {
             return;
         }
-        ApollyonPageantApostleEntity other = protectedActor.protectedRedirectTarget();
-        if (other == null || !(level.m_8791_(protectedActor.pageantOwnerUuid())
-                instanceof ApollyonEntity boss)) {
+        ApollyonEntity boss;
+        ApollyonPageantApostleEntity other;
+        if (mob.m_5448_() instanceof ApollyonEntity owner) {
+            boss = owner;
+            other = boss.pageantRedirectTarget(mob);
+        } else if (mob.m_5448_() instanceof ApollyonPageantApostleEntity protectedActor
+                && protectedActor.pageantOwnerUuid() != null
+                && level.m_8791_(protectedActor.pageantOwnerUuid()) instanceof ApollyonEntity owner) {
+            boss = owner;
+            other = protectedActor.protectedRedirectTarget();
+        } else {
+            return;
+        }
+        if (!boss.m_6084_() || other == null) {
             return;
         }
         Vec3 home = boss.arenaHomePosition();

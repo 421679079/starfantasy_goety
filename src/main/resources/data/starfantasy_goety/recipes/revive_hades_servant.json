@@ -1,0 +1,16 @@
+{
+  "type": "goety:ritual",
+  "ritual_type": "starfantasy_goety:revive_hades",
+  "activation_item": { "item": "starfantasy_goety:faded_halo" },
+  "craftType": "sabbath",
+  "entity_to_summon": "starfantasy_goety:hades_servant",
+  "soulCost": 1,
+  "duration": 15,
+  "summonLife": -1,
+  "ingredients": [
+    { "tag": "starfantasy_goety:halo_of_apostle" },
+    { "item": "minecraft:wither_skeleton_skull" },
+    { "item": "minecraft:nether_star" }
+  ],
+  "result": { "item": "goety:jei_dummy/none" }
+}

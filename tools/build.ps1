@@ -2,20 +2,18 @@
 param(
     [string]$MinecraftRoot = $env:STARFANTASY_MC_ROOT,
     [string]$GradlePath = $env:STARFANTASY_GRADLE,
-    [string]$DependencyDirectory = $env:STARFANTASY_DEPENDENCIES,
-    [string]$Version = '0.2.1'
+    [string]$Version = '0.4.3'
 )
 
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
-Add-Type -AssemblyName System.IO.Compression.FileSystem
 
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
-if ([string]::IsNullOrWhiteSpace($DependencyDirectory)) { $DependencyDirectory = Join-Path $repoRoot 'deps' }
-if (-not (Test-Path -LiteralPath $DependencyDirectory -PathType Container)) {
-    throw "依赖目录不存在：$DependencyDirectory。请先按 BUILDING.md 准备五个依赖 JAR。"
+$workspaceRoot = (Resolve-Path (Join-Path $repoRoot '..')).Path
+$dependencyRoot = Join-Path $workspaceRoot 'private-deps/goety'
+if (-not (Test-Path -LiteralPath (Join-Path $workspaceRoot 'star_fantasy_library'))) {
+    throw "Goety必须从完整的star_fantasy_workspace中构建：$workspaceRoot"
 }
-$dependencyRoot = (Resolve-Path -LiteralPath $DependencyDirectory).Path
 
 if ([string]::IsNullOrWhiteSpace($MinecraftRoot)) {
     throw '请使用 -MinecraftRoot 指向包含 libraries/ 和 versions/ 的 Minecraft 目录，或设置 STARFANTASY_MC_ROOT。'
@@ -23,12 +21,10 @@ if ([string]::IsNullOrWhiteSpace($MinecraftRoot)) {
 $MinecraftRoot = (Resolve-Path $MinecraftRoot).Path
 
 if ([string]::IsNullOrWhiteSpace($GradlePath)) {
-    $gradleCommand = Get-Command gradle -ErrorAction SilentlyContinue
-    if ($null -eq $gradleCommand) { throw '请安装 Gradle 8.5 并传入 -GradlePath，或将 gradle 加入 PATH。' }
-    $GradlePath = $gradleCommand.Source
+    $GradlePath = Join-Path $workspaceRoot 'gradlew.bat'
 }
 if (-not (Test-Path -LiteralPath $GradlePath)) {
-    throw "找不到 Gradle 8.5 入口：$GradlePath"
+    throw "找不到Gradle Wrapper：$GradlePath。请确认仓库通过Git LFS完整拉取。"
 }
 $GradlePath = (Resolve-Path -LiteralPath $GradlePath).Path
 
@@ -66,31 +62,29 @@ $goetyJar = Join-Path $dependencyRoot 'goety-2.5.56.5.jar'
 $geckoJar = Join-Path $dependencyRoot 'geckolib-forge-1.20.1-4.8.4.jar'
 $jadeJar = Join-Path $dependencyRoot 'jade-11.13.2.jar'
 $curiosJar = Join-Path $dependencyRoot 'curios-forge-5.14.1+1.20.1.jar'
-$libraryJar = Join-Path $dependencyRoot 'star_fantasy_library-0.1.59.jar'
+$baselineJar = Join-Path $dependencyRoot 'starfantasy_goety-bootstrap-0.1.258.jar'
 foreach ($dependency in @{
     goety = $goetyJar; geckolib = $geckoJar; jade = $jadeJar;
-    curios = $curiosJar; library = $libraryJar
+    curios = $curiosJar; baseline = $baselineJar
 }.GetEnumerator()) {
     if ([string]::IsNullOrWhiteSpace($dependency.Value)) {
-        throw "找不到$($dependency.Key)依赖。请参照 BUILDING.md 准备依赖。"
+        throw "找不到$($dependency.Key)依赖。请确认private-deps已经通过Git LFS拉取。"
     }
     if (-not (Test-Path -LiteralPath $dependency.Value)) {
-        throw "缺少$($dependency.Key)依赖：$($dependency.Value)。请参照 BUILDING.md。"
+        throw "缺少$($dependency.Key)依赖：$($dependency.Value)。请运行git lfs pull。"
     }
-    $dependencyArchive = [IO.Compression.ZipFile]::OpenRead($dependency.Value)
-    $dependencyArchive.Dispose()
 }
 
 $churchDeps = Join-Path $repoRoot 'build/church-deps'
 New-Item -ItemType Directory -Path $churchDeps -Force | Out-Null
-Copy-Item -LiteralPath $goetyJar -Destination (Join-Path $churchDeps 'goety-2.5.56.5.jar') -Force
+Copy-Item -LiteralPath $goetyJar -Destination (Join-Path $churchDeps 'goety-2.5.52.4.jar') -Force
 Copy-Item -LiteralPath $geckoJar -Destination (Join-Path $churchDeps 'geckolib-4.8.4.jar') -Force
 Copy-Item -LiteralPath $jadeJar -Destination (Join-Path $churchDeps 'jade-11.13.2.jar') -Force
-Copy-Item -LiteralPath $libraryJar -Destination (Join-Path $churchDeps 'star_fantasy_library-0.1.59.jar') -Force
+Copy-Item -LiteralPath $baselineJar -Destination (Join-Path $churchDeps 'starfantasy_goety-0.1.258.jar') -Force
 
-Push-Location $repoRoot
+Push-Location $workspaceRoot
 try {
-    & $GradlePath --no-daemon --rerun-tasks jar
+    & $GradlePath --no-daemon --rerun-tasks :starfantasy_goety:jar
     if ($LASTEXITCODE -ne 0) { throw "教堂模块Gradle构建失败，退出码$LASTEXITCODE。" }
 } finally { Pop-Location }
 
@@ -111,7 +105,10 @@ Add-ClassPath $classpathItems $forgeUniversal
 $minecraftLibs = Get-ChildItem -LiteralPath (Join-Path $MinecraftRoot 'libraries') -Recurse -File -Filter '*.jar' |
     Where-Object { $_.FullName -ne $forgeClient -and $_.FullName -ne $forgeUniversal -and $_.FullName -ne $clientSrg.FullName }
 foreach ($library in $minecraftLibs) { Add-ClassPath $classpathItems $library.FullName }
-foreach ($external in @($goetyJar, $geckoJar, $jadeJar, $curiosJar, $libraryJar, $churchReobfJar)) {
+$libraryJar = Get-ChildItem -LiteralPath (Join-Path $workspaceRoot 'star_fantasy_library/build/libs') -File -Filter 'star_fantasy_library-*.jar' |
+    Sort-Object LastWriteTime -Descending | Select-Object -First 1
+if ($null -eq $libraryJar) { throw '找不到刚构建的Star Fantasy Library JAR。' }
+foreach ($external in @($goetyJar, $geckoJar, $jadeJar, $curiosJar, $libraryJar.FullName, $churchReobfJar)) {
     Add-ClassPath $classpathItems $external
 }
 $classpath = [string]::Join([IO.Path]::PathSeparator, $classpathItems)
@@ -182,7 +179,7 @@ foreach ($entry in $transformMap.GetEnumerator()) {
 }
 $rendererArgs = Join-Path $buildRoot 'renderers.args'
 $rendererSources = Get-ChildItem -LiteralPath $transformedSources -Recurse -File -Filter '*.java' | ForEach-Object FullName
-$rendererClasspath = $mainClasses + [IO.Path]::PathSeparator + $classpath
+$rendererClasspath = $classpath + [IO.Path]::PathSeparator + $mainClasses
 Write-JavacArgs $rendererArgs $mainClasses $rendererClasspath ($rendererSources + @())
 & javac "@$rendererArgs"
 if ($LASTEXITCODE -ne 0) { throw "边界/亚波伦渲染源码转换编译失败，退出码$LASTEXITCODE。" }
@@ -190,15 +187,6 @@ if ($LASTEXITCODE -ne 0) { throw "边界/亚波伦渲染源码转换编译失败
 Push-Location $stage
 try { & jar xf $churchReobfJar } finally { Pop-Location }
 Copy-Item -Path (Join-Path $mainClasses '*') -Destination $stage -Recurse -Force
-foreach ($stub in Get-ChildItem -LiteralPath (Join-Path $repoRoot 'tools/build-stubs') -Recurse -File -Filter '*.java') {
-    $relative = $stub.FullName.Substring((Join-Path $repoRoot 'tools/build-stubs').Length + 1)
-    $classRelative = [IO.Path]::ChangeExtension($relative, '.class')
-    $realClass = Join-Path $mainClasses $classRelative
-    if (-not (Test-Path -LiteralPath $realClass)) { throw "缺少用于替换编译声明的正式实现：$classRelative" }
-    if ((Get-FileHash -LiteralPath $realClass).Hash -ne (Get-FileHash -LiteralPath (Join-Path $stage $classRelative)).Hash) {
-        throw "编译占位声明未被正式实现替换：$classRelative"
-    }
-}
 Copy-Item -Path (Join-Path $repoRoot 'src/main/resources/*') -Destination $stage -Recurse -Force
 Copy-Item -LiteralPath (Join-Path $repoRoot 'LICENSE') -Destination $stage -Force
 $manifestPath = Join-Path $stage 'META-INF/MANIFEST.MF'
@@ -210,7 +198,7 @@ Set-Content -LiteralPath $manifestPath -Value $manifestText -Encoding ascii
 
 $releaseDir = Join-Path $repoRoot 'build/releases'
 New-Item -ItemType Directory -Path $releaseDir -Force | Out-Null
-$outputJar = Join-Path $releaseDir "starfantasy_goety-$Version-source-build.jar"
+$outputJar = Join-Path $releaseDir "starfantasy_goety-$Version-clean.jar"
 if (Test-Path -LiteralPath $outputJar) {
     Remove-Item -LiteralPath $outputJar -Force
 }
@@ -265,6 +253,5 @@ try {
         Classes = @($entries | Where-Object { $_ -like '*.class' }).Count
         Structures = @($entries | Where-Object { $_ -like 'data/starfantasy_goety/structures/*.nbt' }).Count
         Version = $Version
-        Note = '源码编译包不含 Hades 专用资源，不等同于完整授权资源发布包。'
     } | Format-List
 } finally { $zip.Dispose() }

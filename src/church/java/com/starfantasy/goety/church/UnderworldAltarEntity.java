@@ -5,8 +5,10 @@ import com.starfantasy.goety.entity.ApollyonEntity;
 import com.starfantasy.goety.entity.ApollyonPageantSummonEntity;
 import com.starfantasy.goety.registry.ApollyonEntityRegistry;
 import com.starfantasy.goety.registry.ApollyonSoundRegistry;
+import com.starfantasy.goety.compat.ChurchWaystonesCompat;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
@@ -31,6 +33,9 @@ public final class UnderworldAltarEntity extends BlockEntity {
     private long startedAt = Long.MIN_VALUE;
     private UUID summoner;
     private UUID effectId;
+    private boolean churchBridgeFixtures;
+    private boolean bridgeWaystonePlaced;
+    private boolean checkedBridgeWaystone;
     public UnderworldAltarEntity(BlockPos pos, BlockState state) { super(ChurchContent.ALTAR_ENTITY.get(), pos, state); }
     public void use(Player player) {
         if (!(level instanceof ServerLevel server) || player.isSpectator()) return;
@@ -60,7 +65,9 @@ public final class UnderworldAltarEntity extends BlockEntity {
         return !server.getEntitiesOfClass(ApollyonEntity.class, new AABB(worldPosition).inflate(96), e -> e.isAlive()).isEmpty();
     }
     public static void tick(Level world, BlockPos pos, BlockState state, UnderworldAltarEntity altar) {
-        if (!(world instanceof ServerLevel level) || altar.remaining <= 0) return;
+        if (!(world instanceof ServerLevel level)) return;
+        altar.initializeBridgeWaystone(level);
+        if (altar.remaining <= 0) return;
         if (level.getGameTime() == altar.startedAt) return;
         altar.remaining--; altar.setChanged();
         if (altar.remaining != 0) return;
@@ -89,6 +96,17 @@ public final class UnderworldAltarEntity extends BlockEntity {
         }
         altar.summoner = null; altar.setChanged();
     }
+    private void initializeBridgeWaystone(ServerLevel server) {
+        if (!churchBridgeFixtures || bridgeWaystonePlaced || checkedBridgeWaystone) return;
+        if (!ChurchWaystonesCompat.available()) { checkedBridgeWaystone = true; return; }
+        // Template altar (70,8,70), blue bridge endpoint (41,9,129). Churches use Rotation.NONE.
+        BlockPos stone = worldPosition.offset(-29, 1, 59);
+        // Wait for generation and loading of the bridge chunk; never force a worldgen chunk load.
+        if (!server.hasChunkAt(stone)) return;
+        checkedBridgeWaystone = true;
+        bridgeWaystonePlaced = ChurchWaystonesCompat.place(server, stone, Direction.EAST);
+        if (bridgeWaystonePlaced) setChanged();
+    }
     private static void playArrival(ServerLevel level, Vec3 position) {
         level.playSound(null, BlockPos.containing(position), ApollyonSoundRegistry.SUMMON_APOSTLE.get(), SoundSource.HOSTILE, 2.0F, 1.0F);
         // Match the pageant apostles' spherical arrival smoke (1,000 large smoke particles).
@@ -110,6 +128,9 @@ public final class UnderworldAltarEntity extends BlockEntity {
     }
     @Override public void load(CompoundTag tag) {
         super.load(tag); remaining = Math.max(0, Math.min(100, tag.getInt("RitualTicks")));
+        churchBridgeFixtures = tag.getBoolean("ChurchBridgeFixtures");
+        bridgeWaystonePlaced = tag.getBoolean("BridgeWaystonePlaced");
+        checkedBridgeWaystone = false;
         startedAt = tag.contains("RitualStartedAt") ? tag.getLong("RitualStartedAt") : Long.MIN_VALUE;
         summoner = tag.hasUUID("Summoner") ? tag.getUUID("Summoner") : null;
         effectId = tag.hasUUID("SummonEffect") ? tag.getUUID("SummonEffect") : null;
@@ -117,6 +138,8 @@ public final class UnderworldAltarEntity extends BlockEntity {
     }
     @Override protected void saveAdditional(CompoundTag tag) {
         super.saveAdditional(tag); tag.putInt("RitualTicks", remaining);
+        tag.putBoolean("ChurchBridgeFixtures", churchBridgeFixtures);
+        tag.putBoolean("BridgeWaystonePlaced", bridgeWaystonePlaced);
         tag.putLong("RitualStartedAt", startedAt);
         if (summoner != null) tag.putUUID("Summoner", summoner);
         if (effectId != null) tag.putUUID("SummonEffect", effectId);

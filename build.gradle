@@ -1,7 +1,8 @@
-// Mojang-mapped first pass; tools/build.ps1 compiles and merges the SRG source set.
-plugins { id 'net.minecraftforge.gradle' version '6.0.54' }
+// Root entry point for the Mojang-mapped church module. The legacy main source
+// set is compiled by tools/build.ps1 with SRG mappings.
+plugins { id 'net.minecraftforge.gradle' version '[6.0,6.2)' }
 group = 'com.starfantasy'
-version = '0.2.1'
+version = '0.4.3'
 java { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
 minecraft { mappings channel: 'official', version: '1.20.1' }
 sourceSets.main.java.srcDirs = ['src/church/java', 'src/mojang/java', 'tools/build-stubs']
@@ -9,8 +10,9 @@ sourceSets.main.resources.srcDirs = []
 repositories { flatDir { dirs 'build/church-deps' } }
 dependencies {
     minecraft 'net.minecraftforge:forge:1.20.1-47.4.10'
-    compileOnly fg.deobf('church.local:star_fantasy_library:0.1.59')
-    compileOnly fg.deobf('church.local:goety:2.5.56.5')
+    implementation project(':star_fantasy_library')
+    compileOnly fg.deobf('church.local:starfantasy_goety:0.1.258')
+    compileOnly fg.deobf('church.local:goety:2.5.52.4')
     compileOnly fg.deobf('church.local:geckolib:4.8.4')
     compileOnly fg.deobf('church.local:jade:11.13.2')
 }

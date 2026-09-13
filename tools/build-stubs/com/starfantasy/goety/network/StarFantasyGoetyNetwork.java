@@ -2,9 +2,9 @@ package com.starfantasy.goety.network;
 
 import net.minecraft.server.level.ServerPlayer;
 
-/** Compile-time declaration only; replaced with the full network implementation. */
+/** Build-only declaration for the network method supplied by the SRG source set. */
 public final class StarFantasyGoetyNetwork {
-    public static void setChurchFog(ServerPlayer player, boolean inside) {
-        throw new UnsupportedOperationException("Build stub");
-    }
+    private StarFantasyGoetyNetwork() {}
+
+    public static void setChurchFog(ServerPlayer player, boolean inside) {}
 }

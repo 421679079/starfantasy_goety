@@ -30,6 +30,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.MobType;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -112,6 +113,21 @@ public final class ApollyonPageantApostleEntity extends Cultist
         this.m_20242_(true);
     }
 
+    @Override
+    public MobType m_6336_() {
+        return MobType.f_21641_;
+    }
+
+    @Override
+    public void m_7311_(int ticks) {
+        super.m_7311_(Math.min(0, ticks));
+    }
+
+    @Override
+    public boolean m_6060_() {
+        return false;
+    }
+
     public static AttributeSupplier.Builder createAttributes() {
         return Mob.m_21552_()
                 .m_22268_(Attributes.f_22276_, 20.0D)
@@ -175,6 +191,7 @@ public final class ApollyonPageantApostleEntity extends Cultist
 
     @Override
     public void m_8119_() {
+        this.m_20095_();
         super.m_8119_();
         this.m_20242_(true);
         this.m_21573_().m_26573_();
@@ -488,7 +505,7 @@ public final class ApollyonPageantApostleEntity extends Cultist
         }
         if (source != null && source.m_269533_(DamageTypeTags.f_268731_)) {
             amount *= (float) (1.0D - Mth.m_14008_(
-                    ApollyonConfig.apostleMagicDamageReduction(), 0.0D, 1.0D));
+                    ApollyonConfig.apostleMagicDamageReduction(), -1.0D, 1.0D));
         }
         return amount * (float) (1.0D - Mth.m_14008_(
                 ApollyonConfig.apostleDamageReduction(), 0.0D, 1.0D));

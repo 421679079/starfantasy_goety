@@ -149,7 +149,7 @@ public final class ApollyonWildSurgeManager {
         if (!(owner instanceof ApollyonEntity boss) || shouldSkip(boss, target)) {
             return true;
         }
-        if (target.m_6469_(target.m_269291_().m_269333_(boss),
+        if (target.m_6469_(ApollyonDamageSources.front(target, target.m_269291_().m_269333_(boss)),
                 boss.scaleOutgoingDamage(EARTH_FIST_DAMAGE))) {
             Vec3 movement = target.m_20184_();
             target.m_20256_(new Vec3(
@@ -184,7 +184,7 @@ public final class ApollyonWildSurgeManager {
                     target.m_20191_(), center, THORN_WARNING_RADIUS)) {
                 continue;
             }
-            if (target.m_6469_(ModDamageSource.acid(thorn, boss),
+            if (target.m_6469_(ApollyonDamageSources.front(target, ModDamageSource.acid(thorn, boss)),
                     boss.scaleOutgoingDamage(BLOSSOM_THORN_DAMAGE))) {
                 target.m_7292_(new MobEffectInstance(
                         (MobEffect) GoetyEffects.ACID_VENOM.get(),

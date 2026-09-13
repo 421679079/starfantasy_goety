@@ -1,8 +1,12 @@
 pluginManagement {
     repositories {
         gradlePluginPortal()
-        maven { url = 'https://maven.minecraftforge.net/' }
+        maven { name = 'MinecraftForge'; url = 'https://maven.minecraftforge.net/' }
         mavenCentral()
     }
 }
+
 rootProject.name = 'starfantasy_goety'
+
+include ':star_fantasy_library'
+project(':star_fantasy_library').projectDir = file('../star_fantasy_library')

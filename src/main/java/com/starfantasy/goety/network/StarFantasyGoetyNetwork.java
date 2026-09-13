@@ -13,7 +13,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 
 /** Compact, one-shot visual messages owned by this addon. */
 public final class StarFantasyGoetyNetwork {
-    private static final String PROTOCOL = "5";
+    private static final String PROTOCOL = "8";
     private static final double LIGHTNING_TRACKING_RANGE = 256.0D;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -54,7 +54,32 @@ public final class StarFantasyGoetyNetwork {
                 .decoder(ClientboundChurchFogPacket::decode)
                 .consumerMainThread(ClientboundChurchFogPacket::handle)
                 .add();
+        CHANNEL.messageBuilder(ServerboundHadesRidePacket.class, 5, NetworkDirection.PLAY_TO_SERVER)
+                .encoder(ServerboundHadesRidePacket::encode)
+                .decoder(ServerboundHadesRidePacket::decode)
+                .consumerMainThread(ServerboundHadesRidePacket::handle)
+                .add();
+        CHANNEL.messageBuilder(ServerboundHadesDismountPacket.class, 6, NetworkDirection.PLAY_TO_SERVER)
+                .encoder(ServerboundHadesDismountPacket::encode)
+                .decoder(ServerboundHadesDismountPacket::decode)
+                .consumerMainThread(ServerboundHadesDismountPacket::handle)
+                .add();
+        CHANNEL.messageBuilder(ServerboundHadesAttackPacket.class, 7, NetworkDirection.PLAY_TO_SERVER)
+                .encoder(ServerboundHadesAttackPacket::encode)
+                .decoder(ServerboundHadesAttackPacket::decode)
+                .consumerMainThread(ServerboundHadesAttackPacket::handle)
+                .add();
     }
+
+    public static void sendHadesRideInput(ServerboundHadesRidePacket packet) {
+        CHANNEL.sendToServer(packet);
+    }
+
+    public static void attackWithHades(int entityId, float yaw) {
+        CHANNEL.sendToServer(new ServerboundHadesAttackPacket(entityId, yaw));
+    }
+
+    public static void dismountHades(int entityId) { CHANNEL.sendToServer(new ServerboundHadesDismountPacket(entityId)); }
 
     public static void sendApollyonLightningStrike(ServerLevel level, Vec3 center) {
         sendApollyonLightningStrike(level, center, 3.0F);

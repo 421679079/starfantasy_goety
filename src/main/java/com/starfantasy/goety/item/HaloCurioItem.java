@@ -5,6 +5,8 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import com.starfantasy.goety.registry.HaloItemRegistry;
 import com.starfantasy.goety.registry.SpellAttributeRegistry;
+import com.starfantasy.goety.combat.HaloPotionEffects;
+import com.starfantasy.goety.combat.HaloProtection;
 import com.starfantasy.library.combat.StarFantasyCombatAttributes;
 import java.util.List;
 import java.util.UUID;
@@ -62,6 +64,11 @@ public final class HaloCurioItem extends Item implements ICurioItem {
                 || player.m_9236_().f_46443_ || !player.m_6084_()) {
             return;
         }
+        if (this == HaloItemRegistry.HALO_OF_THE_PYRE_LORD.get()) {
+            player.m_20095_();
+        }
+        HaloProtection.clearBlockedEffects(this, player);
+        HaloPotionEffects.apply(this, player);
         if (this == HaloItemRegistry.HALO_OF_THE_PROFANE.get()
                 && player.f_19797_ % 20 == 0) {
             FoodData foodData = player.m_36324_();
@@ -74,7 +81,6 @@ public final class HaloCurioItem extends Item implements ICurioItem {
         } else if (this == HaloItemRegistry.HALO_OF_THE_GLORIOUS.get()
                 && player.f_19797_ % 200 == 0) {
             player.m_7292_(new MobEffectInstance(MobEffects.f_19617_, 300, 0));
-            player.m_7292_(new MobEffectInstance(MobEffects.f_19606_, 300, 0));
         }
     }
 
@@ -89,6 +95,24 @@ public final class HaloCurioItem extends Item implements ICurioItem {
         } else if (this == HaloItemRegistry.HALO_OF_THE_GLORIOUS.get()) {
             tooltip.add(Component.m_237115_("tooltip.starfantasy_goety.halo_of_the_glorious")
                     .m_130940_(ChatFormatting.YELLOW));
+        } else if (this == HaloItemRegistry.HALO_OF_THE_PYRE_LORD.get()) {
+            tooltip.add(Component.m_237115_("tooltip.starfantasy_goety.halo_of_the_pyre_lord")
+                    .m_130940_(ChatFormatting.GOLD));
+        } else if (this == HaloItemRegistry.HALO_OF_THE_CRUEL.get()) {
+            tooltip.add(Component.m_237115_("tooltip.starfantasy_goety.halo_of_the_cruel")
+                    .m_130940_(ChatFormatting.AQUA));
+        } else if (this == HaloItemRegistry.HALO_OF_THE_DEFILER.get()) {
+            tooltip.add(Component.m_237115_("tooltip.starfantasy_goety.halo_of_the_defiler")
+                    .m_130940_(ChatFormatting.GREEN));
+        } else if (this == HaloItemRegistry.HALO_OF_THE_TERRIBLE.get()) {
+            tooltip.add(Component.m_237115_("tooltip.starfantasy_goety.halo_of_the_terrible")
+                    .m_130940_(ChatFormatting.YELLOW));
+        } else if (this == HaloItemRegistry.HALO_OF_THE_DARK.get()) {
+            tooltip.add(Component.m_237115_("tooltip.starfantasy_goety.halo_of_the_dark")
+                    .m_130940_(ChatFormatting.DARK_PURPLE));
+        } else if (this == HaloItemRegistry.HALO_OF_THE_GREAT_SHADOW.get()) {
+            tooltip.add(Component.m_237115_("tooltip.starfantasy_goety.halo_of_the_great_shadow")
+                    .m_130940_(ChatFormatting.GRAY));
         }
     }
 
@@ -122,13 +146,16 @@ public final class HaloCurioItem extends Item implements ICurioItem {
                             AttributeModifier.Operation.MULTIPLY_TOTAL));
         }
 
-        if (this == HaloItemRegistry.HALO_OF_THE_GLORIOUS.get()) {
-            modifiers.put(
-                    StarFantasyCombatAttributes.PHYSICAL_RESISTANCE.get(),
-                    modifier(slotUuid, "physical_resistance", RESISTANCE,
-                            AttributeModifier.Operation.MULTIPLY_TOTAL));
+        if (this == HaloItemRegistry.HALO_OF_THE_PYRE_LORD.get()) {
+            modifiers.put(StarFantasyCombatAttributes.FIRE_RESISTANCE.get(),
+                    modifier(slotUuid, "fire_resistance", 0.25D, AttributeModifier.Operation.ADDITION));
+        } else if (this == HaloItemRegistry.HALO_OF_THE_GLORIOUS.get()) {
+            modifiers.put(StarFantasyCombatAttributes.PHYSICAL_RESISTANCE.get(),
+                    modifier(slotUuid, "physical_resistance", 0.10D, AttributeModifier.Operation.ADDITION));
+        } else if (this == HaloItemRegistry.HALO_OF_THE_ATROCIOUS.get()) {
+            modifiers.put(StarFantasyCombatAttributes.ARMOR_PENETRATION.get(),
+                    modifier(slotUuid, "armor_penetration", 0.20D, AttributeModifier.Operation.ADDITION));
         }
-
         return modifiers.build();
     }
 
