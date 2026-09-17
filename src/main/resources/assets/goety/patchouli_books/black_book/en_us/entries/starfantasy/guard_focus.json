@@ -1,0 +1,19 @@
+{
+  "name": "Guard Focus",
+  "icon": "starfantasy_goety:guard_focus",
+  "category": "goety:starfantasy",
+  "sortnum": 0,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Raise a shield to guard against most attacks from the front while casting. A successful guard restores Soul Energy, grants extra hurt invulnerability and clears the focus's cooldown.$(br2)The Duration enchantment extends the guarding time."
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:guard_focus"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "starfantasy_goety:guard_focus": 1
+  }
+}

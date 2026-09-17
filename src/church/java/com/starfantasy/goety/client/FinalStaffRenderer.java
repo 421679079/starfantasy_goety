@@ -7,8 +7,13 @@ import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.*;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.HumanoidArm;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
@@ -52,9 +57,24 @@ public final class FinalStaffRenderer extends BlockEntityWithoutLevelRenderer {
                 .toArray(ResourceLocation[]::new);
     }
 
-    public static void initialize(Consumer<IClientItemExtensions> consumer) {
+    public static void initialize(Consumer<IClientItemExtensions> consumer, IClientItemExtensions wandExtensions) {
         consumer.accept(new IClientItemExtensions() {
             private FinalStaffRenderer renderer;
+
+            // Keep Goety's spell-specific arm poses and first-person casting transforms.
+            @Override
+            public HumanoidModel.ArmPose getArmPose(LivingEntity entity, InteractionHand hand, ItemStack stack) {
+                return wandExtensions.getArmPose(entity, hand, stack);
+            }
+
+            @Override
+            public boolean applyForgeHandTransform(PoseStack pose, LocalPlayer player, HumanoidArm arm,
+                                                    ItemStack stack, float partialTick,
+                                                    float equipProcess, float swingProcess) {
+                return wandExtensions.applyForgeHandTransform(pose, player, arm, stack,
+                        partialTick, equipProcess, swingProcess);
+            }
+
             @Override public BlockEntityWithoutLevelRenderer getCustomRenderer() {
                 if (renderer == null) renderer = new FinalStaffRenderer();
                 return renderer;

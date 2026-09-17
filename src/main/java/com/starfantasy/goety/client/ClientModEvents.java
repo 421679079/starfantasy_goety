@@ -6,11 +6,14 @@ import com.starfantasy.goety.StarFantasyGoetyMod;
 import com.starfantasy.goety.registry.ApollyonParticleRegistry;
 import com.starfantasy.goety.registry.ApollyonEntityRegistry;
 import com.starfantasy.goety.registry.HadesEntityRegistry;
+import com.starfantasy.goety.registry.HaloItemRegistry;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.RegisterParticleProvidersEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import top.theillusivec4.curios.api.client.CuriosRendererRegistry;
 
 @Mod.EventBusSubscriber(
         modid = StarFantasyGoetyMod.MODID,
@@ -18,6 +21,12 @@ import net.minecraftforge.fml.common.Mod;
         value = Dist.CLIENT)
 public final class ClientModEvents {
     private ClientModEvents() {
+    }
+
+    @SubscribeEvent
+    public static void setupCurioRenderers(FMLClientSetupEvent event) {
+        event.enqueueWork(() -> HaloItemRegistry.ALL_HALOS.forEach(halo ->
+                CuriosRendererRegistry.register(halo.get(), () -> new HaloCurioRenderer(halo.getId().m_135815_()))));
     }
 
     @SubscribeEvent
@@ -117,6 +126,7 @@ public final class ClientModEvents {
                 BlossomThornRenderer::new);
         event.registerEntityRenderer(HadesEntityRegistry.HADES.get(), HadesGeoRenderer::new);
         event.registerEntityRenderer(HadesEntityRegistry.HADES_SERVANT.get(), HadesServantGeoRenderer::new);
+        event.registerEntityRenderer(ApollyonEntityRegistry.APOLLYON_SERVANT.get(), ApollyonServantGeoRenderer::new);
     }
 
     @SubscribeEvent

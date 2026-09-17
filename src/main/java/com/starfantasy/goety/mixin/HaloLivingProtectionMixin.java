@@ -1,7 +1,6 @@
 package com.starfantasy.goety.mixin;
 
 import com.starfantasy.goety.combat.HaloProtection;
-import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 import org.spongepowered.asm.mixin.Mixin;
@@ -27,14 +26,4 @@ public abstract class HaloLivingProtectionMixin {
         }
     }
 
-    // Apply the fixed reductions after armor/resistance calculations, before absorption hearts.
-    @Inject(method = "m_6515_(Lnet/minecraft/world/damagesource/DamageSource;F)F",
-            at = @At("RETURN"), cancellable = true, remap = false)
-    private void starfantasy$reduceHaloDamage(DamageSource source, float incoming,
-            CallbackInfoReturnable<Float> callback) {
-        float multiplier = HaloProtection.damageMultiplier((LivingEntity)(Object)this, source);
-        if (multiplier < 1.0F) {
-            callback.setReturnValue(callback.getReturnValueF() * multiplier);
-        }
-    }
 }

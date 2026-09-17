@@ -6,16 +6,10 @@
   },
   "craftType": "deep",
   "soulCost": 1,
-  "duration": 10,
+  "duration": 1,
   "ingredients": [
     {
       "item": "starfantasy_goety:halo_of_the_abhorrent"
-    },
-    {
-      "item": "goety:abyss_crown"
-    },
-    {
-      "item": "goety:abyss_robe"
     }
   ],
   "result": {

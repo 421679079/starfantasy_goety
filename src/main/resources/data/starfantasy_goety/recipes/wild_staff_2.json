@@ -6,16 +6,10 @@
   },
   "craftType": "overgrown",
   "soulCost": 1,
-  "duration": 10,
+  "duration": 1,
   "ingredients": [
     {
       "item": "starfantasy_goety:halo_of_the_defiler"
-    },
-    {
-      "item": "goety:wild_crown"
-    },
-    {
-      "item": "goety:wild_robe"
     }
   ],
   "result": {

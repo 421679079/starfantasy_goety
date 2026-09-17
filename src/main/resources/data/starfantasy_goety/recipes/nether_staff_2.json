@@ -6,16 +6,10 @@
   },
   "craftType": "expert_nether",
   "soulCost": 1,
-  "duration": 10,
+  "duration": 1,
   "ingredients": [
     {
       "item": "starfantasy_goety:halo_of_the_pyre_lord"
-    },
-    {
-      "item": "goety:nether_crown"
-    },
-    {
-      "item": "goety:nether_robe"
     }
   ],
   "result": {

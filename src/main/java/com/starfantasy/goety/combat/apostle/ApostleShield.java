@@ -11,6 +11,13 @@ public final class ApostleShield {
     private static final String TAG = "StarFantasyApostleShield";
     private static final UUID KNOCKBACK = UUID.fromString("2ec095b2-af35-4c4e-8702-87a31a6e9c5d");
     private ApostleShield() {}
+    public static void clear(Apostle boss) {
+        boss.getPersistentData().m_128473_(TAG);
+        if (!boss.m_9236_().f_46443_)
+            ((ApostleCastAccess) boss).starfantasy$shieldVisible(false);
+        AttributeInstance attr = boss.m_21051_(Attributes.f_22278_);
+        if (attr != null && attr.m_22111_(KNOCKBACK) != null) attr.m_22120_(KNOCKBACK);
+    }
     public static float get(Apostle boss) { return boss.getPersistentData().m_128457_(TAG); }
     public static void set(Apostle boss, float value) {
         boss.getPersistentData().m_128350_(TAG, Math.max(0, value));

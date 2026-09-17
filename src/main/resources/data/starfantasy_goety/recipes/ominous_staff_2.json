@@ -6,16 +6,10 @@
   },
   "craftType": "magic",
   "soulCost": 1,
-  "duration": 10,
+  "duration": 1,
   "ingredients": [
     {
       "item": "starfantasy_goety:halo_of_the_witch_king"
-    },
-    {
-      "item": "goety:grand_turban"
-    },
-    {
-      "item": "goety:grand_robe"
     }
   ],
   "result": {

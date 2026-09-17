@@ -1,12 +1,7 @@
 package com.starfantasy.goety.combat;
 
 import com.Polarice3.Goety.common.effects.GoetyEffects;
-import com.Polarice3.Goety.init.ModTags;
-import com.Polarice3.Goety.utils.ModDamageSource;
 import com.starfantasy.goety.registry.HaloItemRegistry;
-import net.minecraft.tags.DamageTypeTags;
-import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
@@ -68,35 +63,6 @@ public final class HaloProtection {
         if (player.m_21023_(effect)) {
             player.m_21195_(effect);
         }
-    }
-
-    public static float damageMultiplier(Entity entity, DamageSource source) {
-        if (!(entity instanceof Player)) {
-            return 1.0F;
-        }
-        float multiplier = 1.0F;
-        if ((source.m_269533_(DamageTypeTags.f_268419_)
-                || source.m_269533_(ModTags.DamageTypes.FROST_ATTACKS))
-                && wears(entity, HaloItemRegistry.HALO_OF_THE_CRUEL.get())) {
-            multiplier *= 0.75F;
-        }
-        if ((source.m_276093_(ModDamageSource.ACID) || source.m_276093_(ModDamageSource.VENOM))
-                && wears(entity, HaloItemRegistry.HALO_OF_THE_DEFILER.get())) {
-            multiplier *= 0.75F;
-        }
-        if (source.m_269533_(ModTags.DamageTypes.SHOCK_ATTACKS)
-                && wears(entity, HaloItemRegistry.HALO_OF_THE_TERRIBLE.get())) {
-            multiplier *= 0.75F;
-        }
-        if ((source.m_276093_(ModDamageSource.VOIDED) || source.m_276093_(DamageTypes.f_268724_))
-                && wears(entity, HaloItemRegistry.HALO_OF_THE_DARK.get())) {
-            multiplier *= 0.90F;
-        }
-        if (source.m_269533_(DamageTypeTags.f_268524_)
-                && wears(entity, HaloItemRegistry.HALO_OF_THE_GREAT_SHADOW.get())) {
-            multiplier *= 0.85F;
-        }
-        return multiplier;
     }
 
     private HaloProtection() {}

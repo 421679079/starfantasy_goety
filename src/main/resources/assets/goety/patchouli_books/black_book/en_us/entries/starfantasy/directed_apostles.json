@@ -1,0 +1,60 @@
+{
+  "name": "Summoning Titled Apostles",
+  "icon": "starfantasy_goety:halo_of_the_risen",
+  "category": "goety:starfantasy",
+  "sortnum": 6,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Offer an additional token in the ritual that summons the Nether's pale envoys, and you can direct the summons toward a specific being.$(br2)If you seek to seize a particular Apostle's divinity, use these rituals to challenge them to battle."
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:directed_apostle_risen"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:directed_apostle_abhorrent"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:directed_apostle_defiler"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:directed_apostle_dark"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:directed_apostle_great_shadow"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:directed_apostle_witch_king"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:directed_apostle_pyre_lord"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:directed_apostle_profane"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:directed_apostle_cruel"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:directed_apostle_terrible"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:directed_apostle_glorious"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:directed_apostle_atrocious"
+    }
+  ]
+}

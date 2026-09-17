@@ -12,7 +12,6 @@ import com.Polarice3.Goety.common.entities.util.SummonCircle;
 import com.Polarice3.Goety.utils.BlockFinder;
 import com.starfantasy.goety.StarFantasyGoetyMod;
 import com.starfantasy.goety.entity.ApollyonEntity;
-import com.starfantasy.goety.entity.ApollyonPageantApostleEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Mob;
@@ -135,50 +134,13 @@ public final class ApollyonSummonManager {
     }
 
     @SubscribeEvent
-    public static void redirectProtectedPageantAttackers(LivingEvent.LivingTickEvent event) {
-        if (!(event.getEntity() instanceof Mob mob) || !mob.m_6084_()
-                || !(mob.m_9236_() instanceof ServerLevel level)) {
-            return;
-        }
-        ApollyonEntity boss;
-        ApollyonPageantApostleEntity other;
-        if (mob.m_5448_() instanceof ApollyonEntity owner) {
-            boss = owner;
-            other = boss.pageantRedirectTarget(mob);
-        } else if (mob.m_5448_() instanceof ApollyonPageantApostleEntity protectedActor
-                && protectedActor.pageantOwnerUuid() != null
-                && level.m_8791_(protectedActor.pageantOwnerUuid()) instanceof ApollyonEntity owner) {
-            boss = owner;
-            other = protectedActor.protectedRedirectTarget();
-        } else {
-            return;
-        }
-        if (!boss.m_6084_() || other == null) {
-            return;
-        }
-        Vec3 home = boss.arenaHomePosition();
-        double dx = mob.m_20185_() - home.f_82479_;
-        double dz = mob.m_20189_() - home.f_82481_;
-        if (dx * dx + dz * dz > ApollyonEntity.ARENA_RADIUS * ApollyonEntity.ARENA_RADIUS
-                || Math.abs(mob.m_20186_() - home.f_82480_) > 8.0D) {
-            return;
-        }
-        mob.m_6710_(other);
-        mob.m_6274_().m_21882_(MemoryModuleType.f_26334_, other.m_20148_(), 600L);
-        mob.m_6274_().m_21882_(MemoryModuleType.f_26372_, other, 600L);
-        if (mob instanceof Warden warden) {
-            warden.m_219387_(other, AngerLevel.ANGRY.m_219226_() + 20, false);
-            warden.m_219459_(other);
-        }
-    }
-
-    @SubscribeEvent
     public static void redirectMonolithAttackers(LivingEvent.LivingTickEvent event) {
         if (!(event.getEntity() instanceof Mob mob)
                 || !(mob.m_9236_() instanceof ServerLevel level)
                 || !mob.m_6084_()
                 || !(mob.m_5448_() instanceof ApollyonEntity boss)
                 || !boss.m_6084_()
+                || boss.isPageantCombatLocked()
                 || !boss.shouldRedirectAttackersToMonoliths()) {
             return;
         }

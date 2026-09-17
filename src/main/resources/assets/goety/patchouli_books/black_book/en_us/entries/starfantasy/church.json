@@ -1,0 +1,32 @@
+{
+  "name": "Underworld Church",
+  "icon": "starfantasy_goety:underworld_altar",
+  "category": "goety:starfantasy",
+  "sortnum": 2,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "In the Soul Sand Valley, you may find a ruined church of the Nether cult above the lava rivers, its former glory long gone."
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "starfantasy_goety:textures/gui/book/church.png"
+      ],
+      "border": true,
+      "text": ""
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Find this altar at the great platform's center. Use any Apostle's halo on it to awaken the underworld's most fearsome being."
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "starfantasy_goety:textures/gui/book/church_altar.png"
+      ],
+      "border": true,
+      "text": ""
+    }
+  ]
+}

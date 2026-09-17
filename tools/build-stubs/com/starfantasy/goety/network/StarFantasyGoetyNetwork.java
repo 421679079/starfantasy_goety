@@ -7,4 +7,5 @@ public final class StarFantasyGoetyNetwork {
     private StarFantasyGoetyNetwork() {}
 
     public static void setChurchFog(ServerPlayer player, boolean inside) {}
+    public static void selectStaffSchool(ServerboundStaffSchoolPacket packet) {}
 }

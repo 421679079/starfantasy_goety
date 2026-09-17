@@ -5,9 +5,10 @@ issueTrackerURL="https://github.com/421679079/starfantasy_goety/issues"
 
 [[mods]]
 modId="starfantasy_goety"
-version="0.4.3"
+version="0.6.1"
 displayName="Goety:StarFantasy"
 authors="Funits"
+credits="Combat protection references: Mhzy contributors MegaDarkness, XiaoWu, xiaobai4911, BaiXi, mx_wj. See CREDITS.md and THIRD_PARTY_NOTICES.md."
 description=""
 
 [[dependencies.starfantasy_goety]]
@@ -27,7 +28,7 @@ side="BOTH"
 [[dependencies.starfantasy_goety]]
 modId="goety"
 mandatory=true
-versionRange="[2.5.52.4,)"
+versionRange="[2.5.56.5,)"
 ordering="AFTER"
 side="BOTH"
 
@@ -41,7 +42,7 @@ side="BOTH"
 [[dependencies.starfantasy_goety]]
 modId="star_fantasy_library"
 mandatory=true
-versionRange="[0.1.63,)"
+versionRange="[0.2.1,)"
 ordering="AFTER"
 side="BOTH"
 

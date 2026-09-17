@@ -10,6 +10,11 @@ public final class ApollyonConfig {
 
     public static final double DEFAULT_BOSS_HEALTH = 666.0D;
     public static final double DEFAULT_ARMOR = 8.0D;
+    public static final double DEFAULT_HEALTH_REGENERATION = 1.0D;
+    public static final double DEFAULT_MAGIC_DAMAGE_REDUCTION = 0.35D;
+    public static final double DEFAULT_FIXED_DAMAGE_REDUCTION = 0.25D;
+    public static final double DEFAULT_DAMAGE_CAP = 20.0D;
+    public static final int DEFAULT_BOSS_INVULNERABILITY_TIME = 10;
     public static final double DEFAULT_APOSTLE_GLORIOUS_HEALTH = 100.0D;
     public static final double DEFAULT_APOSTLE_RISEN_HEALTH = 120.0D;
     public static final double DEFAULT_APOSTLE_WITCH_KING_HEALTH = 120.0D;
@@ -153,7 +158,7 @@ public final class ApollyonConfig {
                 .defineInRange("bossHealth", DEFAULT_BOSS_HEALTH, 1.0D, 100000.0D);
         HEALTH_REGENERATION = builder
                 .comment("每秒生命恢复")
-                .defineInRange("healthRegeneration", 1.0D, 0.0D, 100000.0D);
+                .defineInRange("healthRegeneration", DEFAULT_HEALTH_REGENERATION, 0.0D, 100000.0D);
         ARMOR = builder
                 .comment("护甲&盔甲韧性。")
                 .defineInRange("armor", DEFAULT_ARMOR, 0.0D, 1000.0D);
@@ -165,16 +170,16 @@ public final class ApollyonConfig {
                 .defineInRange("damageTakenMultiplier", 0.5D, 0.0D, 1000.0D);
         MAGIC_DAMAGE_REDUCTION = builder
                 .comment("魔法抗性。")
-                .defineInRange("magicDamageReduction", 0.35D, -1.0D, 1.0D);
+                .defineInRange("magicDamageReduction", DEFAULT_MAGIC_DAMAGE_REDUCTION, -1.0D, 1.0D);
         FIXED_DAMAGE_REDUCTION = builder
                 .comment("常驻减伤。")
-                .defineInRange("fixedDamageReduction", 0.25D, 0.0D, 1.0D);
+                .defineInRange("fixedDamageReduction", DEFAULT_FIXED_DAMAGE_REDUCTION, 0.0D, 1.0D);
         DAMAGE_CAP = builder
                 .comment("单次受伤的伤害限制。")
-                .defineInRange("damageCap", 20.0D, 0.0D, 100000.0D);
+                .defineInRange("damageCap", DEFAULT_DAMAGE_CAP, 0.0D, 100000.0D);
         BOSS_INVULNERABILITY_TIME = builder
                 .comment("受击时产生的无敌帧 （单位是tick）")
-                .defineInRange("bossInvulnerabilityTime", 10, 0, Integer.MAX_VALUE);
+                .defineInRange("bossInvulnerabilityTime", DEFAULT_BOSS_INVULNERABILITY_TIME, 0, Integer.MAX_VALUE);
         DEATH_EXPERIENCE = builder
                 .comment("掉落的经验值。")
                 .defineInRange("deathExperience", 10000, 0, Integer.MAX_VALUE);

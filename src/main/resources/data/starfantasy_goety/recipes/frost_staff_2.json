@@ -6,16 +6,10 @@
   },
   "craftType": "frost",
   "soulCost": 1,
-  "duration": 10,
+  "duration": 1,
   "ingredients": [
     {
       "item": "starfantasy_goety:halo_of_the_cruel"
-    },
-    {
-      "item": "goety:frost_crown"
-    },
-    {
-      "item": "goety:frost_robe"
     }
   ],
   "result": {

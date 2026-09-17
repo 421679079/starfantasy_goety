@@ -1,6 +1,7 @@
 package com.starfantasy.goety.mixin;
 import com.Polarice3.Goety.common.entities.projectiles.DeathArrow;
 import com.starfantasy.goety.config.ApostleConfig;
+import com.starfantasy.goety.compat.ApostleCompatibility;
 import com.starfantasy.goety.entity.ApollyonDeathArrowEntity;
 import com.starfantasy.library.vfx.StarFantasyStarArrowVisual;
 import net.minecraft.world.entity.projectile.Arrow;
@@ -18,6 +19,7 @@ public abstract class DeathArrowTrailMixin extends Arrow implements StarFantasyS
     @Inject(method = "m_8119_", at = @At("TAIL"))
     private void starfantasy$trail(CallbackInfo ci) {
         if (this.m_9236_().f_46443_ && ApostleConfig.IMPROVED_ARCHERY.get()
+                && !ApostleCompatibility.isRevelationApollyon(this.m_19749_())
                 && !((Object) this instanceof ApollyonDeathArrowEntity)) recordTrail();
     }
     private static final int TRAIL_POINTS = 16;

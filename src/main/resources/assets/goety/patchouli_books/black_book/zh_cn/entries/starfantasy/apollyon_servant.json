@@ -1,0 +1,27 @@
+{
+  "name": "亚小妹仆从",
+  "icon": "starfantasy_goety:faded_crown",
+  "category": "goety:starfantasy",
+  "sortnum": 5,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "将哈迪斯仆从遗留的失色神环，与下界苍白使者的衣冠相合，再以一名使徒的躯体为容器，或许能唤起那位伟大存在的一丝神格，借其身躯降临并为你而战。"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:summon_apollyon_servant"
+    },
+    {
+      "type": "patchouli:text",
+      "text": "若亚小妹仆从不慎死亡，将会留下失色圣冠，可以利用这些材料将其重新复活，无需再献祭使徒。"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:revive_apollyon_servant"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "starfantasy_goety:faded_crown": 3
+  }
+}

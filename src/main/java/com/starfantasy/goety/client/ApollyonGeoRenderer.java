@@ -22,7 +22,7 @@ public final class ApollyonGeoRenderer extends GeoEntityRenderer<ApollyonEntity>
                 new CultistModel<>(context.m_174023_(ModModelLayer.APOSTLE))));
         this.arenaBoundaryRenderer = new ApollyonArenaBoundaryRenderer();
         this.addRenderLayer(new ApollyonMonolithAuraLayer(this));
-        this.addRenderLayer(new ApollyonHeldItemLayer(this, context.m_234598_()));
+        this.addRenderLayer(new ApollyonHeldItemLayer<>(this, context.m_234598_()));
         this.withScale(0.65F);
         this.f_114477_ = 0.8F;
     }

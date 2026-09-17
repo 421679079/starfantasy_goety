@@ -148,13 +148,29 @@ public final class HaloCurioItem extends Item implements ICurioItem {
 
         if (this == HaloItemRegistry.HALO_OF_THE_PYRE_LORD.get()) {
             modifiers.put(StarFantasyCombatAttributes.FIRE_RESISTANCE.get(),
-                    modifier(slotUuid, "fire_resistance", 0.25D, AttributeModifier.Operation.ADDITION));
+                    modifier(slotUuid, "fire_resistance", 0.25D, AttributeModifier.Operation.MULTIPLY_TOTAL));
         } else if (this == HaloItemRegistry.HALO_OF_THE_GLORIOUS.get()) {
             modifiers.put(StarFantasyCombatAttributes.PHYSICAL_RESISTANCE.get(),
-                    modifier(slotUuid, "physical_resistance", 0.10D, AttributeModifier.Operation.ADDITION));
+                    modifier(slotUuid, "physical_resistance", 0.10D, AttributeModifier.Operation.MULTIPLY_TOTAL));
         } else if (this == HaloItemRegistry.HALO_OF_THE_ATROCIOUS.get()) {
             modifiers.put(StarFantasyCombatAttributes.ARMOR_PENETRATION.get(),
-                    modifier(slotUuid, "armor_penetration", 0.20D, AttributeModifier.Operation.ADDITION));
+                    modifier(slotUuid, "armor_penetration", 0.20D, AttributeModifier.Operation.MULTIPLY_TOTAL));
+        }
+        if (this == HaloItemRegistry.HALO_OF_THE_CRUEL.get()) {
+            modifiers.put(StarFantasyCombatAttributes.FROST_RESISTANCE.get(),
+                    modifier(slotUuid, "frost_resistance", 0.25D, AttributeModifier.Operation.MULTIPLY_TOTAL));
+        } else if (this == HaloItemRegistry.HALO_OF_THE_DEFILER.get()) {
+            modifiers.put(StarFantasyCombatAttributes.POISON_RESISTANCE.get(),
+                    modifier(slotUuid, "poison_resistance", 0.25D, AttributeModifier.Operation.MULTIPLY_TOTAL));
+        } else if (this == HaloItemRegistry.HALO_OF_THE_TERRIBLE.get()) {
+            modifiers.put(StarFantasyCombatAttributes.LIGHTNING_RESISTANCE.get(),
+                    modifier(slotUuid, "lightning_resistance", 0.25D, AttributeModifier.Operation.MULTIPLY_TOTAL));
+        } else if (this == HaloItemRegistry.HALO_OF_THE_DARK.get()) {
+            modifiers.put(StarFantasyCombatAttributes.VOID_RESISTANCE.get(),
+                    modifier(slotUuid, "void_resistance", 0.10D, AttributeModifier.Operation.MULTIPLY_TOTAL));
+        } else if (this == HaloItemRegistry.HALO_OF_THE_GREAT_SHADOW.get()) {
+            modifiers.put(StarFantasyCombatAttributes.PROJECTILE_RESISTANCE.get(),
+                    modifier(slotUuid, "projectile_resistance", 0.15D, AttributeModifier.Operation.MULTIPLY_TOTAL));
         }
         return modifiers.build();
     }

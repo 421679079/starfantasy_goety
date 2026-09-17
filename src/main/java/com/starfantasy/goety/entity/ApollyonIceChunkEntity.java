@@ -1,5 +1,7 @@
 package com.starfantasy.goety.entity;
 
+import net.minecraft.world.entity.Mob;
+import com.starfantasy.goety.combat.ApollyonSpellSupport;
 import com.Polarice3.Goety.client.particles.GatherFrostParticleOption;
 import com.Polarice3.Goety.common.effects.GoetyEffects;
 import com.Polarice3.Goety.common.entities.projectiles.IceChunk;
@@ -58,7 +60,7 @@ public final class ApollyonIceChunkEntity extends IceChunk {
         this.hovering = 0;
     }
 
-    public void initialize(ApollyonEntity owner, LivingEntity target, double groundY) {
+    public void initialize(Mob owner, LivingEntity target, double groundY) {
         this.setOwner(owner);
         this.setTarget(target);
         this.groundY = groundY;
@@ -183,10 +185,12 @@ public final class ApollyonIceChunkEntity extends IceChunk {
         }
         if (this.timelineTick == TRACKING_END_TICK) {
             Entity owner = this.m_269323_();
+            if (ApollyonSpellSupport.warnings(owner)) {
             StarFantasyVfx.redGroundWarningCircle(
                     owner == null ? this : owner,
                     new Vec3(this.m_20185_(), this.groundY + 0.06D, this.m_20189_()),
                     WARNING_DURATION_TICKS, WARNING_RADIUS);
+        }
             this.m_5496_((SoundEvent) ModSounds.ICE_CHUNK_DROP.get(), 1.0F, 1.0F);
         }
     }
@@ -217,7 +221,7 @@ public final class ApollyonIceChunkEntity extends IceChunk {
 
     private void applyCircularImpactDamage() {
         LivingEntity owner = this.m_269323_();
-        if (!(owner instanceof ApollyonEntity boss) || !boss.m_6084_()) {
+        if ((!(owner instanceof Mob boss) || !ApollyonSpellSupport.isCaster(boss)) || !boss.m_6084_()) {
             return;
         }
         double centerX = this.m_20185_();
@@ -271,18 +275,18 @@ public final class ApollyonIceChunkEntity extends IceChunk {
     @Override
     public void damageTargets(LivingEntity target) {
         LivingEntity owner = this.m_269323_();
-        if (this.suppressNativeDamage || !(owner instanceof ApollyonEntity boss)) {
+        if (this.suppressNativeDamage || (!(owner instanceof Mob boss) || !ApollyonSpellSupport.isCaster(boss))) {
             return;
         }
         this.hurtTarget(boss, target);
     }
 
-    private void hurtTarget(ApollyonEntity boss, LivingEntity target) {
-        if (target == null || boss.isFriendlyEntity(target) || !target.m_6084_()) {
+    private void hurtTarget(Mob boss, LivingEntity target) {
+        if (target == null || ApollyonSpellSupport.friendly(boss, target) || !target.m_6084_()) {
             return;
         }
         if (target.m_6469_(ApollyonDamageSources.front(target, ModDamageSource.indirectFreeze(this, boss)),
-                boss.scaleOutgoingDamage(FROST_DAMAGE))) {
+                ApollyonSpellSupport.damage(boss, FROST_DAMAGE))) {
             target.m_7292_(new MobEffectInstance(
                     (MobEffect) GoetyEffects.STUNNED.get(), STUN_DURATION_TICKS));
         }

@@ -2,7 +2,8 @@ package com.starfantasy.goety.combat;
 
 import com.Polarice3.Goety.common.effects.GoetyEffects;
 import com.Polarice3.Goety.init.ModSounds;
-import com.starfantasy.goety.entity.ApollyonEntity;
+import net.minecraft.world.entity.Mob;
+import com.starfantasy.goety.entity.ApollyonServantEntity;
 import com.starfantasy.goety.entity.ApollyonSectorEffectEntity;
 import com.starfantasy.library.vfx.StarFantasyVfx;
 import net.minecraft.server.level.ServerLevel;
@@ -11,6 +12,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -35,36 +37,38 @@ public final class ApollyonVoidRayManager {
     private ApollyonVoidRayManager() {
     }
 
-    public static Vec3 captureAnchor(ApollyonEntity boss) {
+    public static Vec3 captureAnchor(Mob boss) {
         if (boss == null || !(boss.m_9236_() instanceof ServerLevel)) {
             return null;
         }
         return new Vec3(boss.m_20185_(), boss.m_20186_(), boss.m_20189_());
     }
 
-    public static void warn(ApollyonEntity boss, Vec3 anchor, float rotation, int duration) {
+    public static void warn(Mob boss, Vec3 anchor, float rotation, int duration) {
         warnPattern(boss, anchor, rotation, duration,
                 RADIUS, SECTOR_ANGLE, SECTOR_SPACING, SECTOR_COUNT);
     }
 
     public static void warnPattern(
-            ApollyonEntity boss, Vec3 anchor, float rotation, int duration,
+            Mob boss, Vec3 anchor, float rotation, int duration,
             float radius, float sectorAngle, float sectorSpacing, int sectorCount) {
         if (boss == null || anchor == null || boss.m_9236_().f_46443_) {
             return;
         }
-        StarFantasyVfx.groundSectorWarningBatch(
+        if (ApollyonSpellSupport.warnings(boss)) {
+            StarFantasyVfx.groundSectorWarningBatch(
                 boss, anchor, duration, radius, sectorAngle, WARNING_COLOR,
                 sectorYaws(rotation, sectorSpacing, sectorCount));
+        }
     }
 
-    public static void detonate(ApollyonEntity boss, Vec3 anchor, float rotation) {
+    public static void detonate(Mob boss, Vec3 anchor, float rotation) {
         detonatePattern(boss, anchor, rotation,
                 RADIUS, SECTOR_ANGLE, SECTOR_SPACING, SECTOR_COUNT);
     }
 
     public static void detonatePattern(
-            ApollyonEntity boss, Vec3 anchor, float rotation,
+            Mob boss, Vec3 anchor, float rotation,
             float radius, float sectorAngle, float sectorSpacing, int sectorCount) {
         if (boss == null || anchor == null
                 || !(boss.m_9236_() instanceof ServerLevel level)) {
@@ -89,19 +93,31 @@ public final class ApollyonVoidRayManager {
                 continue;
             }
 
-            // Deliberately use vanilla fell-out-of-world damage. It has no attacker,
-            // direct entity or source position; the boss only selects valid targets.
-            if (target.m_6469_(target.m_269291_().m_269341_(),
-                    boss.scaleOutgoingDamage(DAMAGE))) {
-                target.m_7292_(new MobEffectInstance(
-                        (MobEffect) GoetyEffects.VOID_TOUCHED.get(),
-                        VOID_TOUCHED_TICKS, VOID_TOUCHED_AMPLIFIER));
-            }
+            hurtTarget(boss, target);
         }
     }
 
-    private static boolean shouldSkip(ApollyonEntity boss, LivingEntity target) {
-        if (target == null || boss.isFriendlyEntity(target) || !target.m_6084_()
+    private static void hurtTarget(Mob caster, LivingEntity target) {
+        DamageSource source;
+        float damage;
+        if (caster instanceof ApollyonServantEntity servant) {
+            source = servant.m_269291_().m_269104_(servant, servant);
+            // Shared servant scaling is attack / 10: 50 base damage means attack * 5.
+            damage = servant.scaleOutgoingDamage(50.0F);
+        } else {
+            // The boss deliberately retains anonymous fell-out-of-world damage.
+            source = target.m_269291_().m_269341_();
+            damage = ApollyonSpellSupport.damage(caster, DAMAGE);
+        }
+        if (target.m_6469_(source, damage)) {
+            target.m_7292_(new MobEffectInstance(
+                    (MobEffect) GoetyEffects.VOID_TOUCHED.get(),
+                    VOID_TOUCHED_TICKS, VOID_TOUCHED_AMPLIFIER));
+        }
+    }
+
+    private static boolean shouldSkip(Mob boss, LivingEntity target) {
+        if (target == null || ApollyonSpellSupport.friendly(boss, target) || !target.m_6084_()
                 || target.m_20147_()) {
             return true;
         }

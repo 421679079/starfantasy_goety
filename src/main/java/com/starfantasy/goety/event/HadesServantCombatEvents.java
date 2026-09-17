@@ -4,6 +4,9 @@ import com.starfantasy.goety.StarFantasyGoetyMod;
 import com.starfantasy.goety.config.ServantConfig;
 import com.starfantasy.goety.entity.HadesServantEntity;
 import net.minecraft.tags.DamageTypeTags;
+import net.minecraft.world.damagesource.DamageTypes;
+import net.minecraft.world.entity.player.Player;
+import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
@@ -12,6 +15,16 @@ import net.minecraftforge.fml.common.Mod;
 
 @Mod.EventBusSubscriber(modid = StarFantasyGoetyMod.MODID)
 public final class HadesServantCombatEvents {
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public static void protectRiderFromFall(LivingAttackEvent event) {
+        if (event.getEntity() instanceof Player player
+                && player.m_20202_() instanceof HadesServantEntity
+                && event.getSource().m_276093_(DamageTypes.f_268671_)) {
+            player.f_19789_ = 0;
+            event.setCanceled(true);
+        }
+    }
+
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void hurt(LivingHurtEvent event) {
         if (event.getEntity() instanceof HadesServantEntity

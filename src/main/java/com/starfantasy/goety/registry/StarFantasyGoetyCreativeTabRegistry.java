@@ -31,6 +31,7 @@ public final class StarFantasyGoetyCreativeTabRegistry {
                             output.m_246326_((ItemLike)halo.get());
                         }
                         output.m_246326_(HaloItemRegistry.FADED_HALO.get());
+                        output.m_246326_(HaloItemRegistry.FADED_CROWN.get());
                         output.m_246326_(com.starfantasy.goety.magic.guard.GuardFocusContent.GUARD_FOCUS.get());
                     })
                     .m_257652_()

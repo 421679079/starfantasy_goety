@@ -1,0 +1,21 @@
+{
+  "type": "goety:ritual",
+  "ritual_type": "starfantasy_goety:summon_apollyon",
+  "activation_item": { "item": "starfantasy_goety:faded_halo" },
+  "craftType": "expert_nether",
+  "research": "forbidden",
+  "entity_to_sacrifice": {
+    "tag": "starfantasy_goety:apollyon_sacrifices",
+    "display_name": "entity.goety.apostle"
+  },
+  "entity_to_summon": "starfantasy_goety:apollyon_servant",
+  "soulCost": 1,
+  "duration": 15,
+  "summonLife": -1,
+  "ingredients": [
+    { "item": "goety:unholy_hat" },
+    { "item": "goety:unholy_robe" },
+    { "item": "minecraft:bow" }
+  ],
+  "result": { "item": "goety:jei_dummy/none" }
+}

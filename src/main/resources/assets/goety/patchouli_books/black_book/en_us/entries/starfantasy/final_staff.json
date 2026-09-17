@@ -1,0 +1,19 @@
+{
+  "name": "Ultimate Staff",
+  "icon": "starfantasy_goety:final_staff",
+  "category": "goety:starfantasy",
+  "sortnum": 3,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Having seized the divinity of every Apostle and united their power, you have at last forged the mightiest staff.$(br2)The Ultimate Staff can channel the power of every school."
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:final_staff"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "starfantasy_goety:final_staff": 1
+  }
+}

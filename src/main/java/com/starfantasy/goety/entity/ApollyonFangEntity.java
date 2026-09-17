@@ -1,5 +1,7 @@
 package com.starfantasy.goety.entity;
 
+import net.minecraft.world.entity.Mob;
+import com.starfantasy.goety.combat.ApollyonSpellSupport;
 import com.starfantasy.goety.registry.ApollyonEntityRegistry;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -18,7 +20,7 @@ public final class ApollyonFangEntity extends EvokerFangs {
         m_20225_(true);
     }
 
-    public static ApollyonFangEntity spawn(ApollyonEntity owner, Vec3 point, float yaw) {
+    public static ApollyonFangEntity spawn(Mob owner, Vec3 point, float yaw) {
         var fang = new ApollyonFangEntity(ApollyonEntityRegistry.APOLLYON_FANG.get(), owner.m_9236_());
         fang.m_36938_(owner);
         fang.m_6034_(point.f_82479_, point.f_82480_, point.f_82481_);

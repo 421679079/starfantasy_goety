@@ -3,6 +3,7 @@ package com.starfantasy.goety.mixin;
 import com.Polarice3.Goety.common.entities.boss.Apostle;
 import com.Polarice3.Goety.common.entities.hostile.cultists.SpellCastingCultist;
 import com.starfantasy.goety.api.ApostleAppearanceAccess;
+import com.starfantasy.goety.compat.ApostleCompatibility;
 import com.starfantasy.goety.registry.ApostleAppearanceSounds;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -51,6 +52,7 @@ public abstract class ApostleAppearanceMixin extends SpellCastingCultist impleme
 
     @Unique
     private void starfantasy$syncTitle() {
+        if (!starfantasy$isOriginal()) return;
         if (!this.m_9236_().f_46443_ && starfantasy$visualTitle() != titleNumber) {
             this.f_19804_.m_135381_(starfantasy$appearanceTitle, titleNumber);
         }
@@ -58,7 +60,7 @@ public abstract class ApostleAppearanceMixin extends SpellCastingCultist impleme
 
     @Unique
     private boolean starfantasy$isOriginal() {
-        return ((Object) this).getClass() == Apostle.class;
+        return ApostleCompatibility.original((Apostle) (Object) this);
     }
 
     @Inject(method = "m_7515_", at = @At("RETURN"), cancellable = true)

@@ -1,6 +1,6 @@
 package com.starfantasy.goety.combat;
 
-import com.starfantasy.goety.entity.ApollyonEntity;
+import net.minecraft.world.entity.Mob;
 import com.starfantasy.goety.config.ApollyonConfig;
 import com.starfantasy.goety.entity.ApollyonStarArrowEntity;
 import com.starfantasy.library.vfx.StarFantasyVfx;
@@ -22,7 +22,7 @@ public final class ApollyonMeteorManager {
     private ApollyonMeteorManager() {
     }
 
-    public static void spawn(ApollyonEntity boss) {
+    public static void spawn(Mob boss) {
         if (boss == null || !boss.m_6084_()
                 || !(boss.m_9236_() instanceof ServerLevel level)) {
             return;
@@ -34,17 +34,19 @@ public final class ApollyonMeteorManager {
         meteor.m_6034_(start.f_82479_, start.f_82480_, start.f_82481_);
         meteor.configureMeteor(impact);
         level.m_7967_(meteor);
-        StarFantasyVfx.redGroundWarningCircle(
+        if (ApollyonSpellSupport.warnings(boss)) {
+            StarFantasyVfx.redGroundWarningCircle(
                 boss,
                 impact.m_82520_(0.0D, 0.06D, 0.0D),
                 WARNING_TICKS,
                 ApollyonStarArrowEntity.explosionRadius());
+        }
     }
 
-    private static Vec3 randomImpactAroundBoss(ApollyonEntity boss) {
+    private static Vec3 randomImpactAroundBoss(Mob boss) {
         RandomSource random = boss.m_217043_();
-        boolean hardMode = ApollyonConfig.hardMode();
-        Vec3 center = hardMode ? boss.arenaHomePosition() : boss.m_20182_();
+        boolean hardMode = ApollyonSpellSupport.warnings(boss) && ApollyonConfig.hardMode();
+        Vec3 center = hardMode ? ApollyonSpellSupport.home(boss) : boss.m_20182_();
         double distance = Mth.m_14139_(random.m_188500_(),
                 hardMode ? 2.0D : IMPACT_DISTANCE_MIN, IMPACT_DISTANCE_MAX);
         double angle = random.m_188500_() * Math.PI * 2.0D;

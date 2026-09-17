@@ -6,16 +6,10 @@
   },
   "craftType": "end",
   "soulCost": 1,
-  "duration": 10,
+  "duration": 1,
   "ingredients": [
     {
       "item": "starfantasy_goety:halo_of_the_dark"
-    },
-    {
-      "item": "goety:void_crown"
-    },
-    {
-      "item": "goety:void_robe"
     }
   ],
   "result": {

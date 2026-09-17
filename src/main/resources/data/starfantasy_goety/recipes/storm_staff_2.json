@@ -6,16 +6,10 @@
   },
   "craftType": "storm",
   "soulCost": 1,
-  "duration": 10,
+  "duration": 1,
   "ingredients": [
     {
       "item": "starfantasy_goety:halo_of_the_terrible"
-    },
-    {
-      "item": "goety:storm_crown"
-    },
-    {
-      "item": "goety:storm_robe"
     }
   ],
   "result": {

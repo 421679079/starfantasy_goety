@@ -2,7 +2,8 @@ package com.starfantasy.goety.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
-import com.starfantasy.goety.entity.ApollyonEntity;
+import net.minecraft.world.entity.LivingEntity;
+import software.bernie.geckolib.animatable.GeoEntity;
 import net.minecraft.client.renderer.ItemInHandRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.world.entity.HumanoidArm;
@@ -13,20 +14,22 @@ import software.bernie.geckolib.renderer.GeoRenderer;
 import software.bernie.geckolib.renderer.layer.BlockAndItemGeoLayer;
 
 /** Renders Apollyon's actual held bow on the model's hand locator bones. */
-public final class ApollyonHeldItemLayer extends BlockAndItemGeoLayer<ApollyonEntity> {
+public final class ApollyonHeldItemLayer<T extends LivingEntity & GeoEntity> extends BlockAndItemGeoLayer<T> {
     private static final String RIGHT_HAND_BONE = "RightHandLocator";
     private static final String LEFT_HAND_BONE = "LeftHandLocator";
 
     private final ItemInHandRenderer itemRenderer;
 
     public ApollyonHeldItemLayer(
-            GeoRenderer<ApollyonEntity> renderer, ItemInHandRenderer itemRenderer) {
+            GeoRenderer<T> renderer, ItemInHandRenderer itemRenderer) {
         super(renderer);
         this.itemRenderer = itemRenderer;
     }
 
     @Override
-    protected ItemStack getStackForBone(GeoBone bone, ApollyonEntity entity) {
+    protected ItemStack getStackForBone(GeoBone bone, T entity) {
+        if (entity instanceof com.starfantasy.goety.entity.ApollyonServantEntity servant
+                && (servant.isStaying() || servant.isPigVariant())) return null;
         boolean mainArmIsRight = entity.m_5737_() == HumanoidArm.RIGHT;
         ItemStack stack;
         if (RIGHT_HAND_BONE.equals(bone.getName())) {
@@ -41,7 +44,7 @@ public final class ApollyonHeldItemLayer extends BlockAndItemGeoLayer<ApollyonEn
 
     @Override
     protected ItemDisplayContext getTransformTypeForStack(
-            GeoBone bone, ItemStack stack, ApollyonEntity entity) {
+            GeoBone bone, ItemStack stack, T entity) {
         return LEFT_HAND_BONE.equals(bone.getName())
                 ? ItemDisplayContext.THIRD_PERSON_LEFT_HAND
                 : ItemDisplayContext.THIRD_PERSON_RIGHT_HAND;
@@ -52,7 +55,7 @@ public final class ApollyonHeldItemLayer extends BlockAndItemGeoLayer<ApollyonEn
             PoseStack poseStack,
             GeoBone bone,
             ItemStack stack,
-            ApollyonEntity entity,
+            T entity,
             MultiBufferSource bufferSource,
             float partialTick,
             int packedLight,

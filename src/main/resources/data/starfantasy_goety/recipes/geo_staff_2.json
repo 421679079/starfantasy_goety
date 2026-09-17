@@ -6,16 +6,10 @@
   },
   "craftType": "geoturgy",
   "soulCost": 1,
-  "duration": 10,
+  "duration": 1,
   "ingredients": [
     {
       "item": "starfantasy_goety:halo_of_the_atrocious"
-    },
-    {
-      "item": "goety:amethyst_necklace"
-    },
-    {
-      "item": "goety:geo_robe"
     }
   ],
   "result": {

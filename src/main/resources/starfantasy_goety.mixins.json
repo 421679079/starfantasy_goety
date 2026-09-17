@@ -1,5 +1,6 @@
 {
   "required": true,
+  "plugin": "com.starfantasy.goety.compat.FinalStaffPriorityMixinPlugin",
   "minVersion": "0.8",
   "package": "com.starfantasy.goety.mixin",
   "compatibilityLevel": "JAVA_17",
@@ -22,9 +23,15 @@
     "EarthFistMixin",
     "SEHelperCooldownMixin",
     "SoulBoltSpellMixin",
+    "FinalStaffZombiePriorityMixin",
+    "FinalStaffSkeletonPriorityMixin",
+    "FinalStaffSlimePriorityMixin",
+    "FinalStaffHuntingPriorityMixin",
+    "FinalStaffMaulingPriorityMixin",
     "WandUtilMixin"
   ],
   "client": [
+    "FinalStaffSchoolWheelMixin",
     "GuardWandClientMixin",
     "HadesRidingCameraMixin",
     "HadesRidingPlayerRenderMixin",

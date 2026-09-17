@@ -2,7 +2,7 @@
   "type": "goety:ritual",
   "ritual_type": "goety:craft",
   "activation_item": {
-    "item": "goety:empty_focus"
+    "item": "goety:bulwark_focus"
   },
   "craftType": "magic",
   "soulCost": 1,
@@ -12,10 +12,10 @@
     { "item": "minecraft:enchanted_golden_apple" },
     { "item": "minecraft:enchanted_golden_apple" },
     { "item": "minecraft:enchanted_golden_apple" },
-    { "item": "minecraft:shield" },
-    { "item": "minecraft:shield" },
-    { "item": "goety:ectoplasm" },
-    { "item": "goety:ectoplasm" }
+    { "item": "minecraft:echo_shard" },
+    { "item": "minecraft:totem_of_undying" },
+    { "item": "minecraft:netherite_ingot" },
+    { "item": "goety:soul_ruby" }
   ],
   "result": {
     "item": "starfantasy_goety:guard_focus",

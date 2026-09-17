@@ -1,6 +1,6 @@
 package com.starfantasy.goety.combat;
 
-import com.starfantasy.goety.entity.ApollyonEntity;
+import net.minecraft.world.entity.Mob;
 import com.starfantasy.goety.entity.ApollyonIceChunkEntity;
 import com.starfantasy.goety.registry.ApollyonEntityRegistry;
 import net.minecraft.core.BlockPos;
@@ -23,7 +23,7 @@ public final class ApollyonFrostImpactManager {
     private ApollyonFrostImpactManager() {
     }
 
-    public static void spawnChunk(ApollyonEntity boss, LivingEntity target, int sequenceIndex) {
+    public static void spawnChunk(Mob boss, LivingEntity target, int sequenceIndex) {
         if (boss == null || target == null || !boss.m_6084_() || !target.m_6084_()
                 || boss.m_9236_().f_46443_) {
             return;

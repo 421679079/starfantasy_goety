@@ -30,10 +30,15 @@ final class ApollyonDeathLight {
     static void renderApollyon(ApollyonEntity entity, float partialTick,
                                PoseStack poseStack, MultiBufferSource buffer) {
         if (entity.isPlayingDeathAnimation()) {
-            render(entity.getDeathAnimationTicks(), entity.getDeathAnimationDurationTicks(),
-                    partialTick, poseStack, buffer, 1.2D, 0.85F, APOLLYON_MAX_BEAMS, 731L,
-                    APOLLYON_CORE, APOLLYON_INNER, APOLLYON_MID, APOLLYON_OUTER);
+            renderApollyon(entity.getDeathAnimationTicks(), partialTick, poseStack, buffer);
         }
+    }
+
+    static void renderApollyon(int deathAge, float partialTick,
+                               PoseStack poseStack, MultiBufferSource buffer) {
+        render(deathAge, ApollyonEntity.DEATH_ANIMATION_TICKS,
+                partialTick, poseStack, buffer, 1.2D, 0.85F, APOLLYON_MAX_BEAMS, 731L,
+                APOLLYON_CORE, APOLLYON_INNER, APOLLYON_MID, APOLLYON_OUTER);
     }
 
     static void renderHades(HadesEntity entity, float partialTick,

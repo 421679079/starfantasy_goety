@@ -6,6 +6,7 @@ import com.starfantasy.goety.entity.ApollyonPageantApostleEntity;
 import com.starfantasy.goety.registry.ApollyonEffectRegistry;
 import com.starfantasy.goety.registry.HaloItemRegistry;
 import com.Polarice3.Goety.common.entities.boss.Apostle;
+import com.starfantasy.goety.compat.ApostleCompatibility;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -25,7 +26,9 @@ public final class ApollyonCombatEvents {
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void onApollyonHurt(LivingHurtEvent event) {
-        if (event.getEntity() instanceof ApollyonEntity boss) {
+        if (event.getEntity() instanceof com.starfantasy.goety.entity.ApollyonServantEntity servant) {
+            event.setAmount(servant.applyIncomingDamageReductions(event.getSource(), event.getAmount()));
+        } else if (event.getEntity() instanceof ApollyonEntity boss) {
             event.setAmount(boss.applyIncomingDamageReductions(
                     event.getSource(), event.getAmount()));
         } else if (event.getEntity() instanceof ApollyonPageantApostleEntity apostle
@@ -46,7 +49,9 @@ public final class ApollyonCombatEvents {
                 event.setAmount(event.getAmount() * multiplier);
             }
         }
-        if (event.getEntity() instanceof ApollyonEntity boss) {
+        if (event.getEntity() instanceof com.starfantasy.goety.entity.ApollyonServantEntity servant) {
+            event.setAmount(servant.finishIncomingDamage(event.getSource(), event.getAmount()));
+        } else if (event.getEntity() instanceof ApollyonEntity boss) {
             float finalDamage = boss.clampFinalDamage(event.getAmount());
             finalDamage = boss.absorbCooperativeShield(event.getSource(), finalDamage);
             if (boss.tryStartPageantFromFinalDamage(finalDamage)) {
@@ -64,7 +69,8 @@ public final class ApollyonCombatEvents {
 
     @SubscribeEvent
     public static void onNetherApostleDrops(LivingDropsEvent event) {
-        if (!(event.getEntity() instanceof Apostle apostle) || !apostle.isInNether()) {
+        if (!(event.getEntity() instanceof Apostle apostle) || !apostle.isInNether()
+                || ApostleCompatibility.isRevelationApollyon(apostle)) {
             return;
         }
         int title = apostle.getTitleNumber();

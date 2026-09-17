@@ -10,11 +10,13 @@ import java.util.Map;
 import java.util.WeakHashMap;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.DamageTypeTags;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
+import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.server.ServerStoppedEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
@@ -25,6 +27,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 @Mod.EventBusSubscriber(modid = "starfantasy_goety")
 public final class GuardChannel {
     private static final Map<ServerPlayer, Session> ACTIVE = new WeakHashMap<>();
+    private static final Map<ServerPlayer, Integer> PENDING_IMMUNITY = new WeakHashMap<>();
     private GuardChannel() {}
     public static boolean isGuardStaff(ItemStack stack) {
         return stack.getItem() instanceof IWand && IWand.getFocus(stack).getItem() instanceof GuardFocusItem;
@@ -58,6 +61,10 @@ public final class GuardChannel {
     }
     @SubscribeEvent public static void tick(TickEvent.PlayerTickEvent event) {
         if (event.phase != TickEvent.Phase.END || !(event.player instanceof ServerPlayer player)) return;
+        Integer immunity = PENDING_IMMUNITY.remove(player);
+        // Partial guards first finish normal hurt processing (including vanilla hurt memory).
+        // Extending at tick end avoids swallowing the hit or being overwritten by vanilla's 20 ticks.
+        if (immunity != null && player.isAlive()) player.invulnerableTime = Math.max(player.invulnerableTime, immunity);
         Session s = ACTIVE.get(player);
         if (s != null && (!player.isAlive() || !player.isUsingItem() || player.getUseItem() != s.staff
                 || !isGuardStaff(s.staff) || !s.cast.active(player.level().getGameTime()))) {
@@ -67,30 +74,49 @@ public final class GuardChannel {
     }
     @SubscribeEvent(priority = EventPriority.HIGH)
     public static void attacked(LivingAttackEvent event) {
-        if (!(event.getEntity() instanceof ServerPlayer player) || event.getAmount() <= 0 || !Float.isFinite(event.getAmount())) return;
-        Session s = ACTIVE.get(player);
-        if (s == null || !s.cast.active(player.level().getGameTime()) || !player.isUsingItem()
-                || player.getUseItem() != s.staff || !isGuardStaff(s.staff)) return;
-        var source = event.getSource();
-        Entity direct = source.getDirectEntity(), attacker = source.getEntity();
-        if ((direct == null && attacker == null) || direct == player || attacker == player
-                || blacklisted(direct) || blacklisted(attacker) || source.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) return;
-        Vec3 origin = source.getSourcePosition();
-        if (origin == null) return;
-        Vec3 incoming = origin.subtract(player.position()), look = player.getLookAngle();
-        if (!GuardRules.inFront(look.x, look.z, incoming.x, incoming.z)) return;
+        if (SpellConfig.GUARD_DAMAGE_REDUCTION.get() < 1.0D
+                || !(event.getEntity() instanceof ServerPlayer player)) return;
+        Session s = eligible(player, event.getSource(), event.getAmount());
+        if (s == null) return;
         event.setCanceled(true);
-        if (s.cast.succeed()) {
-            SEHelper.increaseSouls(player, SpellConfig.GUARD_SOUL_REWARD.get());
-            SEHelper.sendSEUpdatePacket(player);
-            clearCooldown(player);
-        }
+        succeed(player, s, event.getSource().getSourcePosition());
         int immunity = SpellConfig.GUARD_INVULNERABILITY.get();
         if (immunity > 0) {
             GuardHurtMemoryAccessor memory = (GuardHurtMemoryAccessor)player;
             memory.starfantasy$setLastHurt(player.invulnerableTime > 10
                     ? Math.max(memory.starfantasy$getLastHurt(), event.getAmount()) : event.getAmount());
             player.invulnerableTime = Math.max(player.invulnerableTime, immunity);
+        }
+    }
+    @SubscribeEvent(priority = EventPriority.HIGH)
+    public static void hurt(LivingHurtEvent event) {
+        double reduction = SpellConfig.GUARD_DAMAGE_REDUCTION.get();
+        if (reduction >= 1.0D || !(event.getEntity() instanceof ServerPlayer player)) return;
+        Session s = eligible(player, event.getSource(), event.getAmount());
+        if (s == null) return;
+        event.setAmount((float)(event.getAmount() * (1.0D - reduction)));
+        succeed(player, s, event.getSource().getSourcePosition());
+        int immunity = SpellConfig.GUARD_INVULNERABILITY.get();
+        if (immunity > 0) PENDING_IMMUNITY.merge(player, immunity, Math::max);
+    }
+    private static Session eligible(ServerPlayer player, DamageSource source, float amount) {
+        if (amount <= 0 || !Float.isFinite(amount)) return null;
+        Session s = ACTIVE.get(player);
+        if (s == null || !s.cast.active(player.level().getGameTime()) || !player.isUsingItem()
+                || player.getUseItem() != s.staff || !isGuardStaff(s.staff)) return null;
+        Entity direct = source.getDirectEntity(), attacker = source.getEntity();
+        if ((direct == null && attacker == null) || direct == player || attacker == player
+                || blacklisted(direct) || blacklisted(attacker) || source.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) return null;
+        Vec3 origin = source.getSourcePosition();
+        if (origin == null) return null;
+        Vec3 incoming = origin.subtract(player.position()), look = player.getLookAngle();
+        return GuardRules.inFront(look.x, look.z, incoming.x, incoming.z) ? s : null;
+    }
+    private static void succeed(ServerPlayer player, Session s, Vec3 origin) {
+        if (s.cast.succeed()) {
+            SEHelper.increaseSouls(player, SpellConfig.GUARD_SOUL_REWARD.get());
+            SEHelper.sendSEUpdatePacket(player);
+            clearCooldown(player);
         }
         long now = player.level().getGameTime();
         if (s.feedbackTick != now) {
@@ -110,12 +136,12 @@ public final class GuardChannel {
         return entity != null && SpellConfig.GUARD_BLACKLIST.get().contains(String.valueOf(ForgeRegistries.ENTITY_TYPES.getKey(entity.getType())));
     }
     @SubscribeEvent public static void logout(PlayerEvent.PlayerLoggedOutEvent event) {
-        if (event.getEntity() instanceof ServerPlayer player) finish(player);
+        if (event.getEntity() instanceof ServerPlayer player) { finish(player); PENDING_IMMUNITY.remove(player); }
     }
     @SubscribeEvent public static void changedDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
-        if (event.getEntity() instanceof ServerPlayer player) finish(player);
+        if (event.getEntity() instanceof ServerPlayer player) { finish(player); PENDING_IMMUNITY.remove(player); }
     }
-    @SubscribeEvent public static void stopped(ServerStoppedEvent event) { ACTIVE.clear(); }
+    @SubscribeEvent public static void stopped(ServerStoppedEvent event) { ACTIVE.clear(); PENDING_IMMUNITY.clear(); }
     private static final class Session {
         final ItemStack staff;
         final GuardRules.Cast cast;

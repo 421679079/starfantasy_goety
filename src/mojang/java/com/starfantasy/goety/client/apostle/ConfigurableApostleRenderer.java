@@ -4,6 +4,7 @@ import com.Polarice3.Goety.client.render.ApostleRenderer;
 import com.Polarice3.Goety.common.entities.boss.Apostle;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.starfantasy.goety.config.ApostleConfig;
+import com.starfantasy.goety.compat.ApostleCompatibility;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 
@@ -19,7 +20,7 @@ public final class ConfigurableApostleRenderer extends ApostleRenderer {
     @Override
     public void render(Apostle entity, float yaw, float partialTick,
                        PoseStack pose, MultiBufferSource buffer, int light) {
-        if (entity.getClass() == Apostle.class && ApostleConfig.ENABLE_APOSTLE_MOE.get()) {
+        if (ApostleCompatibility.original(entity) && ApostleConfig.ENABLE_APOSTLE_MOE.get()) {
             moe.render(entity, yaw, partialTick, pose, buffer, light);
         } else {
             super.render(entity, yaw, partialTick, pose, buffer, light);

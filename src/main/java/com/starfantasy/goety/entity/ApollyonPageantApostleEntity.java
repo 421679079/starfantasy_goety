@@ -472,13 +472,15 @@ public final class ApollyonPageantApostleEntity extends Cultist
         }
         if (this.variant() == RISEN) {
             this.m_5634_(this.m_21233_() * 0.04F);
-            if (target.m_6084_()) {
+            if (ApollyonConfig.hardMode() && target.m_6084_()) {
                 target.m_147207_(new MobEffectInstance(
                         ApollyonEffectRegistry.WEAKNESS.get(), 200, 2), this);
             }
         } else if (this.variant() == WITCH_KING && target.m_6084_()) {
-            target.m_147207_(new MobEffectInstance(
-                    GoetyEffects.CURSED.get(), 200, 0), this);
+            if (ApollyonConfig.hardMode()) {
+                target.m_147207_(new MobEffectInstance(
+                        GoetyEffects.CURSED.get(), 200, 0), this);
+            }
             target.m_147207_(new MobEffectInstance(
                     GoetyEffects.SAPPED.get(), 200, 1), this);
         }

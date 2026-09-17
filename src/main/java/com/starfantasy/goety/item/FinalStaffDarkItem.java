@@ -25,7 +25,8 @@ extends ConfigurableDarkStaffItem {
 
     @Override
     public void initializeClient(java.util.function.Consumer<net.minecraftforge.client.extensions.common.IClientItemExtensions> consumer) {
-        com.starfantasy.goety.client.FinalStaffRenderer.initialize(consumer);
+        super.initializeClient(wandExtensions ->
+                com.starfantasy.goety.client.FinalStaffRenderer.initialize(consumer, wandExtensions));
     }
 
 }

@@ -1,0 +1,27 @@
+{
+  "name": "Little Apollyon Servant",
+  "icon": "starfantasy_goety:faded_crown",
+  "category": "goety:starfantasy",
+  "sortnum": 5,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Combine the Faded Halo left by a Hades Servant with the vestments of the Nether's pale envoys, then offer an Apostle's body as a vessel. Perhaps a sliver of that great being's divinity will awaken, descending into the vessel to fight at your side."
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:summon_apollyon_servant"
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Should your Little Apollyon Servant perish, she will leave behind a Faded Sacred Crown. These offerings can restore her to life, without sacrificing another Apostle."
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:revive_apollyon_servant"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "starfantasy_goety:faded_crown": 3
+  }
+}

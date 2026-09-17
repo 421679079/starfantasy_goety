@@ -3,6 +3,7 @@ package com.starfantasy.goety.combat.apostle;
 import com.Polarice3.Goety.common.entities.boss.Apostle;
 import com.Polarice3.Goety.config.AttributesConfig;
 import com.starfantasy.goety.config.ApostleConfig;
+import com.starfantasy.goety.compat.ApostleCompatibility;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.phys.Vec3;
@@ -11,7 +12,7 @@ import net.minecraft.util.Mth;
 public final class ApostleSpellSupport {
     private static final String SPELL_READY = "StarFantasyApostleSpellReady";
     private ApostleSpellSupport() {}
-    public static boolean original(Apostle boss) { return boss.getClass() == Apostle.class; }
+    public static boolean original(Apostle boss) { return ApostleCompatibility.original(boss); }
     public static boolean enhanced(Apostle boss) {
         return original(boss) && ApostleConfig.ENHANCED_FIREBALL.get() && supported(boss.getTitleNumber());
     }

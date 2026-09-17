@@ -3,7 +3,7 @@ package com.starfantasy.goety.combat;
 import com.Polarice3.Goety.common.entities.util.FireBlastTrap;
 import com.Polarice3.Goety.utils.ModDamageSource;
 import com.starfantasy.goety.StarFantasyGoetyMod;
-import com.starfantasy.goety.entity.ApollyonEntity;
+import net.minecraft.world.entity.Mob;
 import com.starfantasy.library.vfx.StarFantasyVfx;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -54,7 +54,7 @@ public final class ApollyonFireTrapManager {
     private ApollyonFireTrapManager() {
     }
 
-    public static void cast(ApollyonEntity boss, LivingEntity target) {
+    public static void cast(Mob boss, LivingEntity target) {
         if (boss == null || target == null || boss.m_9236_().f_46443_
                 || !boss.m_6084_() || !target.m_6084_()) {
             return;
@@ -75,7 +75,7 @@ public final class ApollyonFireTrapManager {
     }
 
     /** Pageant version: simultaneous traps at the target and its two home-relative rotations. */
-    public static void castPageantTriple(ApollyonEntity boss, LivingEntity target) {
+    public static void castPageantTriple(Mob boss, LivingEntity target) {
         if (boss == null || target == null || boss.m_9236_().f_46443_
                 || !boss.m_6084_() || !target.m_6084_()) {
             return;
@@ -84,7 +84,7 @@ public final class ApollyonFireTrapManager {
                 target.m_20186_() + 8.0D, target.m_20189_(),
                 Mth.m_14107_(target.m_20185_()), Mth.m_14107_(target.m_20189_()));
         Set<BlockPos> spawned = new LinkedHashSet<>();
-        for (Vec3 point : pageantTriplePositions(boss.arenaHomePosition(), center)) {
+        for (Vec3 point : pageantTriplePositions(ApollyonSpellSupport.home(boss), center)) {
             spawnTrapOnce(boss, point, spawned);
         }
     }
@@ -100,14 +100,14 @@ public final class ApollyonFireTrapManager {
                         home.f_82481_ - sine * dx - 0.5D * dz));
     }
 
-    public static void clearForBoss(ApollyonEntity boss) {
+    public static void clearForBoss(Mob boss) {
         if (boss == null || !(boss.m_9236_() instanceof ServerLevel level)) {
             return;
         }
         UUID bossUuid = boss.m_20148_();
         PENDING_RINGS.removeIf(ring -> ring.bossUuid.equals(bossUuid));
         PENDING_TRAPS.removeIf(trap -> trap.bossUuid.equals(bossUuid));
-        Vec3 home = boss.arenaHomePosition();
+        Vec3 home = ApollyonSpellSupport.home(boss);
         AABB area = new AABB(home, home).m_82400_(128.0D);
         for (FireBlastTrap trap : level.m_45976_(FireBlastTrap.class, area)) {
             if (trap.m_19880_().contains(MANAGED_TRAP_TAG) && trap.getOwner() == boss) {
@@ -160,7 +160,7 @@ public final class ApollyonFireTrapManager {
 
         for (PendingRing ring : dueRings) {
             Entity entity = level.m_8791_(ring.bossUuid);
-            if (entity instanceof ApollyonEntity boss && boss.m_6084_()) {
+            if (entity instanceof Mob boss && ApollyonSpellSupport.isCaster(boss) && boss.m_6084_()) {
                 spawnRing(boss, ring.center);
             }
         }
@@ -171,7 +171,7 @@ public final class ApollyonFireTrapManager {
 
     private static void detonate(ServerLevel level, PendingTrap trap) {
         Entity entity = level.m_8791_(trap.bossUuid);
-        if (!(entity instanceof ApollyonEntity boss) || !boss.m_6084_()) {
+        if (!(entity instanceof Mob boss) || !ApollyonSpellSupport.isCaster(boss) || !boss.m_6084_()) {
             return;
         }
 
@@ -182,11 +182,11 @@ public final class ApollyonFireTrapManager {
                     || !intersectsSphere(target.m_20191_(), trap.center, TRAP_RADIUS)) {
                 continue;
             }
-            target.m_6469_(ApollyonDamageSources.front(target, source), boss.scaleOutgoingDamage(TRAP_DAMAGE));
+            target.m_6469_(ApollyonDamageSources.front(target, source), ApollyonSpellSupport.damage(boss, TRAP_DAMAGE));
         }
     }
 
-    private static void spawnRing(ApollyonEntity boss, Vec3 base) {
+    private static void spawnRing(Mob boss, Vec3 base) {
         Set<BlockPos> spawned = new LinkedHashSet<>();
         for (int i = 0; i < RING_COUNT; ++i) {
             double angle = Math.PI * 2.0D * i / RING_COUNT;
@@ -197,7 +197,7 @@ public final class ApollyonFireTrapManager {
         }
     }
 
-    private static void spawnTrapOnce(ApollyonEntity boss, Vec3 desired, Set<BlockPos> spawned) {
+    private static void spawnTrapOnce(Mob boss, Vec3 desired, Set<BlockPos> spawned) {
         Level level = boss.m_9236_();
         Vec3 center = groundCenterAt(level, desired.f_82479_, desired.f_82480_ + 8.0D, desired.f_82481_,
                 Mth.m_14107_(desired.f_82479_), Mth.m_14107_(desired.f_82481_));
@@ -206,14 +206,16 @@ public final class ApollyonFireTrapManager {
             return;
         }
 
-        StarFantasyVfx.redGroundWarningCircle(
+        if (ApollyonSpellSupport.warnings(boss)) {
+            StarFantasyVfx.redGroundWarningCircle(
                 boss, center.m_82520_(0.0D, 0.06D, 0.0D), WARNING_TICKS, TRAP_RADIUS);
+        }
         if (spawnVisual(boss, center)) {
             PENDING_TRAPS.add(new PendingTrap(boss, center, DAMAGE_DELAY_TICKS));
         }
     }
 
-    private static boolean spawnVisual(ApollyonEntity boss, Vec3 center) {
+    private static boolean spawnVisual(Mob boss, Vec3 center) {
         if (!(boss.m_9236_() instanceof ServerLevel level)) {
             return false;
         }
@@ -230,8 +232,8 @@ public final class ApollyonFireTrapManager {
         return level.m_7967_(trap);
     }
 
-    private static boolean shouldSkip(ApollyonEntity boss, LivingEntity target) {
-        if (boss.isFriendlyEntity(target) || !target.m_6084_()) {
+    private static boolean shouldSkip(Mob boss, LivingEntity target) {
+        if (ApollyonSpellSupport.friendly(boss, target) || !target.m_6084_()) {
             return true;
         }
         return target instanceof Player player && (player.m_7500_() || player.m_5833_());
@@ -279,7 +281,7 @@ public final class ApollyonFireTrapManager {
         private final Vec3 center;
         private int delayTicks;
 
-        private PendingRing(ApollyonEntity boss, Vec3 center, int delayTicks) {
+        private PendingRing(Mob boss, Vec3 center, int delayTicks) {
             this.dimension = boss.m_9236_().m_46472_();
             this.bossUuid = boss.m_20148_();
             this.center = center;
@@ -293,7 +295,7 @@ public final class ApollyonFireTrapManager {
         private final Vec3 center;
         private int delayTicks;
 
-        private PendingTrap(ApollyonEntity boss, Vec3 center, int delayTicks) {
+        private PendingTrap(Mob boss, Vec3 center, int delayTicks) {
             this.dimension = boss.m_9236_().m_46472_();
             this.bossUuid = boss.m_20148_();
             this.center = center;

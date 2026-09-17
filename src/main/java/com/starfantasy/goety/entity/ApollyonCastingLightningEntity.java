@@ -115,6 +115,8 @@ public final class ApollyonCastingLightningEntity extends Entity {
         Vec3 hand;
         if (owner instanceof ApollyonEntity apollyon) {
             hand = apollyon.castingHandPosition();
+        } else if (owner instanceof ApollyonServantEntity servant) {
+            hand = servant.castingHandPosition();
         } else if (owner instanceof ApollyonPageantApostleEntity actor) {
             hand = actor.castingHandPosition();
         } else if (owner instanceof com.Polarice3.Goety.common.entities.boss.Apostle apostle) {

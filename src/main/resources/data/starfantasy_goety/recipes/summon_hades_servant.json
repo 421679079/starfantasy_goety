@@ -1,6 +1,6 @@
 {
   "type": "goety:ritual",
-  "ritual_type": "goety:summon_tamed_no_variant",
+  "ritual_type": "starfantasy_goety:summon_hades",
   "activation_item": { "item": "starfantasy_goety:halo_of_hades" },
   "craftType": "sabbath",
   "entity_to_summon": "starfantasy_goety:hades_servant",

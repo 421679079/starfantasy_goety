@@ -4,7 +4,7 @@ import com.Polarice3.Goety.common.effects.GoetyEffects;
 import com.Polarice3.Goety.common.entities.util.MagicLightningTrap;
 import com.Polarice3.Goety.utils.ModDamageSource;
 import com.starfantasy.goety.StarFantasyGoetyMod;
-import com.starfantasy.goety.entity.ApollyonEntity;
+import net.minecraft.world.entity.Mob;
 import com.starfantasy.goety.network.StarFantasyGoetyNetwork;
 import com.starfantasy.library.vfx.StarFantasyVfx;
 import net.minecraft.core.BlockPos;
@@ -51,7 +51,7 @@ public final class ApollyonLightningStormManager {
     private ApollyonLightningStormManager() {
     }
 
-    public static Vec3 captureAnchor(ApollyonEntity boss, LivingEntity target) {
+    public static Vec3 captureAnchor(Mob boss, LivingEntity target) {
         if (boss == null || target == null) {
             return null;
         }
@@ -60,14 +60,14 @@ public final class ApollyonLightningStormManager {
                 target.m_20189_(), Mth.m_14107_(target.m_20185_()), Mth.m_14107_(target.m_20189_()));
     }
 
-    public static void queueTrackingStrike(ApollyonEntity boss, LivingEntity target) {
+    public static void queueTrackingStrike(Mob boss, LivingEntity target) {
         Vec3 center = captureAnchor(boss, target);
         if (center != null) {
             queueStrike(boss, center);
         }
     }
 
-    public static void queueRing(ApollyonEntity boss, Vec3 anchor, double radius, int count) {
+    public static void queueRing(Mob boss, Vec3 anchor, double radius, int count) {
         if (!canQueue(boss) || anchor == null || count <= 0) {
             return;
         }
@@ -78,13 +78,13 @@ public final class ApollyonLightningStormManager {
         }
     }
 
-    public static void queueCenter(ApollyonEntity boss, Vec3 anchor) {
+    public static void queueCenter(Mob boss, Vec3 anchor) {
         if (anchor != null) {
             queueStrike(boss, anchor);
         }
     }
 
-    public static void clearForBoss(ApollyonEntity boss) {
+    public static void clearForBoss(Mob boss) {
         if (boss != null) {
             UUID bossUuid = boss.m_20148_();
             PENDING_STRIKES.removeIf(strike -> strike.bossUuid.equals(bossUuid));
@@ -116,26 +116,28 @@ public final class ApollyonLightningStormManager {
         }
     }
 
-    private static void queueStrike(ApollyonEntity boss, Vec3 desired) {
+    private static void queueStrike(Mob boss, Vec3 desired) {
         if (!canQueue(boss)) {
             return;
         }
         Level level = boss.m_9236_();
         Vec3 center = groundCenterAt(level, desired.f_82479_, desired.f_82480_ + 8.0D,
                 desired.f_82481_, Mth.m_14107_(desired.f_82479_), Mth.m_14107_(desired.f_82481_));
-        StarFantasyVfx.redGroundWarningCircle(
+        if (ApollyonSpellSupport.warnings(boss)) {
+            StarFantasyVfx.redGroundWarningCircle(
                 boss, center.m_82520_(0.0D, 0.06D, 0.0D), WARNING_TICKS,
                 MAGIC_LIGHTNING_DAMAGE_RANGE);
+        }
         PENDING_STRIKES.add(new PendingStrike(boss, center, DAMAGE_DELAY_TICKS));
     }
 
-    private static boolean canQueue(ApollyonEntity boss) {
+    private static boolean canQueue(Mob boss) {
         return boss != null && boss.m_6084_() && !boss.m_9236_().f_46443_;
     }
 
     private static void detonate(ServerLevel level, PendingStrike strike) {
         Entity entity = level.m_8791_(strike.bossUuid);
-        if (!(entity instanceof ApollyonEntity boss) || !boss.m_6084_()) {
+        if (!(entity instanceof Mob boss) || !ApollyonSpellSupport.isCaster(boss) || !boss.m_6084_()) {
             return;
         }
 
@@ -156,7 +158,7 @@ public final class ApollyonLightningStormManager {
             if (shouldSkip(boss, target)) {
                 continue;
             }
-            if (target.m_6469_(ApollyonDamageSources.front(target, source), boss.scaleOutgoingDamage(LIGHTNING_DAMAGE))) {
+            if (target.m_6469_(ApollyonDamageSources.front(target, source), ApollyonSpellSupport.damage(boss, LIGHTNING_DAMAGE))) {
                 target.m_7292_(new MobEffectInstance(
                         (MobEffect) GoetyEffects.SPASMS.get(),
                         SPASMS_DURATION_TICKS, SPASMS_AMPLIFIER));
@@ -166,8 +168,8 @@ public final class ApollyonLightningStormManager {
         StarFantasyGoetyNetwork.sendApollyonLightningStrike(level, strike.center);
     }
 
-    private static boolean shouldSkip(ApollyonEntity boss, LivingEntity target) {
-        if (boss.isFriendlyEntity(target) || !target.m_6084_()) {
+    private static boolean shouldSkip(Mob boss, LivingEntity target) {
+        if (ApollyonSpellSupport.friendly(boss, target) || !target.m_6084_()) {
             return true;
         }
         return target instanceof Player player && (player.m_7500_() || player.m_5833_());
@@ -194,7 +196,7 @@ public final class ApollyonLightningStormManager {
         private final Vec3 center;
         private int delayTicks;
 
-        private PendingStrike(ApollyonEntity boss, Vec3 center, int delayTicks) {
+        private PendingStrike(Mob boss, Vec3 center, int delayTicks) {
             this.dimension = boss.m_9236_().m_46472_();
             this.bossUuid = boss.m_20148_();
             this.center = center;

@@ -1,6 +1,7 @@
 package com.starfantasy.goety.combat;
 
-import com.starfantasy.goety.entity.ApollyonEntity;
+import net.minecraft.world.entity.Mob;
+import com.starfantasy.goety.entity.ApollyonServantEntity;
 import com.starfantasy.goety.entity.ApollyonFangEntity;
 import com.starfantasy.library.vfx.StarFantasyVfx;
 import net.minecraft.core.BlockPos;
@@ -30,12 +31,12 @@ public final class ApollyonFangFeastSpell {
     private static final float DAMAGE = 40.0F;
     private static final float HEAL_RATIO = 0.10F;
 
-    private final ApollyonEntity boss;
+    private final Mob boss;
     private Vec3 anchor;
     private List<Vec3> points = List.of();
     private final List<ApollyonFangEntity> visuals = new ArrayList<>();
 
-    public ApollyonFangFeastSpell(ApollyonEntity boss) {
+    public ApollyonFangFeastSpell(Mob boss) {
         this.boss = boss;
     }
 
@@ -67,7 +68,9 @@ public final class ApollyonFangFeastSpell {
     private void warn(boolean secondWave) {
         points = pattern(anchor, secondWave).stream().map(this::ground).toList();
         for (Vec3 point : points) {
-            StarFantasyVfx.redGroundWarningCircle(boss, point, 20, HIT_RADIUS);
+            if (ApollyonSpellSupport.warnings(boss)) {
+                StarFantasyVfx.redGroundWarningCircle(boss, point, 20, HIT_RADIUS);
+            }
         }
     }
 
@@ -91,13 +94,17 @@ public final class ApollyonFangFeastSpell {
         AABB area = new AABB(anchor, anchor).m_82377_(12.0D, 20.0D, 12.0D);
         boolean dealtDamage = false;
         for (LivingEntity target : boss.m_9236_().m_45976_(LivingEntity.class, area)) {
-            if (!target.m_6084_() || boss.isFriendlyEntity(target)
+            if (!target.m_6084_() || ApollyonSpellSupport.friendly(boss, target)
                     || target instanceof Player player && (player.m_7500_() || player.m_5833_())) {
                 continue;
             }
             for (Vec3 point : points) {
                 if (intersects(target.m_20191_(), point)) {
-                    if (target.m_6469_(ApollyonDamageSources.front(target, boss.m_269291_().m_269104_(boss, boss)), DAMAGE)) {
+                    // The boss's existing Fang Feast has fixed damage; only the servant scales it.
+                    float damage = boss instanceof ApollyonServantEntity
+                            ? ApollyonSpellSupport.damage(boss, DAMAGE) : DAMAGE;
+                    if (target.m_6469_(ApollyonDamageSources.front(target,
+                            boss.m_269291_().m_269104_(boss, boss)), damage)) {
                         dealtDamage = true;
                     }
                     break;

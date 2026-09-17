@@ -1,13 +1,12 @@
 package com.starfantasy.goety.entity;
 
-import com.Polarice3.Goety.common.entities.ModEntityType;
 import com.Polarice3.Goety.common.entities.ally.Summoned;
-import com.Polarice3.Goety.common.entities.projectiles.FlyingItem;
 import com.Polarice3.Goety.common.entities.neutral.Owned;
 import com.starfantasy.goety.combat.ApollyonDeathEffects;
 import com.starfantasy.goety.combat.ApollyonPageantController;
 import com.starfantasy.goety.config.ServantConfig;
 import com.starfantasy.goety.item.FadedHaloItem;
+import com.starfantasy.goety.servant.ServantOwnershipData;
 import com.starfantasy.goety.registry.ApollyonSoundRegistry;
 import java.util.EnumSet;
 import java.util.UUID;
@@ -41,7 +40,6 @@ import net.minecraft.world.entity.ai.control.MoveControl;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
-import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
@@ -111,6 +109,20 @@ public final class HadesServantEntity extends Summoned implements GeoEntity, Pla
         this.m_21530_();
     }
 
+    @Override public int getSummonLimit(LivingEntity owner) {
+        return ServantOwnershipData.summonLimit(this, owner);
+    }
+
+    @Override public void onAddedToWorld() {
+        super.onAddedToWorld();
+        ServantOwnershipData.track(this);
+    }
+
+    @Override public void setOwnerId(UUID owner) {
+        super.setOwnerId(owner);
+        ServantOwnershipData.track(this);
+    }
+
     public static AttributeSupplier.Builder createAttributes() {
         return Mob.m_21552_().m_22268_(Attributes.f_22276_, 600)
                 .m_22268_(Attributes.f_22284_, 12).m_22268_(Attributes.f_22285_, 12)
@@ -156,6 +168,20 @@ public final class HadesServantEntity extends Summoned implements GeoEntity, Pla
     @Override public boolean m_6063_() { return false; }
     @Override public boolean isPushedByFluid(FluidType type) { return false; }
     @Override public void m_7311_(int ticks) { super.m_7311_(Math.min(0, ticks)); }
+
+    @Override public void tryKill(Player player) {
+        if (this.getKillChance() <= 0) {
+            this.warnKill(player);
+        } else {
+            super.tryKill(player);
+        }
+    }
+
+    @Override public boolean m_142535_(float fallDistance, float damageMultiplier, DamageSource source) {
+        // The vanilla fall handler forwards the mount's fall distance to its passengers before hurt().
+        this.f_19789_ = 0;
+        return false;
+    }
 
     // Keep the hit box pickable for melee/projectiles, but remove physical entity collisions.
     @Override public boolean m_6094_() { return false; }
@@ -255,6 +281,7 @@ public final class HadesServantEntity extends Summoned implements GeoEntity, Pla
             this.m_5618_(this.riderYaw);
         }
         this.m_20256_(velocity);
+        this.f_19789_ = 0;
         this.m_6478_(MoverType.SELF, velocity);
         this.f_19804_.m_135381_(RIDER_MOVING, velocity.m_82556_() > 1.0E-6);
         this.m_267651_(false);
@@ -570,19 +597,7 @@ public final class HadesServantEntity extends Summoned implements GeoEntity, Pla
         if (age >= HadesEntity.DEATH_ANIMATION_TICKS) {
             if (!this.recallDropped && this.getOwnerId() != null) {
                 this.recallDropped = true;
-                ItemStack halo = FadedHaloItem.capture(this);
-                if (this.getTrueOwner() != null) {
-                    FlyingItem flying = new FlyingItem(ModEntityType.FLYING_ITEM.get(), this.m_9236_(),
-                            this.m_20185_(), this.m_20186_() + 2, this.m_20189_());
-                    flying.setOwner(this.getTrueOwner());
-                    flying.setItem(halo);
-                    flying.setSecondsCool(0);
-                    this.m_9236_().m_7967_(flying);
-                } else {
-                    ItemEntity drop = new ItemEntity(this.m_9236_(), this.m_20185_(), this.m_20186_() + 2, this.m_20189_(), halo);
-                    drop.m_266426_(this.getOwnerId());
-                    this.m_9236_().m_7967_(drop);
-                }
+                FadedHaloItem.returnToOwner(this);
             }
             ApollyonDeathEffects.explodeHadesServant(this);
             this.m_142687_(Entity.RemovalReason.KILLED);

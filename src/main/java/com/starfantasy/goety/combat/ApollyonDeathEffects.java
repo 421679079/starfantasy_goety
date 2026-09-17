@@ -1,6 +1,7 @@
 package com.starfantasy.goety.combat;
 
-import com.starfantasy.goety.entity.ApollyonEntity;
+import com.Polarice3.Goety.utils.ExplosionUtil;
+import com.Polarice3.Goety.utils.LootingExplosion;
 import com.starfantasy.goety.entity.HadesEntity;
 import com.starfantasy.goety.registry.ApollyonSoundRegistry;
 import com.starfantasy.library.vfx.StarFantasyVfx;
@@ -9,16 +10,34 @@ import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.MoverType;
+import net.minecraft.world.level.Explosion;
 import net.minecraft.world.phys.Vec3;
 
 /** Shared server-side finale particles for Apollyon and his Hades visual. */
 public final class ApollyonDeathEffects {
+    public static final int APOLLYON_DEATH_TICKS = 80;
     private static final int PARTICLE_COUNT = 1000;
 
     private ApollyonDeathEffects() {
     }
 
-    public static void explodeApollyon(ApollyonEntity entity) {
+    /** Identical rise, small explosions and return to the starting height for boss and servant. */
+    public static boolean tickApollyon(LivingEntity entity, int age, double groundY) {
+        if (age <= 72) {
+            ExplosionUtil.lootExplode(entity.m_9236_(), entity,
+                    entity.m_20208_(1.0D), entity.m_20187_(), entity.m_20262_(1.0D),
+                    0.0F, false, Explosion.BlockInteraction.KEEP, LootingExplosion.Mode.LOOT);
+            if (age > 8) entity.m_6478_(MoverType.SELF, new Vec3(0, 0.15D, 0));
+        } else {
+            double step = (groundY - entity.m_20186_()) / Math.max(1, APOLLYON_DEATH_TICKS - age + 1);
+            entity.m_6478_(MoverType.SELF, new Vec3(0, step, 0));
+        }
+        return age >= APOLLYON_DEATH_TICKS;
+    }
+
+    public static void explodeApollyon(LivingEntity entity) {
         if (!(entity.m_9236_() instanceof ServerLevel level)) {
             return;
         }

@@ -1,6 +1,7 @@
 package com.starfantasy.goety.entity;
 
 import com.Polarice3.Goety.common.effects.GoetyEffects;
+import com.starfantasy.goety.config.ApollyonConfig;
 import com.starfantasy.goety.registry.ApollyonEntityRegistry;
 import com.starfantasy.library.vfx.StarFantasyStarArrowVisual;
 import com.starfantasy.library.registry.StarFantasyLibraryParticleRegistry;
@@ -36,6 +37,7 @@ public final class ApollyonStarArrowEntity extends AbstractArrow
     private static final float EXPLOSION_RADIUS = 2.0F;
     private static final float EXPLOSION_VISUAL_SIZE = 3.0F;
     private static final float DAMAGE_PER_TYPE = 15.0F;
+    private static final float SERVANT_ARROW_DAMAGE_PER_TYPE = 10.0F;
     private static final int LIFETIME = 200;
     private static final int TRAIL_POINTS = 16;
     public static final int EXPLOSION_TRAIL_TICKS = 20;
@@ -259,7 +261,9 @@ public final class ApollyonStarArrowEntity extends AbstractArrow
 
     private void hurtNearbyEntities() {
         Entity owner = this.m_19749_();
-        float damage = owner instanceof ApollyonEntity boss
+        float damage = owner instanceof ApollyonServantEntity servant
+                ? servant.scaleOutgoingDamage(this.isMeteor() ? DAMAGE_PER_TYPE : SERVANT_ARROW_DAMAGE_PER_TYPE)
+                : owner instanceof ApollyonEntity boss
                 ? boss.scaleOutgoingDamage(DAMAGE_PER_TYPE)
                 : DAMAGE_PER_TYPE;
         AABB area = this.m_20191_().m_82400_(EXPLOSION_RADIUS);
@@ -281,7 +285,7 @@ public final class ApollyonStarArrowEntity extends AbstractArrow
             damaged |= target.m_6469_(
                     this.m_269291_().m_269418_(this, owner), damage);
             if (damaged) {
-                this.applyAllApostleTitleEffects(target, owner);
+                this.applyApostleTitleEffects(target, owner);
             }
         }
     }
@@ -291,21 +295,24 @@ public final class ApollyonStarArrowEntity extends AbstractArrow
         if (entity == owner) {
             return true;
         }
-        return owner instanceof ApollyonEntity boss && boss.isFriendlyEntity(entity);
+        return com.starfantasy.goety.combat.ApollyonSpellSupport.friendly(owner, entity);
     }
 
-    private void applyAllApostleTitleEffects(LivingEntity target, Entity owner) {
-        apply(target, MobEffects.f_19602_, 1, owner);
-        apply(target, MobEffects.f_19614_, 200, owner);
-        apply(target, MobEffects.f_19615_, 200, owner);
-        apply(target, MobEffects.f_216964_, 200, owner);
-        apply(target, MobEffects.f_19613_, 200, owner);
-        apply(target, GoetyEffects.BURN_HEX.get(), 200, owner);
-        apply(target, MobEffects.f_19612_, 200, owner);
-        apply(target, MobEffects.f_19597_, 200, owner);
-        apply(target, GoetyEffects.SAPPED.get(), 200, owner);
+    private void applyApostleTitleEffects(LivingEntity target, Entity owner) {
+        MobEffect[] effects = {
+                MobEffects.f_19602_, MobEffects.f_19614_, MobEffects.f_19615_,
+                MobEffects.f_216964_, MobEffects.f_19613_, MobEffects.f_19612_,
+                MobEffects.f_19597_, GoetyEffects.SAPPED.get()
+        };
+        if (!(owner instanceof ApollyonServantEntity) && ApollyonConfig.hardMode()) {
+            for (MobEffect effect : effects) {
+                apply(target, effect, effect == MobEffects.f_19602_ ? 1 : 200, owner);
+            }
+        } else {
+            MobEffect effect = effects[this.f_19796_.m_188503_(effects.length)];
+            apply(target, effect, effect == MobEffects.f_19602_ ? 1 : 200, owner);
+        }
         target.m_20254_(5);
-
     }
 
     private static void apply(LivingEntity target, MobEffect effect, int duration, Entity source) {

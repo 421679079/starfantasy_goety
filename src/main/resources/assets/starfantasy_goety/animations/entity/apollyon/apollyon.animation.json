@@ -1,4 +1,364 @@
 {
   "format_version": "1.8.0",
-  "animations": {}
+  "animations": {
+    "standby": {
+      "loop": true,
+      "animation_length": 9.7917,
+      "bones": {
+        "Root": {
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "position": [
+            0,
+            -5,
+            5
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "LeftArm": {
+          "rotation": [
+            -68.659,
+            23.92746,
+            -39.32269
+          ],
+          "position": [
+            0,
+            0,
+            0
+          ]
+        },
+        "LeftForeArm": {
+          "rotation": [
+            -60.94031,
+            19.61291,
+            -8.71337
+          ],
+          "position": [
+            0,
+            0,
+            0
+          ]
+        },
+        "RightArm": {
+          "rotation": [
+            -87.59409,
+            -11.75726,
+            65.47122
+          ],
+          "position": [
+            0,
+            0,
+            0
+          ]
+        },
+        "RightForeArm": {
+          "rotation": [
+            -47.5,
+            0,
+            0
+          ],
+          "position": [
+            0,
+            0,
+            0
+          ]
+        },
+        "LeftLowerLeg": {
+          "rotation": [
+            85,
+            0,
+            0
+          ]
+        },
+        "RightLowerLeg": {
+          "rotation": [
+            85,
+            0,
+            0
+          ]
+        },
+        "AllBody": {
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "position": [
+            0,
+            2,
+            -5
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "LongHair": {
+          "rotation": [
+            15,
+            0,
+            0
+          ]
+        },
+        "Arm": {
+          "rotation": [
+            35,
+            0,
+            0
+          ]
+        },
+        "Leg": {
+          "rotation": [
+            -82.5,
+            0,
+            0
+          ]
+        },
+        "RightSkirt": {
+          "rotation": [
+            -27.5,
+            0,
+            0
+          ]
+        },
+        "LeftSkirt": {
+          "rotation": [
+            -30,
+            0,
+            0
+          ]
+        },
+        "FrontSkirt": {
+          "rotation": [
+            -65,
+            0,
+            0
+          ]
+        },
+        "bone139": {
+          "position": [
+            0,
+            2,
+            0
+          ]
+        },
+        "bone142": {
+          "position": [
+            0,
+            2,
+            0
+          ]
+        },
+        "bone145": {
+          "position": [
+            0,
+            2,
+            0
+          ]
+        },
+        "bone118": {
+          "position": [
+            0,
+            2,
+            0
+          ]
+        },
+        "bone121": {
+          "position": [
+            0,
+            2,
+            0
+          ]
+        },
+        "bone124": {
+          "position": [
+            0,
+            2,
+            0
+          ]
+        },
+        "bone29": {
+          "rotation": [
+            57.5,
+            0,
+            0
+          ],
+          "position": [
+            0,
+            -0.7,
+            -0.2
+          ]
+        },
+        "bone32": {
+          "rotation": [
+            55,
+            0,
+            0
+          ],
+          "position": [
+            0,
+            -0.6,
+            -0.1
+          ]
+        },
+        "bone127": {
+          "rotation": [
+            60,
+            0,
+            0
+          ],
+          "position": [
+            0,
+            -0.7,
+            -0.3
+          ]
+        },
+        "bone130": {
+          "position": [
+            0,
+            2,
+            0
+          ]
+        },
+        "bone133": {
+          "position": [
+            0,
+            2,
+            0
+          ]
+        },
+        "bone136": {
+          "position": [
+            0,
+            2,
+            0
+          ]
+        },
+        "bone55": {
+          "rotation": [
+            35,
+            0,
+            0
+          ],
+          "position": [
+            0,
+            2.5,
+            -1.4
+          ]
+        },
+        "bone58": {
+          "position": [
+            0,
+            3,
+            0
+          ]
+        },
+        "bone61": {
+          "rotation": [
+            52.5,
+            0,
+            0
+          ],
+          "position": [
+            0,
+            1,
+            -0.4
+          ]
+        },
+        "bone95": {
+          "rotation": [
+            25,
+            0,
+            0
+          ],
+          "position": [
+            0,
+            2.6,
+            -0.9
+          ]
+        },
+        "bone150": {
+          "rotation": [
+            55,
+            0,
+            0
+          ],
+          "position": [
+            0,
+            1,
+            -0.7
+          ]
+        },
+        "bone153": {
+          "position": [
+            0,
+            3,
+            0
+          ]
+        },
+        "bone156": {
+          "position": [
+            0,
+            2,
+            0
+          ]
+        },
+        "bone159": {
+          "position": [
+            0,
+            2,
+            0
+          ]
+        },
+        "bone162": {
+          "position": [
+            0,
+            2,
+            0
+          ]
+        },
+        "bone165": {
+          "position": [
+            0,
+            2,
+            0
+          ]
+        },
+        "bone168": {
+          "position": [
+            0,
+            2,
+            0
+          ]
+        },
+        "bone171": {
+          "position": [
+            0,
+            2,
+            0
+          ]
+        },
+        "Throne": {
+          "position": [
+            0,
+            0,
+            -6
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        }
+      }
+    }
+  }
 }

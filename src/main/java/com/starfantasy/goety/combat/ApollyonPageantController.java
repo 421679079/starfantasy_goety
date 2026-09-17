@@ -91,6 +91,7 @@ public final class ApollyonPageantController {
 
     private static final String STATE_TAG = "ApollyonPageantState";
     private static final String TEST_PHASE_TAG = "PageantTestPhase";
+    private static final String CHECKPOINT_TAG = "ApollyonPageantCheckpoint";
     private static final int LEGACY_PHASE_TWO_STATE = 5;
     private static final int FADE_TICKS = 60;
     private static final int PROFANE_SUMMON_TICK = 40;
@@ -200,6 +201,7 @@ public final class ApollyonPageantController {
     private int directTransitionHealTicks;
     private boolean cleanupAfterLoad;
     private int testPhase = 1;
+    private int checkpointPhase = 1;
     private final Vec3[] actorPositions = new Vec3[3];
     private UUID profaneUuid;
     private UUID pyreLordUuid;
@@ -405,6 +407,10 @@ public final class ApollyonPageantController {
             this.testPhase = 1;
         }
         int savedState = tag.m_128451_(STATE_TAG);
+        this.checkpointPhase = ApollyonConfig.hardMode() ? 1
+                : tag.m_128441_(CHECKPOINT_TAG)
+                    ? Mth.m_14045_(tag.m_128451_(CHECKPOINT_TAG), 1, 5)
+                    : Math.max(1, phaseForState(savedState));
         if (!hasExplicitCombatPhase && savedState == LEGACY_PHASE_TWO_STATE) {
             // One-time migration from the old overloaded state machine, where 5
             // meant combat phase two rather than a pageant stage.
@@ -423,6 +429,7 @@ public final class ApollyonPageantController {
     public void write(CompoundTag tag) {
         tag.m_128405_(STATE_TAG, this.state);
         tag.m_128405_(TEST_PHASE_TAG, this.testPhase);
+        tag.m_128405_(CHECKPOINT_TAG, ApollyonConfig.hardMode() ? 1 : this.checkpointPhase);
     }
 
     private void beginTransition() {
@@ -476,13 +483,14 @@ public final class ApollyonPageantController {
     private void beginConfiguredPageant(ServerLevel level, LivingEntity target) {
         this.haloOrbitEpoch = level.m_46467_();
         java.util.Arrays.fill(this.occupiedOuterHaloAnchors, false);
-        if (this.testPhase >= 5) {
+        int phase = this.restartPhase();
+        if (phase >= 5) {
             this.beginFifthStage(level);
-        } else if (this.testPhase >= 4) {
+        } else if (phase >= 4) {
             this.beginFourthStage(level, target);
-        } else if (this.testPhase >= 3) {
+        } else if (phase >= 3) {
             this.beginThirdStage(level, target);
-        } else if (this.testPhase >= 2) {
+        } else if (phase >= 2) {
             this.beginGloriousStage(level);
         } else {
             this.beginSummoning(level, target);
@@ -636,7 +644,7 @@ public final class ApollyonPageantController {
     private boolean isValidPageantTarget(LivingEntity target) {
         if (target == null || !target.m_6084_() || target == this.boss
                 || target.m_9236_() != this.boss.m_9236_()
-                || !this.boss.isWithinArenaCombatRange(target)
+                || !this.boss.isValidArenaTarget(target)
                 || target instanceof ArmorStand || target instanceof ApollyonPageantOwned
                 || target instanceof Owned owned && owned.getTrueOwner() == this.boss
                 || this.boss.m_7307_(target)) {
@@ -766,7 +774,9 @@ public final class ApollyonPageantController {
         // These three pageant punishments (lightning, monolith, scorpion vines)
         // originate behind each victim; preserve damage events and death prevention.
         if (target.m_6469_(ApollyonDamageSources.rear(target, source), target.m_21233_() * 5.0F) && target.m_6084_()) {
-            target.m_147207_(new MobEffectInstance(effect, 1200, 3), this.boss);
+            int duration = effect == GoetyEffects.SPASMS.get() ? 300
+                    : effect == GoetyEffects.ACID_VENOM.get() ? 200 : 1200;
+            target.m_147207_(new MobEffectInstance(effect, duration, 3), this.boss);
             if (effect == GoetyEffects.SAPPED.get()) {
                 target.m_147207_(new MobEffectInstance(GoetyEffects.STUNNED.get(), 100), this.boss);
             }
@@ -2300,8 +2310,34 @@ public final class ApollyonPageantController {
     private void setState(int state, float opacity) {
         this.state = state;
         this.stateTicks = 0;
+        if (state == INACTIVE || ApollyonConfig.hardMode()) {
+            this.checkpointPhase = 1;
+        } else {
+            int phase = phaseForState(state);
+            // End-of-stage damage must resolve before a surviving group earns progress.
+            if (phase > 0 && this.ensureTarget() != null) {
+                this.checkpointPhase = phase;
+            }
+        }
         this.boss.setPageantState(state);
         this.boss.setPageantOpacity(opacity);
+    }
+
+    private int restartPhase() {
+        // Preserve the explicit developer starting phase; normal encounters default to 1.
+        return ApollyonConfig.hardMode() ? this.testPhase
+                : Math.max(this.testPhase, this.checkpointPhase);
+    }
+
+    private static int phaseForState(int state) {
+        return switch (state) {
+            case SUMMONING, FIRST_TRIO -> 1;
+            case GLORIOUS_STAGE, SECOND_TRIO -> 2;
+            case THIRD_DPS -> 3;
+            case FOURTH_STAGE -> 4;
+            case FIFTH_STAGE -> 5;
+            default -> 0;
+        };
     }
 
     private static Vec3 groundCenterAt(ServerLevel level, double x, double searchY, double z) {

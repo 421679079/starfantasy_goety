@@ -6,16 +6,10 @@
   },
   "craftType": "sky",
   "soulCost": 1,
-  "duration": 10,
+  "duration": 1,
   "ingredients": [
     {
       "item": "starfantasy_goety:halo_of_the_great_shadow"
-    },
-    {
-      "item": "goety:wind_crown"
-    },
-    {
-      "item": "goety:wind_robe"
     }
   ],
   "result": {

@@ -2,7 +2,7 @@
 param(
     [string]$MinecraftRoot = $env:STARFANTASY_MC_ROOT,
     [string]$GradlePath = $env:STARFANTASY_GRADLE,
-    [string]$Version = '0.4.3'
+    [string]$Version = '0.6.1'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -224,6 +224,7 @@ try {
         'assets/starfantasy_goety/textures/entity/apollyon/apollyon.png',
         'assets/starfantasy_goety/animations/entity/apostle/apostle.animation.json',
         'THIRD_PARTY_NOTICES.md',
+        'THIRD_PARTY/Mhzy/LICENSE.txt',
         'CREDITS.md',
         'THIRD_PARTY/Apostle_T-fix10/LICENSE.txt',
         'LICENSE',

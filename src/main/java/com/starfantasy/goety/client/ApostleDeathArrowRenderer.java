@@ -3,6 +3,7 @@ package com.starfantasy.goety.client;
 import com.Polarice3.Goety.client.render.DeathArrowRenderer;
 import com.Polarice3.Goety.common.entities.projectiles.DeathArrow;
 import com.starfantasy.goety.config.ApostleConfig;
+import com.starfantasy.goety.compat.ApostleCompatibility;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
@@ -12,7 +13,8 @@ public final class ApostleDeathArrowRenderer extends DeathArrowRenderer {
     public ApostleDeathArrowRenderer(EntityRendererProvider.Context context) { super(context); }
     @Override public void m_7392_(DeathArrow arrow, float yaw, float partialTick,
                                  PoseStack pose, MultiBufferSource buffer, int light) {
-        if (!ApostleConfig.IMPROVED_ARCHERY.get()) {
+        if (!ApostleConfig.IMPROVED_ARCHERY.get()
+                || ApostleCompatibility.isRevelationApollyon(arrow.m_19749_())) {
             super.m_7392_(arrow, yaw, partialTick, pose, buffer, light);
             return;
         }

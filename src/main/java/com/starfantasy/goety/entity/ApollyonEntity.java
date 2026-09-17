@@ -9,8 +9,6 @@ import com.Polarice3.Goety.common.network.ModServerBossInfo;
 import com.Polarice3.Goety.config.MobsConfig;
 import com.Polarice3.Goety.init.ModSounds;
 import com.Polarice3.Goety.utils.ColorUtil;
-import com.Polarice3.Goety.utils.ExplosionUtil;
-import com.Polarice3.Goety.utils.LootingExplosion;
 import com.Polarice3.Goety.utils.MobUtil;
 import com.Polarice3.Goety.utils.ServerParticleUtil;
 import com.starfantasy.goety.config.ApollyonConfig;
@@ -57,7 +55,6 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.MobType;
-import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.SpawnGroupData;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
@@ -78,7 +75,6 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -102,13 +98,12 @@ import java.util.UUID;
  * A deliberately small Apostle-like combatant. It borrows the Cultist pose model,
  * but none of Apostle's phase, weather, summoning or world-changing mechanics.
  */
-public final class ApollyonEntity extends Cultist implements RangedAttackMob, GeoEntity,
-        com.starfantasy.goety.combat.ApollyonDeathInventory.Encounter {
-    public static final int DEATH_ANIMATION_TICKS = 80;
-    private static final int DEATH_RISE_START_TICK = 8;
-    private static final int DEATH_RISE_END_TICK = 72;
-    private static final double DEATH_RISE_SPEED = 0.15D;
+public final class ApollyonEntity extends Cultist implements com.starfantasy.library.combat.CombatHealthEntity, RangedAttackMob, GeoEntity,
+        com.starfantasy.goety.combat.ApollyonDeathInventory.Encounter,
+        com.starfantasy.goety.combat.ApollyonPageantAggro.Encounter {
+    public static final int DEATH_ANIMATION_TICKS = ApollyonDeathEffects.APOLLYON_DEATH_TICKS;
     private static final String HOME_X_TAG = "ApollyonHomeX";
+    private static final String CONFIGURED_HEALTH_TAG = "ApollyonConfiguredHealth";
     private static final String HOME_Y_TAG = "ApollyonHomeY";
     private static final String HOME_Z_TAG = "ApollyonHomeZ";
     private static final String MULTISHOT_COOLDOWN_TAG = "ApollyonMultishotCooldown";
@@ -191,6 +186,7 @@ public final class ApollyonEntity extends Cultist implements RangedAttackMob, Ge
 
     public static final double ARENA_SIZE = 40.0D;
     public static final double ARENA_RADIUS = ARENA_SIZE * 0.5D;
+    private static final double ARENA_ENTRY_HEIGHT = 8.0D;
     public static final double ARENA_VISUAL_HEIGHT = 4.0D;
     public static final float ARENA_WALL_ALPHA = 0.3F;
     private static final double ARENA_DISENGAGE_DISTANCE_SQR = 48.0D * 48.0D;
@@ -242,7 +238,9 @@ public final class ApollyonEntity extends Cultist implements RangedAttackMob, Ge
     private int meteorCooldown;
     private boolean phaseTwoHalfHealthEnraged;
     private int monolithPowerTicks;
-    private int bossInvulnerabilityTicks;
+    private final com.starfantasy.library.combat.CombatHealthProtection healthProtection =
+            new com.starfantasy.library.combat.CombatHealthProtection();
+    private int damageProcessingDepth;
     private boolean shieldHitInProgress;
     private int receivedHits;
     private int teleportWindupTicks;
@@ -252,13 +250,15 @@ public final class ApollyonEntity extends Cultist implements RangedAttackMob, Ge
     private final List<CastingSpell> remainingPoolSpells = new ArrayList<>();
     private CastingSpell lastPoolSpell = CastingSpell.NONE;
     private final List<Integer> remainingHadesAttacks = new ArrayList<>();
-    private final Set<UUID> arenaPlayers = new HashSet<>();
+    // Keep the player instance: respawning creates a new entity with the same UUID.
+    private final Map<UUID, ServerPlayer> arenaPlayers = new HashMap<>();
     private final Map<UUID, Long> safeBoundaryKnockbackReadyTicks = new HashMap<>();
     private UUID boundaryMobUuid;
     private Vec3 arenaHome = Vec3.f_82478_;
     private boolean arenaHomeInitialized;
     private boolean phaseTwoInitializationPending;
     private double deathGroundY;
+    private double lastConfiguredHealth = Double.NaN;
 
     public ApollyonEntity(EntityType<? extends ApollyonEntity> entityType, Level level) {
         super(entityType, level);
@@ -266,6 +266,7 @@ public final class ApollyonEntity extends Cultist implements RangedAttackMob, Ge
         this.bossInfo = new ModServerBossInfo(this, BossEvent.BossBarColor.RED, true, true);
         this.m_8061_(EquipmentSlot.MAINHAND, new ItemStack(Items.f_42411_));
         this.applyConfiguredAttributes(true);
+        this.healthProtection.enable();
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -368,9 +369,7 @@ public final class ApollyonEntity extends Cultist implements RangedAttackMob, Ge
                 this.ensureArenaHome();
                 this.enterCombatPhaseTwo();
             }
-            if (this.bossInvulnerabilityTicks > 0) {
-                --this.bossInvulnerabilityTicks;
-            }
+            this.healthProtection.tick();
             this.tickPhaseTwoHalfHealthState();
             if (this.f_19797_ % 20 == 0) {
                 this.applyConfiguredAttributes(false);
@@ -434,6 +433,9 @@ public final class ApollyonEntity extends Cultist implements RangedAttackMob, Ge
             this.pageant.discardFromKill();
             return true;
         }
+        if (!this.isArenaDamageSource(source)) {
+            return false;
+        }
         if (this.pageant.isInvulnerable()) {
             return false;
         }
@@ -453,13 +455,13 @@ public final class ApollyonEntity extends Cultist implements RangedAttackMob, Ge
             return false;
         }
         boolean shielded = this.hasCooperativeShield();
-        if (this.bossInvulnerabilityTicks > 0 && !shielded) {
+        if (this.healthProtection.invulnerabilityTicks() > 0 && !shielded) {
             return false;
         }
         boolean previousShieldHit = this.shieldHitInProgress;
         if (shielded) {
             this.f_19802_ = 0;
-            this.bossInvulnerabilityTicks = 0;
+            this.healthProtection.setInvulnerabilityTicks(0);
             this.shieldHitInProgress = true;
         }
         boolean hurt;
@@ -468,7 +470,7 @@ public final class ApollyonEntity extends Cultist implements RangedAttackMob, Ge
         } finally {
             if (shielded) {
                 this.f_19802_ = 0;
-                this.bossInvulnerabilityTicks = 0;
+                this.healthProtection.setInvulnerabilityTicks(0);
             }
             this.shieldHitInProgress = previousShieldHit;
             this.updateShieldKnockbackResistance();
@@ -612,22 +614,7 @@ public final class ApollyonEntity extends Cultist implements RangedAttackMob, Ge
             return;
         }
 
-        if (this.f_20919_ <= DEATH_RISE_END_TICK) {
-            ExplosionUtil.lootExplode(this.m_9236_(), this,
-                    this.m_20208_(1.0D), this.m_20187_(), this.m_20262_(1.0D),
-                    0.0F, false, Explosion.BlockInteraction.KEEP, LootingExplosion.Mode.LOOT);
-            if (this.f_20919_ > DEATH_RISE_START_TICK) {
-                this.m_6478_(MoverType.SELF,
-                        new Vec3(0.0D, DEATH_RISE_SPEED, 0.0D));
-            }
-        } else {
-            int remainingTicks = DEATH_ANIMATION_TICKS - this.f_20919_ + 1;
-            double fallStep = (this.deathGroundY - this.m_20186_())
-                    / Math.max(1, remainingTicks);
-            this.m_6478_(MoverType.SELF, new Vec3(0.0D, fallStep, 0.0D));
-        }
-
-        if (this.f_20919_ >= DEATH_ANIMATION_TICKS) {
+        if (ApollyonDeathEffects.tickApollyon(this, this.f_20919_, this.deathGroundY)) {
             ApollyonDeathEffects.explodeApollyon(this);
             this.m_9236_().m_7605_(this, (byte) 60);
             this.m_142687_(Entity.RemovalReason.KILLED);
@@ -650,14 +637,52 @@ public final class ApollyonEntity extends Cultist implements RangedAttackMob, Ge
     @Override
     protected void m_6475_(DamageSource source, float amount) {
         boolean shielded = this.hasCooperativeShield() || this.shieldHitInProgress;
-        if (this.bossInvulnerabilityTicks > 0 && !shielded) {
+        if (this.healthProtection.invulnerabilityTicks() > 0 && !shielded) {
             return;
         }
-        super.m_6475_(source, amount);
-        if (!shielded && source.m_7639_() != null) {
-            this.bossInvulnerabilityTicks = Math.max(
-                    0, ApollyonConfig.bossInvulnerabilityTime());
+        // Direct actuallyHurt calls must respect the encounter's existing protection too.
+        if (this.pageant.isInvulnerable() || this.isMonolithPower()) return;
+        ++this.damageProcessingDepth;
+        try {
+            super.m_6475_(source, amount);
+        } finally {
+            --this.damageProcessingDepth;
         }
+        if (!shielded && source.m_7639_() != null) {
+            this.healthProtection.setInvulnerabilityTicks(ApollyonConfig.bossInvulnerabilityTime());
+        }
+    }
+
+    @Override
+    public com.starfantasy.library.combat.CombatHealthProtection combatHealthProtection() {
+        return this.healthProtection;
+    }
+
+    @Override
+    public double combatDamageCap() { return ApollyonConfig.damageCap(); }
+
+    @Override
+    public int combatHitInvulnerabilityTicks() { return ApollyonConfig.bossInvulnerabilityTime(); }
+
+    @Override
+    public boolean combatHealthLocked() {
+        return this.pageant.isInvulnerable() || this.isMonolithPower();
+    }
+
+    @Override
+    public boolean bypassCombatHitImmunity() {
+        return this.hasCooperativeShield() || this.shieldHitInProgress;
+    }
+
+    @Override
+    public float absorbCombatHealthLoss(float loss) {
+        // LivingDamageEvent already absorbed the shield on the normal damage path.
+        return this.damageProcessingDepth == 0 ? this.absorbCooperativeShield(null, loss) : loss;
+    }
+
+    @Override
+    public boolean handleCombatHealthLoss(float loss) {
+        return this.tryStartPageantFromFinalDamage(loss);
     }
 
     @Override
@@ -735,7 +760,7 @@ public final class ApollyonEntity extends Cultist implements RangedAttackMob, Ge
         this.f_19804_.m_135381_(COOPERATIVE_SHIELD, Math.max(0.0F, amount));
         if (this.hasCooperativeShield()) {
             this.f_19802_ = 0;
-            this.bossInvulnerabilityTicks = 0;
+            this.healthProtection.setInvulnerabilityTicks(0);
         }
         this.updateShieldKnockbackResistance();
     }
@@ -804,34 +829,41 @@ public final class ApollyonEntity extends Cultist implements RangedAttackMob, Ge
     }
 
     private void applyConfiguredAttributes(boolean healToFull) {
-        this.f_21364_ = ApollyonConfig.deathExperience();
-        double configuredHealth = Mth.m_14008_(
-                ApollyonConfig.bossHealth(), 1.0D, 100000.0D);
-        AttributeInstance maxHealth = this.m_21051_(Attributes.f_22276_);
-        if (maxHealth != null) {
-            double oldMaxHealth = Math.max(1.0D, this.m_21233_());
-            float currentHealth = this.m_21223_();
-            boolean wasFull = currentHealth >= oldMaxHealth - 0.5D;
-            if (Math.abs(maxHealth.m_22115_() - configuredHealth) > 1.0E-4D) {
-                maxHealth.m_22100_(configuredHealth);
+        this.healthProtection.beginRestore();
+        try {
+            this.f_21364_ = ApollyonConfig.deathExperience();
+            double configuredHealth = Mth.m_14008_(
+                    ApollyonConfig.bossHealth(), 1.0D, 100000.0D);
+            AttributeInstance maxHealth = this.m_21051_(Attributes.f_22276_);
+            if (maxHealth != null) {
+                double oldMaxHealth = Math.max(1.0D, this.m_21233_());
+                float currentHealth = this.m_21223_();
+                boolean wasFull = currentHealth >= oldMaxHealth - 0.5D;
+                // Apply our base on creation/config changes, preserving other mods' later edits.
+                boolean configChanged = Double.compare(lastConfiguredHealth, configuredHealth) != 0;
+                if (configChanged) {
+                    maxHealth.m_22100_(configuredHealth);
+                    lastConfiguredHealth = configuredHealth;
+                }
+                float effectiveMaxHealth = this.m_21233_();
+                if (healToFull || (configChanged && wasFull) || currentHealth > effectiveMaxHealth) {
+                    this.m_21153_(effectiveMaxHealth);
+                }
             }
-            if (healToFull || wasFull) {
-                this.m_21153_((float) configuredHealth);
-            } else if (currentHealth > configuredHealth) {
-                this.m_21153_((float) configuredHealth);
-            }
-        }
 
-        double configuredArmor = Mth.m_14008_(
-                ApollyonConfig.armor(), 0.0D, 1000.0D);
-        AttributeInstance armor = this.m_21051_(Attributes.f_22284_);
-        if (armor != null && Math.abs(armor.m_22115_() - configuredArmor) > 1.0E-4D) {
-            armor.m_22100_(configuredArmor);
-        }
-        AttributeInstance toughness = this.m_21051_(Attributes.f_22285_);
-        if (toughness != null
-                && Math.abs(toughness.m_22115_() - configuredArmor) > 1.0E-4D) {
-            toughness.m_22100_(configuredArmor);
+            double configuredArmor = Mth.m_14008_(
+                    ApollyonConfig.armor(), 0.0D, 1000.0D);
+            AttributeInstance armor = this.m_21051_(Attributes.f_22284_);
+            if (armor != null && Math.abs(armor.m_22115_() - configuredArmor) > 1.0E-4D) {
+                armor.m_22100_(configuredArmor);
+            }
+            AttributeInstance toughness = this.m_21051_(Attributes.f_22285_);
+            if (toughness != null
+                    && Math.abs(toughness.m_22115_() - configuredArmor) > 1.0E-4D) {
+                toughness.m_22100_(configuredArmor);
+            }
+        } finally {
+            this.healthProtection.endRestore();
         }
     }
 
@@ -943,66 +975,75 @@ public final class ApollyonEntity extends Cultist implements RangedAttackMob, Ge
 
     @Override
     public void m_7378_(CompoundTag tag) {
-        super.m_7378_(tag);
-        this.applyConfiguredAttributes(false);
-        this.multishotCooldown = Math.max(0, tag.m_128451_(MULTISHOT_COOLDOWN_TAG));
-        this.spellCooldown = Math.max(0, tag.m_128451_(SPELL_COOLDOWN_TAG));
-        this.setCooperativeShield(Math.max(0.0F, tag.m_128457_(COOPERATIVE_SHIELD_TAG)));
-        this.arrowCooldown = Math.max(0, tag.m_128451_(ARROW_COOLDOWN_TAG));
-        this.attackDecisionCooldown = Math.max(0, tag.m_128451_(ATTACK_DECISION_COOLDOWN_TAG));
-        this.meteorCooldown = Math.max(0, tag.m_128451_(METEOR_COOLDOWN_TAG));
-        this.setAntiRegen(
-                Math.max(0, tag.m_128451_(ANTI_REGEN_TAG)),
-                Math.max(0, tag.m_128451_(ANTI_REGEN_TOTAL_TAG)));
-        this.monolithPowerTicks = Math.max(0, tag.m_128451_(MONOLITH_POWER_TICKS_TAG));
-        this.bossInvulnerabilityTicks = Math.max(
-                0, tag.m_128451_(BOSS_INVULNERABILITY_TICKS_TAG));
-        this.phaseTwoHalfHealthEnraged = tag.m_128441_(PHASE_TWO_HALF_HEALTH_ENRAGED_TAG)
-                ? tag.m_128471_(PHASE_TWO_HALF_HEALTH_ENRAGED_TAG)
-                : this.isCombatPhaseTwo() && this.m_21223_() <= this.m_21233_() * 0.5F;
-        this.setMonolithPower(this.monolithPowerTicks > 0);
-        if (this.m_8077_()) {
-            this.bossInfo.m_6456_(this.m_5446_());
-        }
-        if (tag.m_128441_(HOME_X_TAG)
-                && tag.m_128441_(HOME_Y_TAG)
-                && tag.m_128441_(HOME_Z_TAG)) {
-            this.setArenaHome(new Vec3(
-                    tag.m_128459_(HOME_X_TAG),
-                    tag.m_128459_(HOME_Y_TAG),
-                    tag.m_128459_(HOME_Z_TAG)));
-        } else {
-            // /summon loads custom NBT before its command callback moves the entity
-            // to the requested coordinates. Defer a missing home until the first
-            // server tick (or incoming lethal hit), when that final position exists.
-            this.arenaHomeInitialized = false;
-        }
-        boolean hasExplicitCombatPhase = tag.m_128441_(COMBAT_PHASE_TAG);
-        if (hasExplicitCombatPhase) {
-            this.setCombatPhase(tag.m_128451_(COMBAT_PHASE_TAG));
-            // A direct phase-two /summon has no persisted home. Run the canonical
-            // transition initializer on its first server tick, after the command
-            // has applied the final summon position.
-            this.phaseTwoInitializationPending = this.isCombatPhaseTwo()
+        this.healthProtection.beginRestore();
+        try {
+            super.m_7378_(tag);
+            // Old saves have no marker; retain their saved attributes until the config changes.
+            if (tag.m_128441_(CONFIGURED_HEALTH_TAG)) {
+                this.lastConfiguredHealth = tag.m_128459_(CONFIGURED_HEALTH_TAG);
+            }
+            this.applyConfiguredAttributes(false);
+            this.multishotCooldown = Math.max(0, tag.m_128451_(MULTISHOT_COOLDOWN_TAG));
+            this.spellCooldown = Math.max(0, tag.m_128451_(SPELL_COOLDOWN_TAG));
+            this.setCooperativeShield(Math.max(0.0F, tag.m_128457_(COOPERATIVE_SHIELD_TAG)));
+            this.arrowCooldown = Math.max(0, tag.m_128451_(ARROW_COOLDOWN_TAG));
+            this.attackDecisionCooldown = Math.max(0, tag.m_128451_(ATTACK_DECISION_COOLDOWN_TAG));
+            this.meteorCooldown = Math.max(0, tag.m_128451_(METEOR_COOLDOWN_TAG));
+            this.setAntiRegen(
+                    Math.max(0, tag.m_128451_(ANTI_REGEN_TAG)),
+                    Math.max(0, tag.m_128451_(ANTI_REGEN_TOTAL_TAG)));
+            this.monolithPowerTicks = Math.max(0, tag.m_128451_(MONOLITH_POWER_TICKS_TAG));
+            this.healthProtection.setInvulnerabilityTicks(tag.m_128451_(BOSS_INVULNERABILITY_TICKS_TAG));
+            this.phaseTwoHalfHealthEnraged = tag.m_128441_(PHASE_TWO_HALF_HEALTH_ENRAGED_TAG)
+                    ? tag.m_128471_(PHASE_TWO_HALF_HEALTH_ENRAGED_TAG)
+                    : this.isCombatPhaseTwo() && this.m_21223_() <= this.m_21233_() * 0.5F;
+            this.setMonolithPower(this.monolithPowerTicks > 0);
+            if (this.m_8077_()) {
+                this.bossInfo.m_6456_(this.m_5446_());
+            }
+            if (tag.m_128441_(HOME_X_TAG)
+                    && tag.m_128441_(HOME_Y_TAG)
+                    && tag.m_128441_(HOME_Z_TAG)) {
+                this.setArenaHome(new Vec3(
+                        tag.m_128459_(HOME_X_TAG),
+                        tag.m_128459_(HOME_Y_TAG),
+                        tag.m_128459_(HOME_Z_TAG)));
+            } else {
+                // /summon loads custom NBT before its command callback moves the entity
+                // to the requested coordinates. Defer a missing home until the first
+                // server tick (or incoming lethal hit), when that final position exists.
+                this.arenaHomeInitialized = false;
+            }
+            boolean hasExplicitCombatPhase = tag.m_128441_(COMBAT_PHASE_TAG);
+            if (hasExplicitCombatPhase) {
+                this.setCombatPhase(tag.m_128451_(COMBAT_PHASE_TAG));
+                // A direct phase-two /summon has no persisted home. Run the canonical
+                // transition initializer on its first server tick, after the command
+                // has applied the final summon position.
+                this.phaseTwoInitializationPending = this.isCombatPhaseTwo()
+                        && !tag.m_128441_(HOME_X_TAG)
+                        && !tag.m_128441_(HOME_Y_TAG)
+                        && !tag.m_128441_(HOME_Z_TAG);
+            } else {
+                this.setCombatPhase(COMBAT_PHASE_ONE);
+                this.phaseTwoInitializationPending = false;
+            }
+            this.pageant.read(tag, hasExplicitCombatPhase);
+            if (!hasExplicitCombatPhase && this.isCombatPhaseTwo()
                     && !tag.m_128441_(HOME_X_TAG)
                     && !tag.m_128441_(HOME_Y_TAG)
-                    && !tag.m_128441_(HOME_Z_TAG);
-        } else {
-            this.setCombatPhase(COMBAT_PHASE_ONE);
-            this.phaseTwoInitializationPending = false;
-        }
-        this.pageant.read(tag, hasExplicitCombatPhase);
-        if (!hasExplicitCombatPhase && this.isCombatPhaseTwo()
-                && !tag.m_128441_(HOME_X_TAG)
-                && !tag.m_128441_(HOME_Y_TAG)
-                && !tag.m_128441_(HOME_Z_TAG)) {
-            this.phaseTwoInitializationPending = true;
+                    && !tag.m_128441_(HOME_Z_TAG)) {
+                this.phaseTwoInitializationPending = true;
+            }
+        } finally {
+            this.healthProtection.endRestore();
         }
     }
 
     @Override
     public void m_7380_(CompoundTag tag) {
         super.m_7380_(tag);
+        tag.m_128347_(CONFIGURED_HEALTH_TAG, this.lastConfiguredHealth);
         tag.m_128405_(MULTISHOT_COOLDOWN_TAG, this.multishotCooldown);
         tag.m_128405_(SPELL_COOLDOWN_TAG, this.spellCooldown);
         tag.m_128350_(COOPERATIVE_SHIELD_TAG, this.getCooperativeShield());
@@ -1012,7 +1053,7 @@ public final class ApollyonEntity extends Cultist implements RangedAttackMob, Ge
         tag.m_128405_(ANTI_REGEN_TAG, this.getAntiRegen());
         tag.m_128405_(ANTI_REGEN_TOTAL_TAG, this.getAntiRegenTotal());
         tag.m_128405_(MONOLITH_POWER_TICKS_TAG, this.monolithPowerTicks);
-        tag.m_128405_(BOSS_INVULNERABILITY_TICKS_TAG, this.bossInvulnerabilityTicks);
+        tag.m_128405_(BOSS_INVULNERABILITY_TICKS_TAG, this.healthProtection.invulnerabilityTicks());
         tag.m_128405_(COMBAT_PHASE_TAG, this.getCombatPhase());
         tag.m_128379_(PHASE_TWO_HALF_HEALTH_ENRAGED_TAG,
                 this.phaseTwoHalfHealthEnraged);
@@ -1061,16 +1102,13 @@ public final class ApollyonEntity extends Cultist implements RangedAttackMob, Ge
 
     private void tickArenaState(LivingEntity target) {
         this.ensureArenaHome();
-        if (target != null && !this.isWithinArenaCombatRange(target)) {
+        if (target != null && !this.isValidArenaTarget(target)) {
             this.clearDistantAggro();
             target = null;
         }
         boolean wasActive = this.isArenaActive();
         boolean active = target != null && target.m_6084_();
 
-        if (active && !wasActive && !this.isInsideArena(target)) {
-            this.teleportArenaTargetHome(target);
-        }
         this.setArenaActive(active);
         // Only the current non-player target needs checking; never scan nearby mobs.
         UUID currentMobUuid = active && !(target instanceof Player) ? target.m_20148_() : null;
@@ -1099,6 +1137,10 @@ public final class ApollyonEntity extends Cultist implements RangedAttackMob, Ge
             this.applyArenaMembership();
             this.constrainArenaPlayers();
         }
+        if (this.m_9236_() instanceof ServerLevel level) {
+            com.starfantasy.goety.combat.ApollyonArenaFlight.tick(
+                    level, this.arenaHomePosition(), ARENA_RADIUS, ARENA_DISENGAGE_DISTANCE_SQR);
+        }
     }
 
     private void prepareArenaPlayersForPageant() {
@@ -1114,11 +1156,46 @@ public final class ApollyonEntity extends Cultist implements RangedAttackMob, Ge
         this.constrainArenaPlayers();
     }
 
-    private boolean isInsideArena(LivingEntity target) {
-        if (target == null) {
+    private boolean canEnterArena(LivingEntity target) {
+        Vec3 home = this.arenaHomeInitialized ? this.arenaHomePosition() : this.m_20182_();
+        double dx = target.m_20185_() - home.f_82479_;
+        double dz = target.m_20189_() - home.f_82481_;
+        return dx * dx + dz * dz <= ARENA_RADIUS * ARENA_RADIUS
+                && Math.abs(target.m_20186_() - home.f_82480_) <= ARENA_ENTRY_HEIGHT;
+    }
+
+    public boolean isValidArenaTarget(LivingEntity target) {
+        if (target == null || !target.m_6084_() || !this.isWithinArenaCombatRange(target)
+                || target instanceof Player player && (player.m_7500_() || player.m_5833_())) {
             return false;
         }
-        return this.isHorizontalPositionInsideArena(target.m_20182_(), ARENA_RADIUS);
+        boolean alreadyJoined = target instanceof ServerPlayer player
+                ? this.arenaPlayers.get(player.m_20148_()) == player
+                : target == this.m_5448_();
+        return alreadyJoined || this.canEnterArena(target);
+    }
+
+    private boolean isArenaDamageSource(DamageSource source) {
+        Entity origin = source.m_7639_();
+        if (origin == null) {
+            origin = source.m_7640_();
+        }
+        // Resolve projectile shooters and Goety summon owners before using position.
+        // Bound traversal also handles malformed ownership cycles without hanging a tick.
+        for (int depth = 0; origin != null && depth < 8; ++depth) {
+            Entity owner = origin instanceof Projectile projectile ? projectile.m_19749_()
+                    : origin instanceof Owned owned ? owned.getTrueOwner() : null;
+            if (owner == null || owner == origin) {
+                break;
+            }
+            origin = owner;
+        }
+        Vec3 position = origin == null ? source.m_7270_() : origin.m_20182_();
+        if (position == null || origin != null && origin.m_9236_() != this.m_9236_()) {
+            return false;
+        }
+        this.ensureArenaHome();
+        return this.isHorizontalPositionInsideArena(position, ARENA_RADIUS);
     }
 
     public boolean isWithinArenaCombatRange(LivingEntity target) {
@@ -1129,48 +1206,35 @@ public final class ApollyonEntity extends Cultist implements RangedAttackMob, Ge
 
     @Override
     public boolean m_6779_(LivingEntity target) {
-        return this.isWithinArenaCombatRange(target) && super.m_6779_(target);
+        return this.isValidArenaTarget(target) && super.m_6779_(target);
+    }
+
+    @Override
+    public void m_6710_(LivingEntity target) {
+        // Covers retaliation and cultist alerts as well as ordinary nearest-player AI.
+        if (target == null || this.isValidArenaTarget(target)) {
+            super.m_6710_(target);
+        }
     }
 
     private void clearDistantAggro() {
         LivingEntity target = this.m_5448_();
-        if (target != null && !this.isWithinArenaCombatRange(target)) {
+        if (target != null && !this.isValidArenaTarget(target)) {
             this.m_6710_(null);
             this.m_21573_().m_26573_();
             this.clearPendingTeleport();
         }
         LivingEntity attacker = this.m_21188_();
-        if (attacker != null && !this.isWithinArenaCombatRange(attacker)) {
+        if (attacker != null && !this.isValidArenaTarget(attacker)) {
             this.m_6703_(null);
         }
         LivingEntity victim = this.m_21214_();
-        if (victim != null && !this.isWithinArenaCombatRange(victim)) {
+        if (victim != null && !this.isValidArenaTarget(victim)) {
             this.m_21335_(null);
         }
-        if (this.f_20888_ != null && !this.isWithinArenaCombatRange(this.f_20888_)) {
+        if (this.f_20888_ != null && !this.isValidArenaTarget(this.f_20888_)) {
             this.m_6598_(null);
         }
-    }
-
-    private void teleportArenaTargetHome(LivingEntity target) {
-        if (!(this.m_9236_() instanceof ServerLevel level)
-                || !this.isWithinArenaCombatRange(target)) {
-            return;
-        }
-        Vec3 from = target.m_20182_();
-        Vec3 home = this.arenaHomePosition();
-        this.spawnTeleportParticles(level, from, target.m_20206_() * 0.5D);
-        if (target instanceof ServerPlayer player) {
-            player.f_8906_.m_9774_(home.f_82479_, home.f_82480_, home.f_82481_,
-                    player.m_146908_(), player.m_146909_());
-        } else {
-            target.m_6021_(home.f_82479_, home.f_82480_, home.f_82481_);
-        }
-        target.m_20256_(Vec3.f_82478_);
-        target.f_19789_ = 0.0F;
-        target.f_19864_ = true;
-        target.f_19812_ = true;
-        this.spawnTeleportParticles(level, home, target.m_20206_() * 0.5D);
     }
 
     private void applyArenaMembership() {
@@ -1178,31 +1242,32 @@ public final class ApollyonEntity extends Cultist implements RangedAttackMob, Ge
             return;
         }
         Set<UUID> presentPlayers = new HashSet<>();
-        Vec3 home = this.arenaHomePosition();
         for (ServerPlayer player : level.m_6907_()) {
             if (!player.m_6084_() || player.m_7500_() || player.m_5833_()) {
                 continue;
             }
             presentPlayers.add(player.m_20148_());
-            double offsetX = player.m_20185_() - home.f_82479_;
-            double offsetZ = player.m_20189_() - home.f_82481_;
-            if (offsetX * offsetX + offsetZ * offsetZ <= ARENA_RADIUS * ARENA_RADIUS
-                    && this.isWithinArenaCombatRange(player)) {
-                this.arenaPlayers.add(player.m_20148_());
+            if (this.arenaPlayers.get(player.m_20148_()) != player) {
+                this.arenaPlayers.remove(player.m_20148_());
+                this.safeBoundaryKnockbackReadyTicks.remove(player.m_20148_());
+            }
+            if (this.canEnterArena(player)) {
+                this.arenaPlayers.put(player.m_20148_(), player);
             }
         }
-        this.arenaPlayers.retainAll(presentPlayers);
+        this.arenaPlayers.keySet().retainAll(presentPlayers);
     }
 
     private void constrainArenaPlayers() {
         if (!(this.m_9236_() instanceof ServerLevel level)) {
             return;
         }
-        Iterator<UUID> iterator = this.arenaPlayers.iterator();
+        Iterator<Map.Entry<UUID, ServerPlayer>> iterator = this.arenaPlayers.entrySet().iterator();
         while (iterator.hasNext()) {
-            UUID playerUuid = iterator.next();
+            Map.Entry<UUID, ServerPlayer> entry = iterator.next();
+            UUID playerUuid = entry.getKey();
             ServerPlayer player = level.m_7654_().m_6846_().m_11259_(playerUuid);
-            if (player == null || player.m_9236_() != level) {
+            if (player == null || player != entry.getValue() || player.m_9236_() != level) {
                 iterator.remove();
                 this.safeBoundaryKnockbackReadyTicks.remove(playerUuid);
                 continue;
@@ -1343,6 +1408,7 @@ public final class ApollyonEntity extends Cultist implements RangedAttackMob, Ge
         return this.pageant.isCombatLocked();
     }
 
+    @Override
     public ApollyonPageantApostleEntity pageantRedirectTarget(LivingEntity attacker) {
         return this.pageant.redirectTarget(attacker);
     }
@@ -1403,9 +1469,9 @@ public final class ApollyonEntity extends Cultist implements RangedAttackMob, Ge
         if (!(this.m_9236_() instanceof ServerLevel level)) {
             return players;
         }
-        for (UUID playerUuid : this.arenaPlayers) {
-            ServerPlayer player = level.m_7654_().m_6846_().m_11259_(playerUuid);
-            if (player != null && player.m_9236_() == level
+        for (ServerPlayer player : this.arenaPlayers.values()) {
+            if (level.m_7654_().m_6846_().m_11259_(player.m_20148_()) == player
+                    && player.m_9236_() == level
                     && player.m_6084_() && !player.m_7500_() && !player.m_5833_()
                     && this.isWithinArenaCombatRange(player)) {
                 players.add(player);
@@ -1420,13 +1486,13 @@ public final class ApollyonEntity extends Cultist implements RangedAttackMob, Ge
         // The current target also covers a lethal opening hit before the first membership tick.
         LivingEntity target = this.m_5448_();
         return (this.isArenaActive() || this.pageant.isCombatLocked() || target != null)
-                && (this.arenaPlayers.contains(player)
+                && (this.arenaPlayers.containsKey(player)
                     || target instanceof ServerPlayer && target.m_20148_().equals(player));
     }
 
     public void clearCombatForPageant() {
         this.setCasting(false);
-        this.voidRayMovementLocked = false;
+        this.setVoidRayMovementLocked(false);
         this.clearPendingTeleport();
         this.m_8061_(EquipmentSlot.MAINHAND, ItemStack.f_41583_);
         this.m_21195_(ApollyonEffectRegistry.MULTISHOT.get());
@@ -1632,6 +1698,11 @@ public final class ApollyonEntity extends Cultist implements RangedAttackMob, Ge
         if (this.m_217043_().m_188503_(4) == 0) {
             this.tryCombatTeleport(target);
         }
+    }
+
+    private void setVoidRayMovementLocked(boolean locked) {
+        this.voidRayMovementLocked = locked;
+        com.starfantasy.goety.combat.VoidRayKnockback.setCasting(this, locked);
     }
 
     private void fireVolley(LivingEntity target) {
@@ -2133,7 +2204,7 @@ public final class ApollyonEntity extends Cultist implements RangedAttackMob, Ge
             this.voidRayAnchor = null;
             this.wildSurgeThornPoints = List.of();
             this.finishFangFeast(false);
-            ApollyonEntity.this.voidRayMovementLocked = false;
+            ApollyonEntity.this.setVoidRayMovementLocked(false);
             ApollyonEntity.this.setCasting(false);
             ApollyonEntity.this.m_21561_(false);
             ApollyonEntity.this.m_5810_();
@@ -2258,7 +2329,7 @@ public final class ApollyonEntity extends Cultist implements RangedAttackMob, Ge
             if (spell == CastingSpell.FANG_FEAST) {
                 this.fangFeast = new ApollyonFangFeastSpell(ApollyonEntity.this);
             }
-            ApollyonEntity.this.voidRayMovementLocked = spell == CastingSpell.VOID_RAY;
+            ApollyonEntity.this.setVoidRayMovementLocked(spell == CastingSpell.VOID_RAY);
             ApollyonEntity.this.setCasting(true);
             ApollyonEntity.this.m_21557_(false);
             ApollyonEntity.this.m_21573_().m_26573_();
@@ -2445,7 +2516,7 @@ public final class ApollyonEntity extends Cultist implements RangedAttackMob, Ge
             this.wildSurgeAnchor = null;
             this.voidRayAnchor = null;
             this.wildSurgeThornPoints = List.of();
-            ApollyonEntity.this.voidRayMovementLocked = false;
+            ApollyonEntity.this.setVoidRayMovementLocked(false);
             ApollyonEntity.this.setCasting(false);
             ApollyonEntity.this.setAttackDecisionDelay(ATTACK_DECISION_INTERVAL_TICKS);
         }

@@ -4,6 +4,7 @@ import com.Polarice3.Goety.common.entities.boss.Apostle;
 import com.Polarice3.Goety.common.entities.hostile.cultists.SpellCastingCultist.SpellType;
 import com.Polarice3.Goety.init.ModSounds;
 import com.starfantasy.goety.entity.ApollyonCastingLightningEntity;
+import com.starfantasy.goety.combat.VoidRayKnockback;
 import com.starfantasy.goety.entity.ApollyonFamineWaveEntity;
 import com.starfantasy.goety.entity.ApollyonGloriousSphereEntity;
 import com.starfantasy.goety.registry.ApollyonEffectRegistry;
@@ -57,7 +58,8 @@ public final class ApostleTitleSpellGoal extends Goal {
     }
 
     @Override public boolean m_8045_() {
-        return ticks < duration && boss.m_6084_() && !boss.isSettingUpSecond()
+        return ApostleSpellSupport.original(boss)
+                && ticks < duration && boss.m_6084_() && !boss.isSettingUpSecond()
                 && boss.isSecondPhase() == second && boss.m_5448_() != null
                 && boss.m_5448_().m_6084_();
     }
@@ -65,6 +67,7 @@ public final class ApostleTitleSpellGoal extends Goal {
 
     @Override public void m_8056_() {
         title = boss.getTitleNumber();
+        VoidRayKnockback.setCasting(boss, title == 3);
         second = boss.isSecondPhase();
         ticks = 0;
         duration = duration(title, second);
@@ -83,6 +86,7 @@ public final class ApostleTitleSpellGoal extends Goal {
     }
 
     @Override public void m_8037_() {
+        if (!ApostleSpellSupport.original(boss)) return;
         LivingEntity target = boss.m_5448_();
         if (target == null || !target.m_6084_()) return;
         boss.m_21573_().m_26573_();
@@ -236,6 +240,16 @@ public final class ApostleTitleSpellGoal extends Goal {
     }
 
     @Override public void m_8041_() {
+        VoidRayKnockback.setCasting(boss, false);
+        if (!ApostleSpellSupport.original(boss)) {
+            if (beam != null) { beam.clear(); beam = null; }
+            if (fangs != null) { fangs.finish(false); fangs = null; }
+            ApostleFireTrapManager.clearForBoss(boss);
+            ApostleLightningStormManager.clearForBoss(boss);
+            anchor = null;
+            points = List.of();
+            return;
+        }
         boolean completed = ticks >= duration;
         boss.setCasting(false);
         boss.setSpellType(SpellType.NONE);

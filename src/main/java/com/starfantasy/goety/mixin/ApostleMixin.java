@@ -4,6 +4,7 @@ import com.Polarice3.Goety.common.entities.boss.Apostle;
 import com.Polarice3.Goety.common.entities.hostile.cultists.SpellCastingCultist;
 import com.starfantasy.goety.combat.apostle.*;
 import com.starfantasy.goety.config.ApostleConfig;
+import com.starfantasy.goety.compat.ApostleCompatibility;
 import com.starfantasy.library.vfx.StarFantasyVfx;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -69,7 +70,13 @@ public abstract class ApostleMixin extends SpellCastingCultist implements Apostl
     @Inject(method = "m_8107_", at = @At("TAIL"))
     private void starfantasy$archery(CallbackInfo ci) {
         Apostle boss = (Apostle) (Object) this;
-        if (!ApostleSpellSupport.original(boss) || this.m_9236_().f_46443_) return;
+        if (this.m_9236_().f_46443_) return;
+        if (ApostleCompatibility.isRevelationApollyon(boss)) {
+            // Remove only our old shield state when loading/upgrading an affected entity.
+            ApostleShield.clear(boss);
+            return;
+        }
+        if (!ApostleSpellSupport.original(boss)) return;
         ApostleShield.updateKnockback(boss, false);
         LivingEntity target = boss.m_5448_();
         if (ApostleConfig.IMPROVED_ARCHERY.get() && target != null

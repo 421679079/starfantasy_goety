@@ -20,6 +20,11 @@ final class ApollyonCooperativeShieldRenderer {
         if (!entity.hasCooperativeShield() || entity.isPlayingDeathAnimation()) {
             return;
         }
+        renderShield(entity, partialTick, poseStack, buffer);
+    }
+
+    static void renderShield(net.minecraft.world.entity.LivingEntity entity, float partialTick,
+                              PoseStack poseStack, MultiBufferSource buffer) {
         float pulse = 0.025F * Mth.m_14031_((entity.f_19797_ + partialTick) * 0.22F);
         float radius = SHIELD_RADIUS + pulse;
         float alpha = 0.22F + 0.035F

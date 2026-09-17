@@ -1,0 +1,19 @@
+{
+  "name": "终极魔杖",
+  "icon": "starfantasy_goety:final_staff",
+  "category": "goety:starfantasy",
+  "sortnum": 3,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "夺取所有使徒的神格，将其力量汇聚于一体，终于铸成了最强的魔杖。$(br2)终极魔杖可承载所有学派的力量。"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:final_staff"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "starfantasy_goety:final_staff": 1
+  }
+}

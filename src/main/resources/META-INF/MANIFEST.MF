@@ -3,7 +3,7 @@ Specification-Title: starfantasy_goety
 Specification-Vendor: Star Fantasy Project
 Specification-Version: 1
 Implementation-Title: starfantasy_goety
-Implementation-Version: 0.1.252
+Implementation-Version: 0.6.1
 Implementation-Vendor: Star Fantasy Project
 Implementation-Timestamp: 2026-09-07T06:00:00+0800
 MixinConfigs: starfantasy_goety.mixins.json

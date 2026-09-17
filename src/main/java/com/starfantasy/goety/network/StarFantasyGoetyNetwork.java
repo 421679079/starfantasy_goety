@@ -13,7 +13,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 
 /** Compact, one-shot visual messages owned by this addon. */
 public final class StarFantasyGoetyNetwork {
-    private static final String PROTOCOL = "8";
+    private static final String PROTOCOL = "10";
     private static final double LIGHTNING_TRACKING_RANGE = 256.0D;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -69,9 +69,18 @@ public final class StarFantasyGoetyNetwork {
                 .decoder(ServerboundHadesAttackPacket::decode)
                 .consumerMainThread(ServerboundHadesAttackPacket::handle)
                 .add();
+        CHANNEL.messageBuilder(ServerboundStaffSchoolPacket.class, 8, NetworkDirection.PLAY_TO_SERVER)
+                .encoder(ServerboundStaffSchoolPacket::encode)
+                .decoder(ServerboundStaffSchoolPacket::decode)
+                .consumerMainThread(ServerboundStaffSchoolPacket::handle)
+                .add();
     }
 
     public static void sendHadesRideInput(ServerboundHadesRidePacket packet) {
+        CHANNEL.sendToServer(packet);
+    }
+
+    public static void selectStaffSchool(ServerboundStaffSchoolPacket packet) {
         CHANNEL.sendToServer(packet);
     }
 

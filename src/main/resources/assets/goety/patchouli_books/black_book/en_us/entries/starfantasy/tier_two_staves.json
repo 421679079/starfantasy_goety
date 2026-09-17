@@ -1,0 +1,63 @@
+{
+  "name": "Upgraded Staves",
+  "icon": "starfantasy_goety:ominous_staff_2",
+  "category": "goety:starfantasy",
+  "sortnum": 1,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "The halos of the Apostles can be used to strengthen staves of their corresponding schools."
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:ominous_staff_2"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:geo_staff_2"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:wind_staff_2"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:storm_staff_2"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:frost_staff_2"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:wild_staff_2"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:abyss_staff_2"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:void_staff_2"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:nether_staff_2"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "goety:nameless_staff"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "starfantasy_goety:ominous_staff_2": 1,
+    "starfantasy_goety:geo_staff_2": 2,
+    "starfantasy_goety:wind_staff_2": 3,
+    "starfantasy_goety:storm_staff_2": 4,
+    "starfantasy_goety:frost_staff_2": 5,
+    "starfantasy_goety:wild_staff_2": 6,
+    "starfantasy_goety:abyss_staff_2": 7,
+    "starfantasy_goety:void_staff_2": 8,
+    "starfantasy_goety:nether_staff_2": 9
+  }
+}

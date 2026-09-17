@@ -1,0 +1,32 @@
+{
+  "name": "冥界教堂",
+  "icon": "starfantasy_goety:underworld_altar",
+  "category": "goety:starfantasy",
+  "sortnum": 2,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "在灵魂沙峡谷的岩浆河上，你将有机会找到下界冥教的教堂遗址，但如今这里早已风光不再。"
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "starfantasy_goety:textures/gui/book/church.png"
+      ],
+      "border": true,
+      "text": ""
+    },
+    {
+      "type": "patchouli:text",
+      "text": "在巨大平台的中心找到这个祭坛方块，手持任意使徒的神环与之交互，就可以唤起冥界最可怖的存在。"
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "starfantasy_goety:textures/gui/book/church_altar.png"
+      ],
+      "border": true,
+      "text": ""
+    }
+  ]
+}

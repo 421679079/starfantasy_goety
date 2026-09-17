@@ -1,0 +1,60 @@
+{
+  "name": "定向召唤使徒",
+  "icon": "starfantasy_goety:halo_of_the_risen",
+  "category": "goety:starfantasy",
+  "sortnum": 6,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "在召唤下界苍白使者的仪式中额外奉上一枚信物，便可将召唤指向特定的存在。$(br2)若你意图夺取某位使徒的神格，不妨借这些仪式邀其赴战。"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:directed_apostle_risen"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:directed_apostle_abhorrent"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:directed_apostle_defiler"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:directed_apostle_dark"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:directed_apostle_great_shadow"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:directed_apostle_witch_king"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:directed_apostle_pyre_lord"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:directed_apostle_profane"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:directed_apostle_cruel"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:directed_apostle_terrible"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:directed_apostle_glorious"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:directed_apostle_atrocious"
+    }
+  ]
+}

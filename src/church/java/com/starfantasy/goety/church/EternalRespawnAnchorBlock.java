@@ -1,9 +1,12 @@
 package com.starfantasy.goety.church;
 
+import com.Polarice3.Goety.api.items.magic.IWand;
+import com.Polarice3.Goety.common.items.magic.RecallFocus;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.RespawnAnchorBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -24,6 +27,12 @@ public final class EternalRespawnAnchorBlock extends RespawnAnchorBlock {
 
     @Override public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player,
                                            InteractionHand hand, BlockHitResult hit) {
+        ItemStack held = player.getItemInHand(hand);
+        ItemStack focus = held.getItem() instanceof IWand ? IWand.getFocus(held) : held;
+        if (focus.getItem() instanceof RecallFocus && !RecallFocus.hasRecall(focus)) {
+            // Let Goety's item callback bind the focus before the anchor consumes the click.
+            return InteractionResult.PASS;
+        }
         return super.use(state.setValue(CHARGE, MAX_CHARGES), level, pos, player, hand, hit);
     }
 }
