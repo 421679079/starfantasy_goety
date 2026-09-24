@@ -8,7 +8,7 @@
 - Goety 2.5.56.5 或更高版本
 - GeckoLib 4.8.4 或更高版本
 - Curios 5.14.1 或更高版本
-- Star Fantasy Library 0.2.1 或更高版本
+- Star Fantasy Library 0.2.11 或更高版本
 
 本仓库由整合包内的既有附属模组整理而来，当前源码仍使用 Forge 1.20.1 的 SRG
 符号，应在匹配的 Forge 1.20.1 SRG 开发环境中编译。`build/`、旧 JAR、反编译目录和
@@ -25,14 +25,14 @@
 `church.gradle` 将它单独编译并通过 `reobfJar` 转为 SRG；既有 `src/main/java` 仍在 SRG 环境编译，
 避免为一个功能迁移整个工程的符号。
 
-编译该模块时，需要在 Gradle 多项目设置中将本目录作为 `:church`，指定
+编译该模块时，需要在 Gradle 多项目设置中将本目录作为 `:starfantasy_goety`，指定
 `buildFileName = 'church.gradle'`，并包含通用库项目 `:star_fantasy_library`。
 `build/church-deps` 中放置编译基线 `starfantasy_goety-0.1.258.jar`、
 `goety-2.5.52.4.jar`、`geckolib-4.8.4.jar` 和 `jade-11.13.2.jar`。基线 JAR 仅用于解析既有实体 API，不打入新 JAR。
 Jade 仅为编译依赖；运行时可选，安装后会在祭坛信息框显示灰色使用提示。
-运行 `:church:jar` 后，将其 SRG 输出加入既有源码的编译 classpath；最后合并两份 class、
+运行 `:starfantasy_goety:jar` 后，将其 SRG 输出加入既有源码的编译 classpath；最后合并两份 class、
 `src/main/resources` 与 LICENSE，生成完整发布 JAR。不要将带 `church` classifier 的中间 JAR
-单独放入游戏。运行依赖要求 Star Fantasy Library 0.2.1 或更高版本。
+单独放入游戏。运行依赖要求 Star Fantasy Library 0.2.11 或更高版本。
 
 冥界教堂的正式模板位于 `data/starfantasy_goety/structures/church`，共 99 个分块模板。
 模板高度为 94 格，其中最上方 10 格为空气，用于清出屋顶空间。结构在

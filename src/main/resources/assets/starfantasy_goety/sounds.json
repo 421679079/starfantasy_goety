@@ -1,14 +1,29 @@
 {
   "original_apostle_ambient": {
-    "sounds": [{"name": "goety:apostle_ambient", "type": "event"}],
+    "sounds": [
+      {
+        "name": "goety:apostle_ambient",
+        "type": "event"
+      }
+    ],
     "subtitle": "subtitle.goety.apostle_ambient"
   },
   "original_apostle_hurt": {
-    "sounds": [{"name": "goety:apostle_hurt", "type": "event"}],
+    "sounds": [
+      {
+        "name": "goety:apostle_hurt",
+        "type": "event"
+      }
+    ],
     "subtitle": "subtitle.goety.apostle_hurt"
   },
   "original_apostle_death": {
-    "sounds": [{"name": "goety:apostle_death", "type": "event"}],
+    "sounds": [
+      {
+        "name": "goety:apostle_death",
+        "type": "event"
+      }
+    ],
     "subtitle": "subtitle.goety.apostle_death"
   },
   "apostle_moe_hurt": {
@@ -71,6 +86,52 @@
   "summon_start": {
     "sounds": [
       "starfantasy_goety:summon_start"
+    ]
+  },
+  "flower_arrow_dance_start": {
+    "sounds": [
+      {
+        "name": "star_fantasy_library:star_arrow_cast",
+        "stream": false
+      }
+    ]
+  },
+  "flower_arrow_dance_final": {
+    "sounds": [
+      {
+        "name": "star_fantasy_library:star_arrow_final",
+        "stream": false
+      }
+    ]
+  },
+  "evernight_start": {
+    "sounds": [
+      {
+        "name": "star_fantasy_library:cage_cast",
+        "stream": false
+      }
+    ]
+  },
+  "evernight_cage": {
+    "sounds": [
+      {
+        "name": "star_fantasy_library:cage_form",
+        "stream": false
+      }
+    ]
+  },
+  "final_art_start": {
+    "sounds": [{"name": "starfantasy_goety:final_art_start", "stream": false}]
+  },
+  "final_art_pull": {
+    "sounds": [{"name": "starfantasy_goety:final_art_pull", "stream": false}]
+  },
+  "evernight_burst": {
+    "sounds": [
+      {
+        "name": "star_fantasy_library:cage_burst",
+        "stream": false
+      }
     ]
   }
 }

@@ -2,6 +2,7 @@ package com.starfantasy.goety.effect;
 
 import com.starfantasy.goety.StarFantasyGoetyMod;
 import com.starfantasy.goety.config.ApollyonConfig;
+import com.starfantasy.goety.entity.ApollyonEntity;
 import com.starfantasy.goety.registry.ApollyonEffectRegistry;
 import java.util.HashSet;
 import java.util.Set;
@@ -23,8 +24,19 @@ public final class ApollyonFamineEffectEvents {
     private static final int MAX_FOOD = 20;
     private static final float MAX_SATURATION = 20.0F;
     private static final Set<UUID> AUTHORIZED_REMOVALS = new HashSet<>();
+    private static final String BOSS_FAMINE_TAG = "starfantasy_goety:boss_famine";
 
     private ApollyonFamineEffectEvents() {
+    }
+
+    @SubscribeEvent
+    public static void onAdded(MobEffectEvent.Added event) {
+        if (!event.getEntity().m_9236_().f_46443_
+                && event.getEffectInstance().m_19544_() == ApollyonEffectRegistry.FAMINE.get()) {
+            // The ordinary Apostle shares this effect, but not Apollyon's damage multiplier.
+            event.getEntity().getPersistentData().m_128379_(BOSS_FAMINE_TAG,
+                    event.getEffectSource() instanceof ApollyonEntity);
+        }
     }
 
     private static void removeFamine(LivingEntity living) {
@@ -45,8 +57,11 @@ public final class ApollyonFamineEffectEvents {
         LivingEntity living = event.getEntity();
         if (living.m_9236_().f_46443_
                 || !(living instanceof Player player)
-                || !player.m_6084_()
-                || !player.m_21023_(ApollyonEffectRegistry.FAMINE.get())) {
+                || !player.m_6084_()) {
+            return;
+        }
+        if (!player.m_21023_(ApollyonEffectRegistry.FAMINE.get())) {
+            player.getPersistentData().m_128473_(BOSS_FAMINE_TAG);
             return;
         }
 
@@ -72,8 +87,11 @@ public final class ApollyonFamineEffectEvents {
 
         float missing = Math.max(0.0F, DRAIN_PER_INTERVAL - available);
         if (missing > 0.0F) {
-            player.m_6469_(player.m_269291_().m_269064_(),
-                    missing * MISSING_FOOD_DAMAGE_MULTIPLIER);
+            float damage = missing * MISSING_FOOD_DAMAGE_MULTIPLIER;
+            if (player.getPersistentData().m_128471_(BOSS_FAMINE_TAG)) {
+                damage = ApollyonConfig.scaleDamage(damage);
+            }
+            player.m_6469_(player.m_269291_().m_269064_(), damage);
         }
     }
 

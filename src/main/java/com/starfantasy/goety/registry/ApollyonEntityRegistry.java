@@ -48,9 +48,17 @@ public final class ApollyonEntityRegistry {
                     .m_20702_(12)
                     .m_20712_(new ResourceLocation(NAMESPACE, "apollyon").toString()));
 
+    public static final RegistryObject<EntityType<com.starfantasy.goety.entity.ApostleServantEntity>> APOSTLE_SERVANT =
+            ENTITY_TYPES.register("apostle_servant", () -> EntityType.Builder
+                    .m_20704_(com.starfantasy.goety.entity.ApostleServantEntity::new, MobCategory.CREATURE)
+                    .m_20719_()
+                    .m_20699_(0.6F, 1.95F).m_20702_(12).m_20717_(1)
+                    .m_20712_(new ResourceLocation(NAMESPACE, "apostle_servant").toString()));
+
     public static final RegistryObject<EntityType<ApollyonServantEntity>> APOLLYON_SERVANT =
             ENTITY_TYPES.register("apollyon_servant", () -> EntityType.Builder
                     .m_20704_(ApollyonServantEntity::new, MobCategory.CREATURE)
+                    .m_20719_()
                     .m_20699_(0.6F, 1.95F).m_20702_(12).m_20717_(1)
                     .m_20712_(new ResourceLocation(NAMESPACE, "apollyon_servant").toString()));
 
@@ -339,6 +347,7 @@ public final class ApollyonEntityRegistry {
 
     private static void createAttributes(EntityAttributeCreationEvent event) {
         event.put(APOLLYON.get(), ApollyonEntity.createAttributes().m_22265_());
+        event.put(APOSTLE_SERVANT.get(), com.starfantasy.goety.entity.ApostleServantEntity.createAttributes().m_22265_());
         event.put(APOLLYON_SERVANT.get(), ApollyonServantEntity.createAttributes().m_22265_());
         event.put(APOSTLE.get(),
                 ApollyonPageantApostleEntity.createAttributes().m_22265_());

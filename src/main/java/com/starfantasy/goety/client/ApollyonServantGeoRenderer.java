@@ -9,6 +9,7 @@ import software.bernie.geckolib.renderer.GeoEntityRenderer;
 public final class ApollyonServantGeoRenderer extends GeoEntityRenderer<ApollyonServantEntity> {
     public ApollyonServantGeoRenderer(EntityRendererProvider.Context context) {
         super(context, new ApollyonServantGeoModel());
+        this.addRenderLayer(new ApollyonServantAuraLayer(this));
         this.addRenderLayer(new ApollyonHeldItemLayer<>(this, context.m_234598_()));
         this.withScale(0.65F);
         this.f_114477_=0.8F;

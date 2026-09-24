@@ -1,6 +1,6 @@
 package com.starfantasy.goety.combat.apostle;
 
-import com.Polarice3.Goety.common.entities.boss.Apostle;
+import net.minecraft.world.entity.Mob;
 import com.starfantasy.goety.entity.ApostleIceChunkEntity;
 import com.starfantasy.goety.registry.ApollyonEntityRegistry;
 import net.minecraft.core.BlockPos;
@@ -10,7 +10,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
-/** Timelines and custom damage ownership for the Apostle's frost impact spell. */
+/** Timelines and custom damage ownership for the Mob's frost impact spell. */
 public final class ApostleFrostImpactManager {
     private static final double SPAWN_HEIGHT = 2.0D;
     private static final double[][] CARDINAL_OFFSETS = {
@@ -23,7 +23,7 @@ public final class ApostleFrostImpactManager {
     private ApostleFrostImpactManager() {
     }
 
-    public static void spawnChunk(Apostle boss, LivingEntity target, int sequenceIndex) {
+    public static void spawnChunk(Mob boss, LivingEntity target, int sequenceIndex) {
         if (boss == null || target == null || !boss.m_6084_() || !target.m_6084_()
                 || boss.m_9236_().f_46443_) {
             return;

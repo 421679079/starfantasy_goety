@@ -1,8 +1,8 @@
 {
   "name": "终极魔杖",
   "icon": "starfantasy_goety:final_staff",
-  "category": "goety:starfantasy",
-  "sortnum": 3,
+  "category": "goety:starfantasy/staves",
+  "sortnum": 10,
   "pages": [
     {
       "type": "patchouli:text",

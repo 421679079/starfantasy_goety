@@ -126,6 +126,7 @@ public final class ClientModEvents {
                 BlossomThornRenderer::new);
         event.registerEntityRenderer(HadesEntityRegistry.HADES.get(), HadesGeoRenderer::new);
         event.registerEntityRenderer(HadesEntityRegistry.HADES_SERVANT.get(), HadesServantGeoRenderer::new);
+        event.registerEntityRenderer(ApollyonEntityRegistry.APOSTLE_SERVANT.get(), ApostleServantGeoRenderer::new);
         event.registerEntityRenderer(ApollyonEntityRegistry.APOLLYON_SERVANT.get(), ApollyonServantGeoRenderer::new);
     }
 

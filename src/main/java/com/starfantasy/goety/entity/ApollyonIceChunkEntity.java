@@ -286,7 +286,7 @@ public final class ApollyonIceChunkEntity extends IceChunk {
             return;
         }
         if (target.m_6469_(ApollyonDamageSources.front(target, ModDamageSource.indirectFreeze(this, boss)),
-                ApollyonSpellSupport.damage(boss, FROST_DAMAGE))) {
+                ApollyonSpellSupport.damage(boss, target, FROST_DAMAGE, 0.10F))) {
             target.m_7292_(new MobEffectInstance(
                     (MobEffect) GoetyEffects.STUNNED.get(), STUN_DURATION_TICKS));
         }

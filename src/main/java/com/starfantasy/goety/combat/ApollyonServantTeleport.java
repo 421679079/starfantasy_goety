@@ -1,7 +1,6 @@
 package com.starfantasy.goety.combat;
 
 import com.Polarice3.Goety.client.particles.AbsorbTrailParticleOption;
-import com.Polarice3.Goety.config.MobsConfig;
 import com.Polarice3.Goety.init.ModSounds;
 import com.Polarice3.Goety.utils.ColorUtil;
 import com.Polarice3.Goety.utils.ServerParticleUtil;
@@ -49,7 +48,7 @@ public final class ApollyonServantTeleport {
         if (!canAct(target)) { clear(); return; }
         ServerLevel level = (ServerLevel) servant.m_9236_();
         if (pending != null) {
-            if (!Boolean.TRUE.equals(MobsConfig.ApostleDelayedTeleport.get()) || ++windup >= 20) {
+            if (++windup >= 20) {
                 Vec3 destination = pending;
                 clear();
                 finish(level, destination);
@@ -71,12 +70,10 @@ public final class ApollyonServantTeleport {
         // An ordinary world has no arena home to fall back to. Retry later if every position is unsafe.
         if (destination == null) { cooldown = 20; return false; }
         servant.m_5496_((SoundEvent) ModSounds.APOSTLE_PRE_TELEPORT.get(), 2.0F, 1.0F);
-        if (Boolean.TRUE.equals(MobsConfig.ApostleDelayedTeleport.get())) {
-            pending = destination;
-            windup = 0;
-            return true;
-        }
-        return finish(level, destination);
+        // Apollyon servants always use their own 20-tick windup, independent of Goety's option.
+        pending = destination;
+        windup = 0;
+        return true;
     }
 
     private Vec3 ground(ServerLevel level, double x, double y, double z) {

@@ -1,0 +1,7 @@
+{
+  "name": "Servants",
+  "description": "Servants added by Star Fantasy are documented here.",
+  "icon": "minecraft:zombie_head",
+  "parent": "goety:starfantasy",
+  "sortnum": 1
+}

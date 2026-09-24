@@ -1,0 +1,20 @@
+{
+  "name": "Evernight Focus",
+  "icon": "starfantasy_goety:evernight_focus",
+  "category": "goety:starfantasy/foci",
+  "sortnum": 2,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "title": "Evernight Focus",
+      "text": "Entangle enemies ahead to immobilize them, then summon Evernight to attack enemies inside the cage, dealing wither damage.$(br2)Enchanting with Potency increases damage."
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:evernight_focus"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "starfantasy_goety:evernight_focus": 1
+  }
+}

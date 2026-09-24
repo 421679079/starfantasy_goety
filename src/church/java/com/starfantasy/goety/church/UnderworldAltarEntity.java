@@ -40,7 +40,6 @@ public final class UnderworldAltarEntity extends BlockEntity {
     public void use(Player player) {
         if (!(level instanceof ServerLevel server) || player.isSpectator()) return;
         if (server.getDifficulty() == Difficulty.PEACEFUL) { tell(player, "peaceful"); return; }
-        if (nearbyBoss(server) || ActiveChurchBosses.get(server).contains(worldPosition)) { rejectDuplicate(player); return; }
         if (remaining > 0) { tell(player, "busy"); return; }
         long now = server.getGameTime();
         confirmations.entrySet().removeIf(e -> now < e.getValue() || now - e.getValue() >= 100);
@@ -51,6 +50,7 @@ public final class UnderworldAltarEntity extends BlockEntity {
         }
         // Off-hand processing and duplicate packets in the first tick cannot confirm.
         if (now == first) return;
+        if (nearbyBoss(server) || nearbyRitual(server)) { rejectDuplicate(player); return; }
         Vec3 home = Vec3.atBottomCenterOf(worldPosition.above());
         if (!server.noCollision(new AABB(home.x - .5, home.y, home.z - .5, home.x + .5, home.y + 3, home.z + .5))) {
             tell(player, "blocked"); return;
@@ -62,7 +62,13 @@ public final class UnderworldAltarEntity extends BlockEntity {
         setChanged();
     }
     private boolean nearbyBoss(ServerLevel server) {
-        return !server.getEntitiesOfClass(ApollyonEntity.class, new AABB(worldPosition).inflate(96), e -> e.isAlive()).isEmpty();
+        // Keep blocking through the death animation, until the body is actually removed.
+        return !server.getEntitiesOfClass(ApollyonEntity.class, new AABB(worldPosition).inflate(96), e -> !e.isRemoved()).isEmpty();
+    }
+    private boolean nearbyRitual(ServerLevel server) {
+        // Pageant combat circles have a boss owner; altar circles do not.
+        return !server.getEntitiesOfClass(ApollyonPageantSummonEntity.class, new AABB(worldPosition).inflate(96),
+                e -> !e.isRemoved() && e.pageantOwnerUuid() == null && !e.getUUID().equals(effectId)).isEmpty();
     }
     public static void tick(Level world, BlockPos pos, BlockState state, UnderworldAltarEntity altar) {
         if (!(world instanceof ServerLevel level)) return;
@@ -72,7 +78,8 @@ public final class UnderworldAltarEntity extends BlockEntity {
         altar.remaining--; altar.setChanged();
         if (altar.remaining != 0) return;
         if (altar.effectId != null) { var effect = level.getEntity(altar.effectId); if (effect != null) effect.discard(); altar.effectId = null; }
-        if (altar.nearbyBoss(level) || ActiveChurchBosses.get(level).contains(pos)) {
+        // Recheck bodies, not other circles: two resumed rituals must not block each other.
+        if (altar.nearbyBoss(level)) {
             Player player = altar.summoner == null ? null : level.getPlayerByUUID(altar.summoner);
             if (player != null) rejectDuplicate(player);
             altar.summoner = null;
@@ -91,7 +98,6 @@ public final class UnderworldAltarEntity extends BlockEntity {
             if (player != null && !player.isCreative() && !player.isSpectator()) boss.setTarget(player);
         }
         if (level.addFreshEntity(boss)) {
-            ActiveChurchBosses.get(level).add(boss.getUUID(), pos);
             playArrival(level, home);
         }
         altar.summoner = null; altar.setChanged();

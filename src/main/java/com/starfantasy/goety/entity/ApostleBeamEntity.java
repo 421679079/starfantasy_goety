@@ -1,6 +1,6 @@
 package com.starfantasy.goety.entity;
 
-import com.Polarice3.Goety.common.entities.boss.Apostle;
+import net.minecraft.world.entity.Mob;
 import com.starfantasy.goety.registry.ApollyonEntityRegistry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
@@ -13,25 +13,28 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.util.Mth;
 import net.minecraftforge.network.NetworkHooks;
 
-/** Visual and warning anchor only. The ordinary Apostle's goal owns aim and damage. */
+/** Visual and warning anchor only. The ordinary Mob's goal owns aim and damage. */
 public final class ApostleBeamEntity extends Entity {
     public static final float LENGTH = 48;
+    public static final float HALF_WIDTH = 1.0F;
+    public static final float HALF_HEIGHT = .72F;
+    public static final float CENTER_HEIGHT = 1.35F;
     private static final EntityDataAccessor<Integer> AGE = SynchedEntityData.m_135353_(ApostleBeamEntity.class, EntityDataSerializers.f_135028_);
     private static final EntityDataAccessor<Float> PRECISE_YAW = SynchedEntityData.m_135353_(ApostleBeamEntity.class, EntityDataSerializers.f_135029_);
-    private Apostle owner;
+    private Mob owner;
     private boolean clientYawInitialized;
     public ApostleBeamEntity(EntityType<? extends ApostleBeamEntity> type, Level level) {
         super(type, level);
         m_20242_(true);
     }
-    public static ApostleBeamEntity spawn(Apostle owner, float yaw) {
+    public static ApostleBeamEntity spawn(Mob owner, float yaw) {
         var beam = new ApostleBeamEntity(ApollyonEntityRegistry.APOSTLE_BEAM.get(), owner.m_9236_());
         beam.owner = owner;
         beam.update(owner, yaw, 1);
         beam.f_19859_ = yaw;
         return owner.m_9236_().m_7967_(beam) ? beam : null;
     }
-    public void update(Apostle caster, float yaw, int age) {
+    public void update(Mob caster, float yaw, int age) {
         m_6034_(caster.m_20185_(), caster.m_20186_(), caster.m_20189_());
         m_146922_(yaw);
         f_19804_.m_135381_(PRECISE_YAW, yaw);
@@ -50,7 +53,7 @@ public final class ApostleBeamEntity extends Entity {
         super.m_8119_();
         if (m_9236_().f_46443_) advanceClientYaw(f_19804_.m_135370_(PRECISE_YAW));
         if (!m_9236_().f_46443_ && (owner == null || !owner.m_6084_()
-                || !owner.isCasting() || f_19797_ > 102)) m_146870_();
+                || !com.starfantasy.goety.combat.apostle.ApostleSpellSupport.casting(owner) || f_19797_ > 102)) m_146870_();
     }
     private void advanceClientYaw(float target) {
         if (!Float.isFinite(target)) return;

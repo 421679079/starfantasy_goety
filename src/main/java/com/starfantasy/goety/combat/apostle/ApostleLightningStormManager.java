@@ -4,7 +4,7 @@ import com.Polarice3.Goety.common.effects.GoetyEffects;
 import com.Polarice3.Goety.common.entities.util.MagicLightningTrap;
 import com.Polarice3.Goety.utils.ModDamageSource;
 import com.starfantasy.goety.StarFantasyGoetyMod;
-import com.Polarice3.Goety.common.entities.boss.Apostle;
+import net.minecraft.world.entity.Mob;
 import com.starfantasy.goety.network.StarFantasyGoetyNetwork;
 import com.starfantasy.library.vfx.StarFantasyVfx;
 import net.minecraft.core.BlockPos;
@@ -30,7 +30,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
-/** Owns the warning, timing and damage for the Apostle's lightning storm. */
+/** Owns the warning, timing and damage for the Mob's lightning storm. */
 @Mod.EventBusSubscriber(modid = StarFantasyGoetyMod.MODID)
 public final class ApostleLightningStormManager {
     private static final int WARNING_TICKS = 20;
@@ -50,7 +50,7 @@ public final class ApostleLightningStormManager {
     private ApostleLightningStormManager() {
     }
 
-    public static Vec3 captureAnchor(Apostle boss, LivingEntity target) {
+    public static Vec3 captureAnchor(Mob boss, LivingEntity target) {
         if (boss == null || target == null) {
             return null;
         }
@@ -59,14 +59,14 @@ public final class ApostleLightningStormManager {
                 target.m_20189_(), Mth.m_14107_(target.m_20185_()), Mth.m_14107_(target.m_20189_()));
     }
 
-    public static void queueTrackingStrike(Apostle boss, LivingEntity target) {
+    public static void queueTrackingStrike(Mob boss, LivingEntity target) {
         Vec3 center = captureAnchor(boss, target);
         if (center != null) {
             queueStrike(boss, center);
         }
     }
 
-    public static void queueRing(Apostle boss, Vec3 anchor, double radius, int count) {
+    public static void queueRing(Mob boss, Vec3 anchor, double radius, int count) {
         if (!canQueue(boss) || anchor == null || count <= 0) {
             return;
         }
@@ -77,13 +77,13 @@ public final class ApostleLightningStormManager {
         }
     }
 
-    public static void queueCenter(Apostle boss, Vec3 anchor) {
+    public static void queueCenter(Mob boss, Vec3 anchor) {
         if (anchor != null) {
             queueStrike(boss, anchor);
         }
     }
 
-    public static void clearForBoss(Apostle boss) {
+    public static void clearForBoss(Mob boss) {
         if (boss != null) {
             UUID bossUuid = boss.m_20148_();
             PENDING_STRIKES.removeIf(strike -> strike.bossUuid.equals(bossUuid));
@@ -115,33 +115,33 @@ public final class ApostleLightningStormManager {
         }
     }
 
-    private static void queueStrike(Apostle boss, Vec3 desired) {
+    private static void queueStrike(Mob boss, Vec3 desired) {
         if (!canQueue(boss)) {
             return;
         }
         Level level = boss.m_9236_();
         Vec3 center = groundCenterAt(level, desired.f_82479_, desired.f_82480_ + 8.0D,
                 desired.f_82481_, Mth.m_14107_(desired.f_82479_), Mth.m_14107_(desired.f_82481_));
-        StarFantasyVfx.redGroundWarningCircle(
+        if (com.starfantasy.goety.combat.apostle.ApostleSpellSupport.showWarnings(boss)) StarFantasyVfx.redGroundWarningCircle(
                 boss, center.m_82520_(0.0D, 0.06D, 0.0D), WARNING_TICKS,
                 MAGIC_LIGHTNING_DAMAGE_RANGE);
         PENDING_STRIKES.add(new PendingStrike(boss, center, DAMAGE_DELAY_TICKS));
     }
 
-    private static boolean canQueue(Apostle boss) {
+    private static boolean canQueue(Mob boss) {
         return boss != null && boss.m_6084_() && !boss.m_9236_().f_46443_;
     }
 
     private static void detonate(ServerLevel level, PendingStrike strike) {
         Entity entity = level.m_8791_(strike.bossUuid);
-        if (!(entity instanceof Apostle boss) || !boss.m_6084_()) {
+        if (!(entity instanceof Mob boss) || !boss.m_6084_()) {
             return;
         }
 
         MagicLightningTrap sourceTrap = new MagicLightningTrap(level,
                 strike.center.f_82479_, strike.center.f_82480_, strike.center.f_82481_);
         // Preserve Goety's native lightning-source geometry: the direct source is
-        // the strike point, while the Apostle remains the causing entity.
+        // the strike point, while the Mob remains the causing entity.
         DamageSource source = ModDamageSource.lightning(sourceTrap, boss);
         double range = MAGIC_LIGHTNING_DAMAGE_RANGE;
         AABB area = new AABB(
@@ -165,7 +165,7 @@ public final class ApostleLightningStormManager {
         StarFantasyGoetyNetwork.sendApollyonLightningStrike(level, strike.center);
     }
 
-    private static boolean shouldSkip(Apostle boss, LivingEntity target) {
+    private static boolean shouldSkip(Mob boss, LivingEntity target) {
         if (ApostleSpellSupport.friendly(boss, target) || !target.m_6084_()) {
             return true;
         }
@@ -193,7 +193,7 @@ public final class ApostleLightningStormManager {
         private final Vec3 center;
         private int delayTicks;
 
-        private PendingStrike(Apostle boss, Vec3 center, int delayTicks) {
+        private PendingStrike(Mob boss, Vec3 center, int delayTicks) {
             this.dimension = boss.m_9236_().m_46472_();
             this.bossUuid = boss.m_20148_();
             this.center = center;

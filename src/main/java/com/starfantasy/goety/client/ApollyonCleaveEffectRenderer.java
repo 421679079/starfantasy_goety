@@ -77,10 +77,15 @@ public final class ApollyonCleaveEffectRenderer
     public void m_7392_(ApollyonCleaveEffectEntity entity, float yaw, float partialTick,
                         PoseStack poseStack, MultiBufferSource buffer, int packedLight) {
         float age = entity.visualAge(partialTick);
-        if (age < ApollyonCleaveEffectEntity.LIFETIME_TICKS) {
+        if (age < entity.lifetimeTicks()) {
             float revealRadius = revealRadius(age);
-            float heightScale = heightScale(age);
-            float alpha = alpha(age);
+            float heightScale = heightScale(age, entity.fadeStartTick());
+            if (entity.isServantEffect()) {
+                float peakScale = 30.0F / (175.0F * MODEL_TO_BLOCK * VERTICAL_SCALE);
+                heightScale = MIN_HEIGHT_SCALE + (heightScale - MIN_HEIGHT_SCALE)
+                        * (peakScale - MIN_HEIGHT_SCALE) / (5.0F - MIN_HEIGHT_SCALE);
+            }
+            float alpha = alpha(age, entity.fadeStartTick());
             float crackWidthBlend = crackWidthBlend(age);
             VertexConsumer consumer = buffer.m_6299_(ApollyonCleaveRenderType.get());
             Matrix4f matrix = poseStack.m_85850_().m_252922_();
@@ -104,7 +109,7 @@ public final class ApollyonCleaveEffectRenderer
         return MAX_RADIUS * eased;
     }
 
-    private static float heightScale(float age) {
+    private static float heightScale(float age, int fadeStartTick) {
         if (age < ApollyonCleaveEffectEntity.BURST_START_TICK) {
             return MIN_HEIGHT_SCALE;
         }
@@ -114,24 +119,24 @@ public final class ApollyonCleaveEffectRenderer
             float eased = 1.0F - (1.0F - burst) * (1.0F - burst);
             return Mth.m_14179_(eased, MIN_HEIGHT_SCALE, 5.0F);
         }
-        if (age < ApollyonCleaveEffectEntity.FADE_START_TICK) {
+        if (age < fadeStartTick) {
             float pulseAge = age - ApollyonCleaveEffectEntity.PULSE_START_TICK;
             return 4.6F + 0.4F * Mth.m_14089_(pulseAge * ((float) Math.PI / 5.0F));
         }
-        float fade = Mth.m_14036_((age - ApollyonCleaveEffectEntity.FADE_START_TICK)
+        float fade = Mth.m_14036_((age - fadeStartTick)
                 / ApollyonCleaveEffectEntity.FADE_TICKS, 0.0F, 1.0F);
         return Mth.m_14179_(fade, 5.0F, MIN_HEIGHT_SCALE);
     }
 
-    private static float alpha(float age) {
+    private static float alpha(float age, int fadeStartTick) {
         if (age < ApollyonCleaveEffectEntity.PULSE_START_TICK) {
             return 1.0F;
         }
-        if (age < ApollyonCleaveEffectEntity.FADE_START_TICK) {
+        if (age < fadeStartTick) {
             float pulseAge = age - ApollyonCleaveEffectEntity.PULSE_START_TICK;
             return 0.86F + 0.14F * Mth.m_14089_(pulseAge * ((float) Math.PI / 5.0F));
         }
-        return 1.0F - Mth.m_14036_((age - ApollyonCleaveEffectEntity.FADE_START_TICK)
+        return 1.0F - Mth.m_14036_((age - fadeStartTick)
                 / ApollyonCleaveEffectEntity.FADE_TICKS, 0.0F, 1.0F);
     }
 

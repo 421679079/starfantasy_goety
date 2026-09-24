@@ -21373,7 +21373,7 @@
         },
         {
           "name": "terrible_demon_horns",
-          "parent": "a_head",
+          "parent": "Head2",
           "pivot": [
             0.08041,
             31.1,

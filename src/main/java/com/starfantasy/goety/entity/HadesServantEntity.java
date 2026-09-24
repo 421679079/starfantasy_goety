@@ -4,7 +4,11 @@ import com.Polarice3.Goety.common.entities.ally.Summoned;
 import com.Polarice3.Goety.common.entities.neutral.Owned;
 import com.starfantasy.goety.combat.ApollyonDeathEffects;
 import com.starfantasy.goety.combat.ApollyonPageantController;
+import com.starfantasy.goety.combat.HadesJudgmentSouls;
 import com.starfantasy.goety.config.ServantConfig;
+import com.starfantasy.goety.magic.focus.BattleFocusCombat;
+import com.starfantasy.goety.registry.ApollyonEntityRegistry;
+import com.starfantasy.library.vfx.StarFantasyVfx;
 import com.starfantasy.goety.item.FadedHaloItem;
 import com.starfantasy.goety.servant.ServantOwnershipData;
 import com.starfantasy.goety.registry.ApollyonSoundRegistry;
@@ -57,7 +61,12 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 
 /** Permanent, commandable Hades. Combat runs on the server, independently of the boss arena. */
 public final class HadesServantEntity extends Summoned implements GeoEntity, PlayerRideable {
-    public static final int ROUNDHOUSE = 1, CLAW_COMBO = 2, DIVE_RAY = 3;
+    public static final int ROUNDHOUSE = 1, CLAW_COMBO = 2, DIVE_RAY = 3, INFERNAL_JUDGMENT = 4;
+    public static final int JUDGMENT_CLEAVE_TICK = 26;
+    public static final int JUDGMENT_BURST_TICK = JUDGMENT_CLEAVE_TICK + ApollyonCleaveEffectEntity.BURST_START_TICK;
+    public static final int JUDGMENT_END_TICK = JUDGMENT_BURST_TICK + 40;
+    private static final int JUDGMENT_HITS = 20, JUDGMENT_COOLDOWN = 600;
+    private static final double JUDGMENT_RADIUS = 15, JUDGMENT_FORWARD_OFFSET = 5;
     public static final double ATTACK_RANGE = 8.0;
     private static final double ROUNDHOUSE_MULTIPLIER = 4.8, CLAW_MULTIPLIER = 5,
             DIVE_MULTIPLIER = 5, LASER_MULTIPLIER = 3;
@@ -82,12 +91,15 @@ public final class HadesServantEntity extends Summoned implements GeoEntity, Pla
     private static final RawAnimation CLAW_TWO = RawAnimation.begin().thenPlay("claw2").thenLoop("idle");
     private static final RawAnimation SHOOT = RawAnimation.begin().thenPlay("shoot").thenLoop("idle");
     private static final RawAnimation SWIPE = RawAnimation.begin().thenPlay("overhead_swipe").thenLoop("idle");
+    private static final RawAnimation SMASH = RawAnimation.begin().thenPlayAndHold("smash");
     private static final RawAnimation DEATH = RawAnimation.begin().thenPlayAndHold("death");
     private final AnimatableInstanceCache animationCache = GeckoLibUtil.createInstanceCache(this);
     private Vec3 attackOrigin = Vec3.f_82478_, attackForward = new Vec3(0, 0, 1);
     private float attackYaw;
     private double cooldownWork;
     private int invulnerabilityTicks;
+    private int judgmentSouls, judgmentCooldown;
+    private Vec3 judgmentCenter = Vec3.f_82478_;
     private boolean recallDropped;
     private float riderForward, riderStrafe, riderVertical, riderYaw;
     private long lastRiderInput = Long.MIN_VALUE;
@@ -116,11 +128,15 @@ public final class HadesServantEntity extends Summoned implements GeoEntity, Pla
     @Override public void onAddedToWorld() {
         super.onAddedToWorld();
         ServantOwnershipData.track(this);
+        HadesJudgmentSouls.track(this);
     }
 
     @Override public void setOwnerId(UUID owner) {
+        HadesJudgmentSouls.untrack(this, this.getOwnerId());
+        if (!java.util.Objects.equals(owner, this.getOwnerId())) this.judgmentSouls = 0;
         super.setOwnerId(owner);
         ServantOwnershipData.track(this);
+        HadesJudgmentSouls.track(this);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -193,7 +209,14 @@ public final class HadesServantEntity extends Summoned implements GeoEntity, Pla
     @Override public void m_147240_(double strength, double x, double z) { }
 
     @Override public InteractionResult m_6071_(Player player, InteractionHand hand) {
-        // Leave sneaking, equipment, revival and native servant commands to Goety.
+        // Goety's generic dismount handler only sees controlling passengers, not autonomous servant riders.
+        ApollyonServantEntity mountedServant = this.mountedApollyonServant();
+        if (player.m_6047_() && mountedServant != null
+                && player.m_20148_().equals(this.getOwnerId())) {
+            if (!this.m_9236_().f_46443_) mountedServant.m_8127_();
+            return InteractionResult.m_19078_(this.m_9236_().f_46443_);
+        }
+        // Leave other sneaking, equipment, revival and native servant commands to Goety.
         if (hand == InteractionHand.MAIN_HAND && player.m_21120_(hand).m_41619_()
                 && !player.m_6144_() && this.m_6084_() && !this.m_20160_()
                 && player.m_20148_().equals(this.getOwnerId()) && !player.m_20159_()) {
@@ -213,8 +236,31 @@ public final class HadesServantEntity extends Summoned implements GeoEntity, Pla
     }
 
     @Override protected boolean m_7310_(Entity passenger) {
-        return !this.m_20160_() && passenger instanceof Player
-                && passenger.m_20148_().equals(this.getOwnerId());
+        if (this.m_20160_() || this.getOwnerId() == null) return false;
+        return passenger instanceof Player && passenger.m_20148_().equals(this.getOwnerId())
+                || passenger instanceof ApollyonServantEntity servant && servant.m_6084_()
+                    && this.getOwnerId().equals(servant.getOwnerId());
+    }
+
+    public ApollyonServantEntity mountedApollyonServant() {
+        Entity passenger = this.m_146895_();
+        return passenger instanceof ApollyonServantEntity servant && servant.m_20202_() == this
+                && this.getOwnerId() != null && this.getOwnerId().equals(servant.getOwnerId())
+                ? servant : null;
+    }
+
+    public boolean hasSeatPassenger() {
+        return this.m_6688_() != null || this.mountedApollyonServant() != null;
+    }
+
+    public boolean protectedByRiderMonolith() {
+        ApollyonServantEntity servant = mountedApollyonServant();
+        return servant != null && servant.hasMonolithProtection();
+    }
+
+    public boolean riderMonolithVisible() {
+        ApollyonServantEntity servant = mountedApollyonServant();
+        return servant != null && servant.monolithVisible();
     }
 
     @Override public LivingEntity m_6688_() {
@@ -248,7 +294,7 @@ public final class HadesServantEntity extends Summoned implements GeoEntity, Pla
     public boolean isRiderMoving() { return this.f_19804_.m_135370_(RIDER_MOVING); }
 
     public boolean useWalkAnimation(boolean groundMoving) {
-        return this.m_6688_() != null ? this.isRiderMoving() : groundMoving;
+        return this.hasSeatPassenger() ? this.isRiderMoving() : groundMoving;
     }
 
     @Override public void m_7023_(Vec3 input) {
@@ -364,9 +410,20 @@ public final class HadesServantEntity extends Summoned implements GeoEntity, Pla
             this.cooldownWork = Math.max(0, this.cooldownWork
                     - Math.max(0, this.m_21133_(Attributes.f_22283_)));
         }
+        if (!this.m_9236_().f_46443_) {
+            if (this.judgmentCooldown > 0) --this.judgmentCooldown;
+            if (!this.hasCombatTarget()) this.judgmentSouls = 0;
+        }
         super.m_8119_();
         if (this.m_9236_().f_46443_ || !this.m_6084_()) return;
+        if (this.mountedApollyonServant() != null) {
+            double horizontalMovement = this.m_20182_().m_82546_(new Vec3(this.f_19854_, this.f_19855_, this.f_19856_)).m_82556_();
+            this.f_19804_.m_135381_(RIDER_MOVING, horizontalMovement > 1.0E-6);
+        } else if (this.m_6688_() == null && this.isRiderMoving()) {
+            this.f_19804_.m_135381_(RIDER_MOVING, false);
+        }
         if (this.invulnerabilityTicks > 0) --this.invulnerabilityTicks;
+        if (!this.hasCombatTarget()) this.judgmentSouls = 0;
         if (this.f_19797_ % 20 == 0) {
             this.m_5634_(ServantConfig.REGENERATION.get().floatValue());
         }
@@ -380,6 +437,11 @@ public final class HadesServantEntity extends Summoned implements GeoEntity, Pla
     }
 
     @Override public boolean m_6469_(DamageSource source, float amount) {
+        if (this.protectedByRiderMonolith()
+                && !com.starfantasy.goety.combat.ApollyonDamageRules.commandKill(source, amount)) {
+            com.starfantasy.goety.combat.ApollyonServantMonoliths.redirectAttacker(this, source);
+            return false;
+        }
         if (this.m_6673_(source)) return false;
         boolean bypass = source.m_269533_(DamageTypeTags.f_268738_);
         if (!bypass && this.invulnerabilityTicks > 0) return false;
@@ -399,9 +461,38 @@ public final class HadesServantEntity extends Summoned implements GeoEntity, Pla
         return hurt;
     }
 
+    @Override protected void m_6475_(DamageSource source, float amount) {
+        if (this.protectedByRiderMonolith()
+                && !com.starfantasy.goety.combat.ApollyonDamageRules.commandKill(source, amount)) return;
+        super.m_6475_(source, amount);
+    }
+
     public int attackType() { return this.f_19804_.m_135370_(ATTACK); }
     public int attackAge() { return this.f_19804_.m_135370_(AGE); }
     public int deathAge() { return this.f_19804_.m_135370_(DEATH_AGE); }
+    private boolean hasCombatTarget() {
+        return this.m_6084_() && this.m_5448_() != null && this.canHarm(this.m_5448_());
+    }
+
+    @Override public void m_6710_(LivingEntity target) {
+        super.m_6710_(target);
+        if (!this.m_9236_().f_46443_ && !this.hasCombatTarget()) this.judgmentSouls = 0;
+    }
+
+    public void recordJudgmentSouls(int amount) {
+        if (this.m_9236_().f_46443_) return;
+        if (!this.hasCombatTarget()) {
+            this.judgmentSouls = 0;
+            return;
+        }
+        if (amount > 0) this.judgmentSouls = (int) Math.min(
+                ServantConfig.JUDGMENT_SOUL_COST.get(), (long) this.judgmentSouls + amount);
+    }
+
+    private boolean judgmentReady() {
+        return this.hasCombatTarget() && this.judgmentCooldown <= 0
+                && this.judgmentSouls >= ServantConfig.JUDGMENT_SOUL_COST.get();
+    }
     public boolean isShootAction() {
         return this.attackType() == DIVE_RAY && this.attackAge() < 60;
     }
@@ -446,7 +537,9 @@ public final class HadesServantEntity extends Summoned implements GeoEntity, Pla
 
     private void startAttack(int type, Vec3 aim) {
         if (this.m_9236_().f_46443_ || !this.m_6084_() || this.attackType() != 0
-                || this.cooldownWork > 0 || type < ROUNDHOUSE || type > DIVE_RAY) return;
+                || this.cooldownWork > 0 || type < ROUNDHOUSE || type > INFERNAL_JUDGMENT) return;
+        if (this.judgmentReady()) type = INFERNAL_JUDGMENT;
+        else if (type == INFERNAL_JUDGMENT) return;
         this.attackOrigin = this.m_20182_();
         this.attackForward = new Vec3(aim.f_82479_, 0, aim.f_82481_).m_82541_();
         if (this.attackForward.m_82553_() < 1.0E-6) this.attackForward = new Vec3(0, 0, 1);
@@ -456,6 +549,12 @@ public final class HadesServantEntity extends Summoned implements GeoEntity, Pla
         this.m_21573_().m_26573_();
         this.lockFacing();
         if (type == DIVE_RAY) this.sound(ApollyonSoundRegistry.CAST_HADES.get(), 2);
+        if (type == INFERNAL_JUDGMENT) {
+            this.judgmentSouls = 0;
+            this.judgmentCooldown = JUDGMENT_COOLDOWN;
+            // The boss is ten blocks from its cleave at impact; our model is half size.
+            this.judgmentCenter = this.attackOrigin.m_82549_(this.attackForward.m_82490_(JUDGMENT_FORWARD_OFFSET));
+        }
     }
 
     private void lockFacing() {
@@ -490,6 +589,8 @@ public final class HadesServantEntity extends Summoned implements GeoEntity, Pla
                 int index = age - hit;
                 if (index >= 0 && index < 7) this.blast(center.m_82549_(direction.m_82490_(-10 + 2.5 * (index + 1))), 6);
             }
+        } else if (type == INFERNAL_JUDGMENT) {
+            this.tickJudgment(age);
         } else {
             boolean shoot = this.isShootAction();
             int actionAge = this.actionAge();
@@ -522,7 +623,7 @@ public final class HadesServantEntity extends Summoned implements GeoEntity, Pla
                 for (int side : new int[]{-1, 1}) this.blast(burst.m_82549_(right.m_82490_(side * DIVE_SIDE_OFFSET)), 4.5F);
             }
         }
-        int duration = type < DIVE_RAY ? 80 : 120;
+        int duration = type == INFERNAL_JUDGMENT ? JUDGMENT_END_TICK : type < DIVE_RAY ? 80 : 120;
         if (age >= duration) {
             this.f_19804_.m_135381_(ATTACK, 0);
             this.f_19804_.m_135381_(AGE, 0);
@@ -533,6 +634,31 @@ public final class HadesServantEntity extends Summoned implements GeoEntity, Pla
     private double attackDamage(double multiplier) {
         // Resolve the live attribute at impact time, including Strength and other modifiers.
         return this.m_21133_(Attributes.f_22281_) * multiplier;
+    }
+
+    private void tickJudgment(int age) {
+        if (!(this.m_9236_() instanceof ServerLevel level)) return;
+        if (age == JUDGMENT_CLEAVE_TICK) {
+            ApollyonCleaveEffectEntity cleave = new ApollyonCleaveEffectEntity(
+                    ApollyonEntityRegistry.APOLLYON_CLEAVE_EFFECT.get(), level);
+            cleave.configureServant(this);
+            Vec3 position = this.judgmentCenter.m_82520_(0, 0.05, 0);
+            cleave.m_6034_(position.f_82479_, position.f_82480_, position.f_82481_);
+            level.m_7967_(cleave);
+            StarFantasyVfx.stomp(this, this.judgmentCenter, 3, 1);
+            StarFantasyVfx.slamShockwave(this, this.judgmentCenter, 20);
+            StarFantasyVfx.areaShake(this, this.judgmentCenter, 64, 40, 0.75F);
+        }
+        if (age == JUDGMENT_BURST_TICK) {
+            level.m_5594_(null, net.minecraft.core.BlockPos.m_274561_(
+                    this.judgmentCenter.f_82479_, this.judgmentCenter.f_82480_, this.judgmentCenter.f_82481_),
+                    ApollyonSoundRegistry.CAST_OBSIDIAN.get(), this.m_5720_(), 3, 1);
+            StarFantasyVfx.areaImpactShake(this, this.judgmentCenter, 64, 0, 40, 20, 3);
+        }
+        if (age >= JUDGMENT_BURST_TICK && age < JUDGMENT_BURST_TICK + JUDGMENT_HITS) {
+            BattleFocusCombat.sonicDamage(level, this, this.judgmentCenter, JUDGMENT_RADIUS,
+                    (float) this.attackDamage(1), this::canHarm);
+        }
     }
 
     private void damageDisk(Vec3 center, double radius) {
@@ -578,6 +704,7 @@ public final class HadesServantEntity extends Summoned implements GeoEntity, Pla
     }
 
     @Override public void m_6667_(DamageSource source) {
+        this.judgmentSouls = 0;
         if (!this.m_9236_().f_46443_) {
             this.m_20153_();
             this.clearRiderInput();
@@ -608,6 +735,7 @@ public final class HadesServantEntity extends Summoned implements GeoEntity, Pla
         super.m_7380_(tag);
         tag.m_128347_("HadesCooldown", this.attackType() != 0 ? 40 : this.cooldownWork);
         tag.m_128405_("HadesInvulnerability", this.invulnerabilityTicks);
+        tag.m_128405_("HadesJudgmentCooldown", this.judgmentCooldown);
         tag.m_128405_("HadesDeathAge", this.deathAge());
         tag.m_128379_("HadesRecallDropped", this.recallDropped);
     }
@@ -615,6 +743,8 @@ public final class HadesServantEntity extends Summoned implements GeoEntity, Pla
         super.m_7378_(tag);
         this.cooldownWork = Math.max(0, tag.m_128459_("HadesCooldown"));
         this.invulnerabilityTicks = Math.max(0, tag.m_128451_("HadesInvulnerability"));
+        this.judgmentCooldown = Math.max(0, tag.m_128451_("HadesJudgmentCooldown"));
+        this.judgmentSouls = 0;
         this.f_19804_.m_135381_(DEATH_AGE, Math.max(0, tag.m_128451_("HadesDeathAge")));
         this.recallDropped = tag.m_128471_("HadesRecallDropped");
         this.attackYaw = this.m_146908_();
@@ -633,6 +763,7 @@ public final class HadesServantEntity extends Summoned implements GeoEntity, Pla
         this.setNoHealTime(0);
         this.recallDropped = false;
         this.cooldownWork = 40;
+        this.judgmentSouls = 0;
         this.f_19804_.m_135381_(DEATH_AGE, 0);
         this.f_19804_.m_135381_(ATTACK, 0);
         this.f_19804_.m_135381_(AGE, 0);
@@ -650,8 +781,9 @@ public final class HadesServantEntity extends Summoned implements GeoEntity, Pla
                 : this.attackType() == ROUNDHOUSE ? SPIN
                 : this.attackType() == CLAW_COMBO ? this.attackAge() < 30 ? CLAW_ONE : CLAW_TWO
                 : this.attackType() == DIVE_RAY ? this.isShootAction() ? SHOOT : SWIPE
+                : this.attackType() == INFERNAL_JUDGMENT ? SMASH
                 : this.useWalkAnimation(state.isMoving()) ? WALK : IDLE;
-        state.getController().setTransitionLength(this.m_6688_() != null && this.attackType() == 0
+        state.getController().setTransitionLength(this.hasSeatPassenger() && this.attackType() == 0
                 && this.m_6084_() ? 3 : 0);
         state.getController().setAnimation(anim);
         return PlayState.CONTINUE;
@@ -674,7 +806,7 @@ public final class HadesServantEntity extends Summoned implements GeoEntity, Pla
 
         @Override protected double adjustTick(double tick) {
             double adjusted = super.adjustTick(tick);
-            if (m_6688_() != null && attackType() == 0 && m_6084_()
+            if (hasSeatPassenger() && attackType() == 0 && m_6084_()
                     && this.getAnimationState() == AnimationController.State.RUNNING) {
                 double time = m_9236_().m_46467_() + this.partialTick - 1;
                 return (time % 80 + 80) % 80;

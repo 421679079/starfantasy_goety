@@ -67,9 +67,20 @@ public final class ApollyonCombatEvents {
 
     }
 
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public static void onApollyonDrops(LivingDropsEvent event) {
+        if (!(event.getEntity() instanceof ApollyonEntity boss)) return;
+        var home = boss.arenaHomePosition();
+        for (ItemEntity drop : event.getDrops()) {
+            drop.m_6034_(home.f_82479_, home.f_82480_ + 0.5D, home.f_82481_);
+            drop.m_20256_(new net.minecraft.world.phys.Vec3(0.0D, 0.2D, 0.0D));
+        }
+    }
+
     @SubscribeEvent
     public static void onNetherApostleDrops(LivingDropsEvent event) {
-        if (!(event.getEntity() instanceof Apostle apostle) || !apostle.isInNether()
+        if (!(event.getEntity() instanceof Apostle apostle)
+                || !apostle.isInNether()
                 || ApostleCompatibility.isRevelationApollyon(apostle)) {
             return;
         }

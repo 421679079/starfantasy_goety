@@ -1,0 +1,16 @@
+{
+  "name": "漆黑暗影",
+  "icon": "starfantasy_goety:halo_of_the_dark",
+  "category": "goety:starfantasy/directed_apostles",
+  "sortnum": 3,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "在召唤仪式中额外添加一个特殊材料，即可召唤出指定头衔的使徒。"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:directed_apostle_dark"
+    }
+  ]
+}

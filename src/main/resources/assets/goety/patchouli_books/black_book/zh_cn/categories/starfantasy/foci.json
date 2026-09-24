@@ -1,0 +1,7 @@
+{
+  "name": "聚晶",
+  "description": "这里记录了星翼幻想新增的聚晶。",
+  "icon": "starfantasy_goety:guard_focus",
+  "parent": "goety:starfantasy",
+  "sortnum": 0
+}

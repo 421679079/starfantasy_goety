@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "starfantasy_goety:item/blooms_and_plumes_focus"
+  }
+}

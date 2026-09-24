@@ -3,7 +3,7 @@ package com.starfantasy.goety.combat.apostle;
 import com.Polarice3.Goety.common.entities.util.FireBlastTrap;
 import com.Polarice3.Goety.utils.ModDamageSource;
 import com.starfantasy.goety.StarFantasyGoetyMod;
-import com.Polarice3.Goety.common.entities.boss.Apostle;
+import net.minecraft.world.entity.Mob;
 import com.starfantasy.library.vfx.StarFantasyVfx;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -53,7 +53,7 @@ public final class ApostleFireTrapManager {
     private ApostleFireTrapManager() {
     }
 
-    public static void cast(Apostle boss, LivingEntity target) {
+    public static void cast(Mob boss, LivingEntity target) {
         if (boss == null || target == null || boss.m_9236_().f_46443_
                 || !boss.m_6084_() || !target.m_6084_()) {
             return;
@@ -70,10 +70,10 @@ public final class ApostleFireTrapManager {
             spawnTrapOnce(boss, base.m_82520_(0.0D, 0.0D, distance), spawned);
             spawnTrapOnce(boss, base.m_82520_(0.0D, 0.0D, -distance), spawned);
         }
-        if (boss.isSecondPhase()) PENDING_RINGS.add(new PendingRing(boss, base, RING_DELAY_TICKS));
+        if (com.starfantasy.goety.combat.apostle.ApostleSpellSupport.secondPhase(boss)) PENDING_RINGS.add(new PendingRing(boss, base, RING_DELAY_TICKS));
     }
 
-    public static void clearForBoss(Apostle boss) {
+    public static void clearForBoss(Mob boss) {
         if (boss == null || !(boss.m_9236_() instanceof ServerLevel level)) {
             return;
         }
@@ -133,7 +133,7 @@ public final class ApostleFireTrapManager {
 
         for (PendingRing ring : dueRings) {
             Entity entity = level.m_8791_(ring.bossUuid);
-            if (entity instanceof Apostle boss && boss.m_6084_()) {
+            if (entity instanceof Mob boss && boss.m_6084_()) {
                 spawnRing(boss, ring.center);
             }
         }
@@ -144,7 +144,7 @@ public final class ApostleFireTrapManager {
 
     private static void detonate(ServerLevel level, PendingTrap trap) {
         Entity entity = level.m_8791_(trap.bossUuid);
-        if (!(entity instanceof Apostle boss) || !boss.m_6084_()) {
+        if (!(entity instanceof Mob boss) || !boss.m_6084_()) {
             return;
         }
 
@@ -159,7 +159,7 @@ public final class ApostleFireTrapManager {
         }
     }
 
-    private static void spawnRing(Apostle boss, Vec3 base) {
+    private static void spawnRing(Mob boss, Vec3 base) {
         Set<BlockPos> spawned = new LinkedHashSet<>();
         for (int i = 0; i < RING_COUNT; ++i) {
             double angle = Math.PI * 2.0D * i / RING_COUNT;
@@ -170,7 +170,7 @@ public final class ApostleFireTrapManager {
         }
     }
 
-    private static void spawnTrapOnce(Apostle boss, Vec3 desired, Set<BlockPos> spawned) {
+    private static void spawnTrapOnce(Mob boss, Vec3 desired, Set<BlockPos> spawned) {
         Level level = boss.m_9236_();
         Vec3 center = groundCenterAt(level, desired.f_82479_, desired.f_82480_ + 8.0D, desired.f_82481_,
                 Mth.m_14107_(desired.f_82479_), Mth.m_14107_(desired.f_82481_));
@@ -179,14 +179,14 @@ public final class ApostleFireTrapManager {
             return;
         }
 
-        StarFantasyVfx.redGroundWarningCircle(
+        if (com.starfantasy.goety.combat.apostle.ApostleSpellSupport.showWarnings(boss)) StarFantasyVfx.redGroundWarningCircle(
                 boss, center.m_82520_(0.0D, 0.06D, 0.0D), WARNING_TICKS, TRAP_RADIUS);
         if (spawnVisual(boss, center)) {
             PENDING_TRAPS.add(new PendingTrap(boss, center, DAMAGE_DELAY_TICKS));
         }
     }
 
-    private static boolean spawnVisual(Apostle boss, Vec3 center) {
+    private static boolean spawnVisual(Mob boss, Vec3 center) {
         if (!(boss.m_9236_() instanceof ServerLevel level)) {
             return false;
         }
@@ -203,7 +203,7 @@ public final class ApostleFireTrapManager {
         return level.m_7967_(trap);
     }
 
-    private static boolean shouldSkip(Apostle boss, LivingEntity target) {
+    private static boolean shouldSkip(Mob boss, LivingEntity target) {
         if (ApostleSpellSupport.friendly(boss, target) || !target.m_6084_()) {
             return true;
         }
@@ -252,7 +252,7 @@ public final class ApostleFireTrapManager {
         private final Vec3 center;
         private int delayTicks;
 
-        private PendingRing(Apostle boss, Vec3 center, int delayTicks) {
+        private PendingRing(Mob boss, Vec3 center, int delayTicks) {
             this.dimension = boss.m_9236_().m_46472_();
             this.bossUuid = boss.m_20148_();
             this.center = center;
@@ -266,7 +266,7 @@ public final class ApostleFireTrapManager {
         private final Vec3 center;
         private int delayTicks;
 
-        private PendingTrap(Apostle boss, Vec3 center, int delayTicks) {
+        private PendingTrap(Mob boss, Vec3 center, int delayTicks) {
             this.dimension = boss.m_9236_().m_46472_();
             this.bossUuid = boss.m_20148_();
             this.center = center;

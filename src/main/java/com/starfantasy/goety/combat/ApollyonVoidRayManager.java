@@ -2,9 +2,12 @@ package com.starfantasy.goety.combat;
 
 import com.Polarice3.Goety.common.effects.GoetyEffects;
 import com.Polarice3.Goety.init.ModSounds;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.entity.Mob;
 import com.starfantasy.goety.entity.ApollyonServantEntity;
 import com.starfantasy.goety.entity.ApollyonSectorEffectEntity;
+import com.starfantasy.goety.entity.HadesServantEntity;
 import com.starfantasy.library.vfx.StarFantasyVfx;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
@@ -38,10 +41,26 @@ public final class ApollyonVoidRayManager {
     }
 
     public static Vec3 captureAnchor(Mob boss) {
-        if (boss == null || !(boss.m_9236_() instanceof ServerLevel)) {
+        if (boss == null || !(boss.m_9236_() instanceof ServerLevel level)) {
             return null;
         }
-        return new Vec3(boss.m_20185_(), boss.m_20186_(), boss.m_20189_());
+        if (!(boss instanceof ApollyonServantEntity servant)
+                || !(servant.m_20202_() instanceof HadesServantEntity hades)
+                || hades.mountedApollyonServant() != servant)
+            return new Vec3(boss.m_20185_(), boss.m_20186_(), boss.m_20189_());
+        BlockPos cursor = BlockPos.m_274561_(boss.m_20185_(), boss.m_20186_(), boss.m_20189_());
+        if (!level.m_46805_(cursor)) return null;
+        while (cursor.m_123342_() >= level.m_141937_()) {
+            var state = level.m_8055_(cursor);
+            var shape = state.m_60812_(level, cursor);
+            if (!shape.m_83281_()) {
+                double groundY = cursor.m_123342_() + shape.m_83297_(Direction.Axis.Y);
+                if (groundY <= boss.m_20186_() + 1.0E-4D)
+                    return new Vec3(boss.m_20185_(), groundY, boss.m_20189_());
+            }
+            cursor = cursor.m_7495_();
+        }
+        return null;
     }
 
     public static void warn(Mob boss, Vec3 anchor, float rotation, int duration) {
@@ -107,7 +126,7 @@ public final class ApollyonVoidRayManager {
         } else {
             // The boss deliberately retains anonymous fell-out-of-world damage.
             source = target.m_269291_().m_269341_();
-            damage = ApollyonSpellSupport.damage(caster, DAMAGE);
+            damage = ApollyonSpellSupport.damage(caster, target, DAMAGE, 0.05F);
         }
         if (target.m_6469_(source, damage)) {
             target.m_7292_(new MobEffectInstance(

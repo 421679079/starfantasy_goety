@@ -2,7 +2,7 @@ package com.starfantasy.goety.combat.apostle;
 
 import com.Polarice3.Goety.common.effects.GoetyEffects;
 import com.Polarice3.Goety.init.ModSounds;
-import com.Polarice3.Goety.common.entities.boss.Apostle;
+import net.minecraft.world.entity.Mob;
 import com.starfantasy.goety.entity.ApollyonSectorEffectEntity;
 import com.starfantasy.library.vfx.StarFantasyVfx;
 import net.minecraft.server.level.ServerLevel;
@@ -34,36 +34,36 @@ public final class ApostleVoidRayManager {
     private ApostleVoidRayManager() {
     }
 
-    public static Vec3 captureAnchor(Apostle boss) {
+    public static Vec3 captureAnchor(Mob boss) {
         if (boss == null || !(boss.m_9236_() instanceof ServerLevel)) {
             return null;
         }
         return new Vec3(boss.m_20185_(), boss.m_20186_(), boss.m_20189_());
     }
 
-    public static void warn(Apostle boss, Vec3 anchor, float rotation, int duration) {
+    public static void warn(Mob boss, Vec3 anchor, float rotation, int duration) {
         warnPattern(boss, anchor, rotation, duration,
                 RADIUS, SECTOR_ANGLE, SECTOR_SPACING, SECTOR_COUNT);
     }
 
     public static void warnPattern(
-            Apostle boss, Vec3 anchor, float rotation, int duration,
+            Mob boss, Vec3 anchor, float rotation, int duration,
             float radius, float sectorAngle, float sectorSpacing, int sectorCount) {
         if (boss == null || anchor == null || boss.m_9236_().f_46443_) {
             return;
         }
-        StarFantasyVfx.groundSectorWarningBatch(
+        if (com.starfantasy.goety.combat.apostle.ApostleSpellSupport.showWarnings(boss)) StarFantasyVfx.groundSectorWarningBatch(
                 boss, anchor, duration, radius, sectorAngle, WARNING_COLOR,
                 sectorYaws(rotation, sectorSpacing, sectorCount));
     }
 
-    public static void detonate(Apostle boss, Vec3 anchor, float rotation) {
+    public static void detonate(Mob boss, Vec3 anchor, float rotation) {
         detonatePattern(boss, anchor, rotation,
                 RADIUS, SECTOR_ANGLE, SECTOR_SPACING, SECTOR_COUNT);
     }
 
     public static void detonatePattern(
-            Apostle boss, Vec3 anchor, float rotation,
+            Mob boss, Vec3 anchor, float rotation,
             float radius, float sectorAngle, float sectorSpacing, int sectorCount) {
         if (boss == null || anchor == null
                 || !(boss.m_9236_() instanceof ServerLevel level)) {
@@ -91,7 +91,7 @@ public final class ApostleVoidRayManager {
             // Deliberately use vanilla fell-out-of-world damage. It has no attacker,
             // direct entity or source position; the boss only selects valid targets.
             if (target.m_6469_(target.m_269291_().m_269341_(),
-                    ApostleSpellSupport.damage(2))) {
+                    ApostleSpellSupport.damage(2) * (boss instanceof com.starfantasy.goety.entity.ApostleServantEntity servant ? servant.damageMultiplier() : 1.0F))) {
                 target.m_7292_(new MobEffectInstance(
                         (MobEffect) GoetyEffects.VOID_TOUCHED.get(),
                         VOID_TOUCHED_TICKS, VOID_TOUCHED_AMPLIFIER));
@@ -99,7 +99,7 @@ public final class ApostleVoidRayManager {
         }
     }
 
-    private static boolean shouldSkip(Apostle boss, LivingEntity target) {
+    private static boolean shouldSkip(Mob boss, LivingEntity target) {
         if (target == null || ApostleSpellSupport.friendly(boss, target) || !target.m_6084_()
                 || target.m_20147_()) {
             return true;

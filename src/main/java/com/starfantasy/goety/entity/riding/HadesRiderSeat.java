@@ -47,6 +47,9 @@ public final class HadesRiderSeat {
         } else if (entity.attackType() == HadesServantEntity.DIVE_RAY) {
             name = entity.attackAge() < 60 ? "shoot" : "overhead_swipe";
             if (entity.attackAge() >= 60) ticks = Math.max(0, ticks - 60);
+        } else if (entity.attackType() == HadesServantEntity.INFERNAL_JUDGMENT) {
+            name = "smash";
+            ticks = Math.min(ticks, 80);
         } else {
             name = entity.isRiderMoving() ? "walk" : "idle";
             ticks = (idleTicks % 80 + 80) % 80;
@@ -67,13 +70,32 @@ public final class HadesRiderSeat {
     }
 
     public static Vec3 position(Pose pose, Vec3 origin, float bodyYaw) {
-        Matrix4f matrix = new Matrix4f().rotateY((float)Math.toRadians(180 - bodyYaw)).translate(0, 0.01F, 0);
-        apply(matrix, "body", pose.body());
-        apply(matrix, "h_head", pose.head());
         Vector3f seat = vector(BONES.get("rider_seat").get("pivot"));
         seat.mul(-1F / 16, 1F / 16, 1F / 16);
-        matrix.transformPosition(seat);
-        return origin.m_82520_(seat.x, seat.y, seat.z);
+        return headPosition(pose, origin, bodyYaw, seat);
+    }
+
+    public static Vec3 chainPosition(Pose pose, Vec3 origin, float bodyYaw) {
+        Vector3f core = vector(BONES.get("hades_apostle_fusion_core").get("pivot"));
+        core.mul(-1F / 16, 1F / 16, 1F / 16);
+        return transformedPosition(bodyTransform(pose, bodyYaw), origin, core);
+    }
+
+    private static Vec3 headPosition(Pose pose, Vec3 origin, float bodyYaw, Vector3f point) {
+        Matrix4f matrix = bodyTransform(pose, bodyYaw);
+        apply(matrix, "h_head", pose.head());
+        return transformedPosition(matrix, origin, point);
+    }
+
+    private static Matrix4f bodyTransform(Pose pose, float bodyYaw) {
+        Matrix4f matrix = new Matrix4f().rotateY((float)Math.toRadians(180 - bodyYaw)).translate(0, 0.01F, 0);
+        apply(matrix, "body", pose.body());
+        return matrix;
+    }
+
+    private static Vec3 transformedPosition(Matrix4f matrix, Vec3 origin, Vector3f point) {
+        matrix.transformPosition(point);
+        return origin.m_82520_(point.x, point.y, point.z);
     }
 
     private static void apply(Matrix4f matrix, String name, BonePose pose) {

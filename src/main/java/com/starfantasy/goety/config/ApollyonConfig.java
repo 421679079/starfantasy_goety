@@ -76,6 +76,12 @@ public final class ApollyonConfig {
         return DAMAGE_MULTIPLIER.get();
     }
 
+    /** Shared scaling for boss-owned attacks, including delayed status damage. */
+    public static float scaleDamage(float baseDamage) {
+        return baseDamage <= 0.0F ? baseDamage
+                : (float) (baseDamage * Math.max(0.0D, Math.min(1000.0D, damageMultiplier())));
+    }
+
     public static double damageTakenMultiplier() {
         return DAMAGE_TAKEN_MULTIPLIER.get();
     }

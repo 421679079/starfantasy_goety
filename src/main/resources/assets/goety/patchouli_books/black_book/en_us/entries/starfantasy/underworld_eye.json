@@ -1,0 +1,19 @@
+{
+  "name": "Underworld Eye",
+  "icon": "starfantasy_goety:underworld_eye",
+  "category": "goety:starfantasy/exploration",
+  "sortnum": 1,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "You can craft an Eye of the Underworld to quickly reach the Underworld Church."
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:underworld_eye"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "starfantasy_goety:underworld_eye": 1
+  }
+}

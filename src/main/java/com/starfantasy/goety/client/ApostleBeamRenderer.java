@@ -33,20 +33,21 @@ public final class ApostleBeamRenderer
         if (!entity.active()) return;
         yaw = entity.visualYaw(partialTick);
         poseStack.m_85836_();
-        poseStack.m_85837_(0, 1.35, 0);
+        poseStack.m_85837_(0, ApostleBeamEntity.CENTER_HEIGHT, 0);
         float age = entity.visualAge(partialTick);
-        float fadeIn = Mth.m_14036_(age / 3.0F, 0.0F, 1.0F);
+        // AGE=41 already deals damage on the server; the first visible frame must not be transparent.
+        float fadeIn = Mth.m_14036_((age + 1.0F) / 3.0F, 0.0F, 1.0F);
         float fadeOut = Mth.m_14036_((entity.duration() - age) / 10.0F, 0.0F, 1.0F);
         float alpha = Math.min(fadeIn, fadeOut);
         if (alpha > 0.01F) {
             float scroll = -(entity.m_9236_().m_46467_() + age) * 0.08F;
             Matrix4f matrix = poseStack.m_85850_().m_252922_();
             drawLayer(buffer.m_6299_(StarFantasyVfxRenderTypes.depthParticle(BEAM_GLOW)),
-                    matrix, yaw, 0.72F, scroll, alpha * 0.55F);
+                    matrix, yaw, 1.0F, scroll, alpha * 0.55F);
             drawLayer(buffer.m_6299_(StarFantasyVfxRenderTypes.depthParticle(BEAM_MAIN)),
-                    matrix, yaw, 0.46F, scroll * 1.35F, alpha * 0.9F);
+                    matrix, yaw, 0.46F / 0.72F, scroll * 1.35F, alpha * 0.9F);
             drawLayer(buffer.m_6299_(StarFantasyVfxRenderTypes.depthParticle(BEAM_CORE)),
-                    matrix, yaw, 0.2F, scroll * 1.8F, alpha);
+                    matrix, yaw, 0.2F / 0.72F, scroll * 1.8F, alpha);
         }
         poseStack.m_85849_();
         super.m_7392_(entity, yaw, partialTick, poseStack, buffer, packedLight);
@@ -58,7 +59,9 @@ public final class ApostleBeamRenderer
     }
 
     private static void drawLayer(VertexConsumer consumer, Matrix4f matrix, float yaw,
-                                  float width, float scroll, float alpha) {
+                                  float scale, float scroll, float alpha) {
+        float width = ApostleBeamEntity.HALF_WIDTH * scale;
+        float height = ApostleBeamEntity.HALF_HEIGHT * scale;
         float radians = yaw * ((float) Math.PI / 180.0F);
         float forwardX = -Mth.m_14031_(radians);
         float forwardZ = Mth.m_14089_(radians);
@@ -75,10 +78,10 @@ public final class ApostleBeamRenderer
                 endX - sideX, 0.0F, endZ - sideZ,
                 scroll, endV, alpha);
         quad(consumer, matrix,
-                0.0F, -width, 0.0F,
-                0.0F, width, 0.0F,
-                endX, width, endZ,
-                endX, -width, endZ,
+                0.0F, -height, 0.0F,
+                0.0F, height, 0.0F,
+                endX, height, endZ,
+                endX, -height, endZ,
                 scroll, endV, alpha);
     }
 

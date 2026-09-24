@@ -1,6 +1,6 @@
 package com.starfantasy.goety.entity;
 
-import com.Polarice3.Goety.common.entities.boss.Apostle;
+import net.minecraft.world.entity.Mob;
 import com.starfantasy.goety.combat.apostle.ApostleSpellSupport;
 
 import com.Polarice3.Goety.client.particles.GatherFrostParticleOption;
@@ -23,7 +23,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
-/** Goety IceChunk visuals with Apostle-owned movement, warning and frozen damage. */
+/** Goety IceChunk visuals with Mob-owned movement, warning and frozen damage. */
 public final class ApostleIceChunkEntity extends IceChunk {
     private static final int STUN_DURATION_TICKS = 40;
     private static final int FORMATION_TICKS = 15;
@@ -59,7 +59,7 @@ public final class ApostleIceChunkEntity extends IceChunk {
         this.hovering = 0;
     }
 
-    public void initialize(Apostle owner, LivingEntity target, double groundY) {
+    public void initialize(Mob owner, LivingEntity target, double groundY) {
         this.setOwner(owner);
         this.setTarget(target);
         this.groundY = groundY;
@@ -184,7 +184,7 @@ public final class ApostleIceChunkEntity extends IceChunk {
         }
         if (this.timelineTick == TRACKING_END_TICK) {
             Entity owner = this.m_269323_();
-            StarFantasyVfx.redGroundWarningCircle(
+            if (com.starfantasy.goety.combat.apostle.ApostleSpellSupport.showWarnings(owner)) StarFantasyVfx.redGroundWarningCircle(
                     owner == null ? this : owner,
                     new Vec3(this.m_20185_(), this.groundY + 0.06D, this.m_20189_()),
                     WARNING_DURATION_TICKS, WARNING_RADIUS);
@@ -218,7 +218,7 @@ public final class ApostleIceChunkEntity extends IceChunk {
 
     private void applyCircularImpactDamage() {
         LivingEntity owner = this.m_269323_();
-        if (!(owner instanceof Apostle boss) || !boss.m_6084_()) {
+        if (!(owner instanceof Mob boss) || !boss.m_6084_()) {
             return;
         }
         double centerX = this.m_20185_();
@@ -272,13 +272,13 @@ public final class ApostleIceChunkEntity extends IceChunk {
     @Override
     public void damageTargets(LivingEntity target) {
         LivingEntity owner = this.m_269323_();
-        if (this.suppressNativeDamage || !(owner instanceof Apostle boss)) {
+        if (this.suppressNativeDamage || !(owner instanceof Mob boss)) {
             return;
         }
         this.hurtTarget(boss, target);
     }
 
-    private void hurtTarget(Apostle boss, LivingEntity target) {
+    private void hurtTarget(Mob boss, LivingEntity target) {
         if (target == null || ApostleSpellSupport.friendly(boss, target) || !target.m_6084_()) {
             return;
         }

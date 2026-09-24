@@ -1,0 +1,19 @@
+{
+  "name": "Thunder Staff",
+  "icon": "starfantasy_goety:storm_staff_2",
+  "category": "goety:starfantasy/staves",
+  "sortnum": 3,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "The Apostles' halos can be used to upgrade staves of the corresponding schools."
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:storm_staff_2"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "starfantasy_goety:storm_staff_2": 1
+  }
+}

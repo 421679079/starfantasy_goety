@@ -95,11 +95,11 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * A deliberately small Apostle-like combatant. It borrows the Cultist pose model,
- * but none of Apostle's phase, weather, summoning or world-changing mechanics.
+ * An Apostle-inspired two-phase boss with scripted pageant and summon mechanics.
+ * Its combat poses reuse the Cultist model.
  */
 public final class ApollyonEntity extends Cultist implements com.starfantasy.library.combat.CombatHealthEntity, RangedAttackMob, GeoEntity,
-        com.starfantasy.goety.combat.ApollyonDeathInventory.Encounter,
+        com.starfantasy.library.combat.EncounterDeathInventory.Encounter,
         com.starfantasy.goety.combat.ApollyonPageantAggro.Encounter {
     public static final int DEATH_ANIMATION_TICKS = ApollyonDeathEffects.APOLLYON_DEATH_TICKS;
     private static final String HOME_X_TAG = "ApollyonHomeX";
@@ -157,7 +157,6 @@ public final class ApollyonEntity extends Cultist implements com.starfantasy.lib
     private static final int VOID_RAY_FIRST_HIT_TICK = 70;
     private static final int VOID_RAY_SECOND_HIT_TICK = 90;
     private static final int[] POOL_SPELL_COOLDOWN_TICKS = {40, 80, 120};
-    /** Keep the five per-spell summon definitions ready without spawning them for now. */
     private static final boolean POOL_SPELL_SUMMONS_ENABLED = false;
     private static final double CASTING_PARTICLE_MIN_SPEED = 0.14D;
     private static final double CASTING_PARTICLE_MAX_SPEED = 0.22D;
@@ -186,6 +185,7 @@ public final class ApollyonEntity extends Cultist implements com.starfantasy.lib
 
     public static final double ARENA_SIZE = 40.0D;
     public static final double ARENA_RADIUS = ARENA_SIZE * 0.5D;
+    private static final double ARENA_JOIN_RADIUS = ARENA_RADIUS - 1.0D;
     private static final double ARENA_ENTRY_HEIGHT = 8.0D;
     public static final double ARENA_VISUAL_HEIGHT = 4.0D;
     public static final float ARENA_WALL_ALPHA = 0.3F;
@@ -429,10 +429,11 @@ public final class ApollyonEntity extends Cultist implements com.starfantasy.lib
 
     @Override
     public boolean m_6469_(DamageSource source, float amount) {
-        if (source.m_276093_(DamageTypes.f_286979_)) {
+        if (com.starfantasy.goety.combat.ApollyonDamageRules.commandKill(source,amount)) {
             this.pageant.discardFromKill();
             return true;
         }
+        source=com.starfantasy.goety.combat.ApollyonDamageRules.ordinaryKill(this,source,amount);
         if (!this.isArenaDamageSource(source)) {
             return false;
         }
@@ -492,6 +493,7 @@ public final class ApollyonEntity extends Cultist implements com.starfantasy.lib
         }
         if (!this.m_9236_().f_46443_) {
             this.deathGroundY = this.m_20186_();
+            this.ensureArenaHome();
             this.setArenaActive(false);
             this.setPageantOpacity(1.0F);
             this.setPageantReturnSmoke(false);
@@ -606,6 +608,8 @@ public final class ApollyonEntity extends Cultist implements com.starfantasy.lib
 
     @Override
     protected void m_6153_() {
+        // Health-read overrides can enter tickDeath without invoking die().
+        if (this.f_20919_ == 0 && !this.m_9236_().f_46443_) this.clearCombatForPageant();
         ++this.f_20919_;
         this.setCasting(true);
         this.m_20256_(Vec3.f_82478_);
@@ -636,6 +640,7 @@ public final class ApollyonEntity extends Cultist implements com.starfantasy.lib
     /** Mirrors Goety Apostle's absolute, configurable post-hit invulnerability window. */
     @Override
     protected void m_6475_(DamageSource source, float amount) {
+        source=com.starfantasy.goety.combat.ApollyonDamageRules.ordinaryKill(this,source,amount);
         boolean shielded = this.hasCooperativeShield() || this.shieldHitInProgress;
         if (this.healthProtection.invulnerabilityTicks() > 0 && !shielded) {
             return;
@@ -692,10 +697,13 @@ public final class ApollyonEntity extends Cultist implements com.starfantasy.lib
 
     @Override
     public boolean m_7301_(MobEffectInstance effect) {
-        if (effect.m_19544_().m_19483_() == MobEffectCategory.HARMFUL) {
-            return false;
-        }
-        return super.m_7301_(effect);
+        return effect.m_19544_()!=com.Polarice3.Goety.common.effects.GoetyEffects.BURN_HEX.get()
+                && effect.m_19544_()!=net.minecraft.world.effect.MobEffects.f_19615_
+                && effect.m_19544_().m_19483_()!=MobEffectCategory.HARMFUL && super.m_7301_(effect);
+    }
+
+    @Override public boolean m_147207_(MobEffectInstance effect, @javax.annotation.Nullable Entity source) {
+        return (source==this || effect.m_19544_().m_19486_()) && super.m_147207_(effect,source);
     }
 
     public boolean isCastingAction() {
@@ -791,12 +799,12 @@ public final class ApollyonEntity extends Cultist implements com.starfantasy.lib
     }
 
     public float scaleOutgoingDamage(float baseDamage) {
-        if (baseDamage <= 0.0F) {
-            return baseDamage;
-        }
-        double multiplier = Mth.m_14008_(
-                ApollyonConfig.damageMultiplier(), 0.0D, 1000.0D);
-        return (float) (baseDamage * multiplier);
+        return ApollyonConfig.scaleDamage(baseDamage);
+    }
+
+    /** Scale only the flat component; max-health damage remains independent of the multiplier. */
+    public float outgoingDamage(LivingEntity target, float baseDamage, float maxHealthFraction) {
+        return this.scaleOutgoingDamage(baseDamage) + target.m_21233_() * maxHealthFraction;
     }
 
     public boolean isFriendlyEntity(Entity entity) {
@@ -1251,7 +1259,10 @@ public final class ApollyonEntity extends Cultist implements com.starfantasy.lib
                 this.arenaPlayers.remove(player.m_20148_());
                 this.safeBoundaryKnockbackReadyTicks.remove(player.m_20148_());
             }
-            if (this.canEnterArena(player)) {
+            // Finish entering one block inside the wall before enforcing exits.
+            // Existing participants stay registered when moving back into this band.
+            if (this.canEnterArena(player)
+                    && this.isHorizontalPositionInsideArena(player.m_20182_(), ARENA_JOIN_RADIUS)) {
                 this.arenaPlayers.put(player.m_20148_(), player);
             }
         }
@@ -1354,7 +1365,7 @@ public final class ApollyonEntity extends Cultist implements com.starfantasy.lib
                 if (now >= readyTick) {
                     this.safeBoundaryKnockbackReadyTicks.put(player.m_20148_(), now + 20);
                     player.f_19802_ = 0;
-                    player.m_6469_(player.m_269291_().m_269341_(), 20.0F);
+                    player.m_6469_(player.m_269291_().m_269341_(), this.scaleOutgoingDamage(20.0F));
                     if (player.m_6084_()) {
                         player.m_147207_(new MobEffectInstance(
                                 com.Polarice3.Goety.common.effects.GoetyEffects.DOOM.get(), 20, 9), this);
@@ -1481,7 +1492,8 @@ public final class ApollyonEntity extends Cultist implements com.starfantasy.lib
     }
 
     @Override
-    public boolean isInventoryProtectedParticipant(UUID player) {
+    public boolean isInventoryProtectedParticipant(ServerPlayer participant) {
+        UUID player = participant.m_20148_();
         // A dying player is no longer alive, so validArenaPlayers() would exclude them.
         // The current target also covers a lethal opening hit before the first membership tick.
         LivingEntity target = this.m_5448_();
@@ -2367,7 +2379,7 @@ public final class ApollyonEntity extends Cultist implements com.starfantasy.lib
                 case FROST_IMPACT, LIGHTNING_STORM -> 40;
                 // These spells resolve their first event after incrementing castTicks.
                 case FIRE_TRAP, WILD_SURGE, VOID_RAY -> 39;
-                // Fang Feast has two complete warnings inside its own 60-tick timeline.
+                // Fang Feast uses its own 80-tick timeline, so chained casts start at tick 0.
                 case FANG_FEAST -> 0;
                 default -> 0;
             };

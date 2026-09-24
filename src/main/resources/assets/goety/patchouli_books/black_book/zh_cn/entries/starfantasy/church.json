@@ -1,8 +1,8 @@
 {
   "name": "冥界教堂",
   "icon": "starfantasy_goety:underworld_altar",
-  "category": "goety:starfantasy",
-  "sortnum": 2,
+  "category": "goety:starfantasy/exploration",
+  "sortnum": 0,
   "pages": [
     {
       "type": "patchouli:text",

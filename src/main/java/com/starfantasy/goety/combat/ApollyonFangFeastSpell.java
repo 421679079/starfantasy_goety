@@ -1,7 +1,7 @@
 package com.starfantasy.goety.combat;
 
 import net.minecraft.world.entity.Mob;
-import com.starfantasy.goety.entity.ApollyonServantEntity;
+import com.starfantasy.goety.entity.ApollyonEntity;
 import com.starfantasy.goety.entity.ApollyonFangEntity;
 import com.starfantasy.library.vfx.StarFantasyVfx;
 import net.minecraft.core.BlockPos;
@@ -28,7 +28,8 @@ public final class ApollyonFangFeastSpell {
     private static final int SECOND_HIT_TICK = 80;
     private static final double HIT_RADIUS = 1.5D;
     private static final double HIT_RADIUS_SQR = HIT_RADIUS * HIT_RADIUS;
-    private static final float DAMAGE = 40.0F;
+    private static final float BOSS_DAMAGE = 40.0F;
+    private static final float SERVANT_DAMAGE = 40.0F;
     private static final float HEAL_RATIO = 0.10F;
 
     private final Mob boss;
@@ -100,9 +101,9 @@ public final class ApollyonFangFeastSpell {
             }
             for (Vec3 point : points) {
                 if (intersects(target.m_20191_(), point)) {
-                    // The boss's existing Fang Feast has fixed damage; only the servant scales it.
-                    float damage = boss instanceof ApollyonServantEntity
-                            ? ApollyonSpellSupport.damage(boss, DAMAGE) : DAMAGE;
+                    float damage = boss instanceof ApollyonEntity apollyon
+                            ? apollyon.outgoingDamage(target, BOSS_DAMAGE, 0.10F)
+                            : ApollyonSpellSupport.damage(boss, SERVANT_DAMAGE);
                     if (target.m_6469_(ApollyonDamageSources.front(target,
                             boss.m_269291_().m_269104_(boss, boss)), damage)) {
                         dealtDamage = true;

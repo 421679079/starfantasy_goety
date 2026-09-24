@@ -1,0 +1,7 @@
+{
+  "name": "定向召唤使徒",
+  "description": "在召唤下界苍白使者的仪式中额外奉上一枚信物，便可将召唤指向特定的存在。$(br2)若你意图夺取某位使徒的神格，不妨借这些仪式邀其赴战。",
+  "icon": "starfantasy_goety:halo_of_the_risen",
+  "parent": "goety:starfantasy",
+  "sortnum": 4
+}

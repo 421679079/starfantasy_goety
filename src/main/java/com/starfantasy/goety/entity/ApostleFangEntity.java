@@ -1,6 +1,6 @@
 package com.starfantasy.goety.entity;
 
-import com.Polarice3.Goety.common.entities.boss.Apostle;
+import net.minecraft.world.entity.Mob;
 import com.starfantasy.goety.registry.ApollyonEntityRegistry;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -17,7 +17,7 @@ public final class ApostleFangEntity extends EvokerFangs {
         super(type, level);
         m_20225_(true); // One sound per wave, not forty overlapping sounds.
     }
-    public static ApostleFangEntity spawn(Apostle owner, Vec3 point, float yaw) {
+    public static ApostleFangEntity spawn(Mob owner, Vec3 point, float yaw) {
         var fang = new ApostleFangEntity(ApollyonEntityRegistry.APOSTLE_FANG.get(), owner.m_9236_());
         fang.m_36938_(owner);
         fang.m_6034_(point.f_82479_, point.f_82480_, point.f_82481_);

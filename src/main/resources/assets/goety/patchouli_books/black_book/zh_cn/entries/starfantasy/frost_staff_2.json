@@ -1,0 +1,19 @@
+{
+  "name": "冰川魔杖",
+  "icon": "starfantasy_goety:frost_staff_2",
+  "category": "goety:starfantasy/staves",
+  "sortnum": 4,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "使徒的神环可用于强化对应学派的魔杖。"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:frost_staff_2"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "starfantasy_goety:frost_staff_2": 1
+  }
+}

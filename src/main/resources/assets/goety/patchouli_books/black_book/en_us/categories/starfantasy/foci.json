@@ -1,0 +1,7 @@
+{
+  "name": "Foci",
+  "description": "Foci added by Star Fantasy are documented here.",
+  "icon": "starfantasy_goety:guard_focus",
+  "parent": "goety:starfantasy",
+  "sortnum": 0
+}

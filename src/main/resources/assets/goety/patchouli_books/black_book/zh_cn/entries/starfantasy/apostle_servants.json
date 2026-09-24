@@ -1,0 +1,60 @@
+{
+  "name": "使徒仆从",
+  "icon": "starfantasy_goety:halo_of_the_terrible",
+  "category": "goety:starfantasy/servants",
+  "sortnum": 0,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "将使徒的神环置于安息仪式中央，奉上不洁圣冠、不洁长袍与弓，便可召来拥有对应头衔的使徒为你而战。$(br2)可以使用不洁之血恢复仆从的生命值。"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:summon_apostle_servant_risen"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:summon_apostle_servant_abhorrent"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:summon_apostle_servant_defiler"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:summon_apostle_servant_dark"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:summon_apostle_servant_great_shadow"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:summon_apostle_servant_witch_king"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:summon_apostle_servant_pyre_lord"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:summon_apostle_servant_profane"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:summon_apostle_servant_cruel"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:summon_apostle_servant_terrible"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:summon_apostle_servant_glorious"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:summon_apostle_servant_atrocious"
+    }
+  ]
+}

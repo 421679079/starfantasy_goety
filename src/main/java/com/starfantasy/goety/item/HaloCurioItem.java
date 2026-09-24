@@ -53,6 +53,11 @@ public final class HaloCurioItem extends Item implements ICurioItem {
     }
 
     @Override
+    public boolean m_41386_(net.minecraft.world.damagesource.DamageSource source) {
+        return false;
+    }
+
+    @Override
     public boolean canEquip(SlotContext slotContext, ItemStack stack) {
         return "head".equals(slotContext.identifier());
     }

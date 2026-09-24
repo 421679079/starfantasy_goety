@@ -72,7 +72,7 @@ public final class HadesEntity extends Entity implements GeoEntity {
     private static final int CLAW_SECOND_HIT_TICK = CLAW_SECOND_START_TICK + 12;
     private static final int CLAW_RETURN_TICK = CLAW_SECOND_START_TICK + 40;
     private static final int CLAW_END_TICK = CLAW_RETURN_TICK + 10;
-    private static final double COOPERATIVE_DAMAGE = 80.0D;
+    private static final float COOPERATIVE_DAMAGE = 70.0F;
     private static final float CLAW_BLAST_VISUAL_SIZE = 6.0F;
     private static final double ROUNDHOUSE_KNOCKBACK_SPEED = 2.2D;
     private static final double CLAW_KNOCKBACK_SPEED = 2.2D;
@@ -787,7 +787,7 @@ public final class HadesEntity extends Entity implements GeoEntity {
             if (distanceSqr > innerRadiusSqr && distanceSqr <= outerRadiusSqr) {
                 player.f_19802_ = 0;
                 if (player.m_6469_(this.frontFacingMobAttack(owner, player),
-                        (float) (ApollyonConfig.hardMode() ? 100.0D : COOPERATIVE_DAMAGE))) {
+                        this.cooperativeDamage(owner, player))) {
                     this.applyKnockback(player,
                             this.horizontalDirection(center, player.m_20182_()), knockbackSpeed);
                 }
@@ -855,11 +855,17 @@ public final class HadesEntity extends Entity implements GeoEntity {
                     && Math.abs(across) <= width * 0.5D) {
                 player.f_19802_ = 0;
                 if (player.m_6469_(this.frontFacingDamageSource(player, base),
-                        (float) (ApollyonConfig.hardMode() ? 100.0D : COOPERATIVE_DAMAGE))) {
+                        this.cooperativeDamage(owner, player))) {
                     this.applyKnockback(player, forward, knockbackSpeed);
                 }
             }
         }
+    }
+
+    private float cooperativeDamage(ApollyonEntity owner, LivingEntity target) {
+        boolean hardMode = ApollyonConfig.hardMode();
+        return owner.outgoingDamage(target, hardMode ? 100.0F : COOPERATIVE_DAMAGE,
+                hardMode ? 0.50F : 0.25F);
     }
 
     private void applyKnockback(LivingEntity player, Vec3 direction, double speed) {

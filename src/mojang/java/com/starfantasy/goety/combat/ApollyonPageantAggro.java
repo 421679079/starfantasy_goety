@@ -86,10 +86,14 @@ public final class ApollyonPageantAggro {
         ApollyonEntity boss = host(event.getNewTarget(), level);
         if (participating(mob, boss)) {
             remember(mob, boss);
-            if (blocked(event.getNewTarget(), level)) event.setNewTarget(redirectTarget(boss, mob));
+            if (blocked(event.getNewTarget(), level)) {
+                LivingEntity target = redirectTarget(boss, mob);
+                if (target != null) event.setNewTarget(target);
+                else event.setCanceled(true);
+            }
         } else {
             if (event.getNewTarget() != null) PARTICIPANTS.remove(mob);
-            if (blocked(event.getNewTarget(), level)) event.setNewTarget(null);
+            if (blocked(event.getNewTarget(), level)) event.setCanceled(true);
         }
     }
 

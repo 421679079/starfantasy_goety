@@ -11,7 +11,7 @@
     { "item": "goety:malefic_helm" },
     { "item": "goety:warlock_sash" },
     { "item": "goety:infernal_tome" },
-    { "item": "minecraft:totem_of_undying" }
+    { "item": "minecraft:golden_apple" }
   ],
   "result": { "item": "goety:jei_dummy/none" }
 }

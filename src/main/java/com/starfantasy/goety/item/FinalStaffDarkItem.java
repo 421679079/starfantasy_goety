@@ -24,6 +24,11 @@ extends ConfigurableDarkStaffItem {
     }
 
     @Override
+    public boolean m_41386_(net.minecraft.world.damagesource.DamageSource source) {
+        return false;
+    }
+
+    @Override
     public void initializeClient(java.util.function.Consumer<net.minecraftforge.client.extensions.common.IClientItemExtensions> consumer) {
         super.initializeClient(wandExtensions ->
                 com.starfantasy.goety.client.FinalStaffRenderer.initialize(consumer, wandExtensions));

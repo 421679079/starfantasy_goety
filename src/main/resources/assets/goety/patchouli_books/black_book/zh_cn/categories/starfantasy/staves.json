@@ -1,0 +1,7 @@
+{
+  "name": "魔杖",
+  "description": "这里记录了星翼幻想新增的魔杖。",
+  "icon": "goety:dark_wand",
+  "parent": "goety:starfantasy",
+  "sortnum": 2
+}

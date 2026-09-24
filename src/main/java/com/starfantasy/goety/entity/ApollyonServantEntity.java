@@ -3,6 +3,9 @@ package com.starfantasy.goety.entity;
 import com.Polarice3.Goety.common.entities.neutral.Owned;
 import com.Polarice3.Goety.client.particles.ModParticleTypes;
 import com.Polarice3.Goety.init.ModSounds;
+import com.Polarice3.Goety.common.items.ModItems;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import com.starfantasy.goety.combat.ApollyonFangFeastSpell;
 import com.starfantasy.goety.combat.ApollyonFireTrapManager;
 import com.starfantasy.goety.combat.ApollyonFrostImpactManager;
@@ -65,13 +68,14 @@ import com.starfantasy.goety.config.ApollyonConfig;
 import com.starfantasy.goety.combat.VoidRayKnockback;
 import com.starfantasy.goety.combat.ApollyonDeathEffects;
 import com.starfantasy.goety.combat.ApollyonServantTeleport;
+import com.starfantasy.goety.combat.ServantMobility;
 import com.starfantasy.goety.animation.ApollyonPigAnimationController;
 import com.starfantasy.goety.item.FadedHaloItem;
 import com.starfantasy.goety.servant.ServantOwnershipData;
 import net.minecraft.world.phys.AABB;
 
 /** Permanent Goety servant with Apollyon's body traits and an independent combat controller. */
-public final class ApollyonServantEntity extends Summoned implements GeoEntity {
+public final class ApollyonServantEntity extends Summoned implements GeoEntity, com.starfantasy.library.combat.CombatHealthEntity {
     private static final int SPELL_CAST_TICKS = 40;
     private static final int PHASE_ONE_MULTISHOT_COOLDOWN_TICKS = 1200;
     private static final int PHASE_TWO_MULTISHOT_COOLDOWN_TICKS = 800;
@@ -126,31 +130,49 @@ public final class ApollyonServantEntity extends Summoned implements GeoEntity {
     private static final EntityDataAccessor<Boolean> CASTING = SynchedEntityData.m_135353_(ApollyonServantEntity.class, EntityDataSerializers.f_135035_);
     private static final EntityDataAccessor<Integer> CAST_DURATION = SynchedEntityData.m_135353_(ApollyonServantEntity.class, EntityDataSerializers.f_135028_);
     private static final EntityDataAccessor<Long> CAST_STARTED_AT = SynchedEntityData.m_135353_(ApollyonServantEntity.class, EntityDataSerializers.f_244073_);
+    private static final EntityDataAccessor<Boolean> MONOLITH_AURA = SynchedEntityData.m_135353_(ApollyonServantEntity.class, EntityDataSerializers.f_135035_);
     private static final EntityDataAccessor<Float> SHIELD = SynchedEntityData.m_135353_(ApollyonServantEntity.class, EntityDataSerializers.f_135029_);
     private static final EntityDataAccessor<Integer> DEATH_AGE = SynchedEntityData.m_135353_(ApollyonServantEntity.class, EntityDataSerializers.f_135028_);
+    private static final EntityDataAccessor<Boolean> SECOND_PHASE = SynchedEntityData.m_135353_(ApollyonServantEntity.class, EntityDataSerializers.f_135035_);
+    private static final EntityDataAccessor<Boolean> PHASE_TRANSITION = SynchedEntityData.m_135353_(ApollyonServantEntity.class, EntityDataSerializers.f_135035_);
     private static final UUID DEFENSIVE_KNOCKBACK = UUID.fromString("08659df8-0da6-43b9-8be4-795962fd5fd8");
     private static final RawAnimation STANDBY_ANIMATION = RawAnimation.begin().thenLoop("standby");
     private final AnimatableInstanceCache animationCache = GeckoLibUtil.createInstanceCache(this);
     private final ApollyonServantTeleport combatTeleport = new ApollyonServantTeleport(this);
     private final List<CastingSpell> remainingPoolSpells = new ArrayList<>();
     private CastingSpell lastPoolSpell = CastingSpell.NONE;
-    private int multishotCooldown, spellCooldown, meteorCooldown, invulnerabilityTicks;
+    private int multishotCooldown, spellCooldown, meteorCooldown;
+    private final com.starfantasy.library.combat.CombatHealthProtection healthProtection =
+            new com.starfantasy.library.combat.CombatHealthProtection();
+    private int damageProcessingDepth;
+    private boolean trustedDeath;
+    private final java.util.Set<UUID> monoliths = new java.util.HashSet<>();
+    private int monolithWeakTicks;
+    private static final AttributeModifier MONOLITH_SLOW = new AttributeModifier(
+            UUID.fromString("f83e8ea2-e42d-4948-8538-6ae93fbe79f8"), "Apollyon servant monolith recovery",
+            -.25D, AttributeModifier.Operation.ADDITION);
     private long nextShotTick;
     private boolean voidRayMovementLocked;
     private boolean shieldHitInProgress, standbyLocked;
+    private boolean followingMountTarget;
     private float standbyYaw;
     private double deathGroundY;
     private boolean recallDropped;
     private boolean pigDeathSoundPlayed;
+    private int phaseTransitionTicks, idleSecondTicks;
+    private float phaseTransitionHealth;
+    private CombatActionGoal combatGoal;
 
     public ApollyonServantEntity(EntityType<? extends ApollyonServantEntity> type, Level level) {
         super(type, level);
+        ServantMobility.configure(this);
         this.setConfigurableAttributes();
         this.m_21153_(this.m_21233_());
         this.setHasLifespan(false);
         this.m_21530_();
         this.m_8061_(EquipmentSlot.MAINHAND, new ItemStack(Items.f_42411_));
         this.m_21409_(EquipmentSlot.MAINHAND, 0.0F);
+        this.healthProtection.enable();
     }
 
     @Override public int getSummonLimit(LivingEntity owner) {
@@ -177,6 +199,8 @@ public final class ApollyonServantEntity extends Summoned implements GeoEntity {
     }
 
     @Override public void setConfigurableAttributes() {
+        if (this.healthProtection!=null) this.healthProtection.beginRestore();
+        try {
         this.m_21051_(Attributes.f_22276_).m_22100_(ServantConfig.APOLLYON_HEALTH.get());
         this.m_21051_(Attributes.f_22284_).m_22100_(ServantConfig.APOLLYON_ARMOR.get());
         this.m_21051_(Attributes.f_22285_).m_22100_(ServantConfig.APOLLYON_ARMOR.get());
@@ -184,6 +208,7 @@ public final class ApollyonServantEntity extends Summoned implements GeoEntity {
         this.m_21051_(Attributes.f_22283_).m_22100_(ServantConfig.APOLLYON_ATTACK_SPEED.get());
         this.m_21051_(Attributes.f_22278_).m_22100_(0.75D);
         if (this.m_21223_() > this.m_21233_()) this.m_21153_(this.m_21233_());
+        } finally { if (this.healthProtection!=null) this.healthProtection.endRestore(); }
     }
 
     @Override protected void m_8097_() {
@@ -192,34 +217,53 @@ public final class ApollyonServantEntity extends Summoned implements GeoEntity {
         this.f_19804_.m_135372_(CAST_DURATION, 0);
         this.f_19804_.m_135372_(CAST_STARTED_AT, -1L);
         this.f_19804_.m_135372_(SHIELD, 0.0F);
+        this.f_19804_.m_135372_(MONOLITH_AURA, false);
         this.f_19804_.m_135372_(DEATH_AGE, 0);
+        this.f_19804_.m_135372_(SECOND_PHASE, false);
+        this.f_19804_.m_135372_(PHASE_TRANSITION, false);
     }
 
     @Override protected void m_8099_() {
         super.m_8099_();
         this.f_21345_.m_25352_(0, new StandbyGoal());
-        this.f_21345_.m_25352_(2, new CombatActionGoal());
+        this.combatGoal = new CombatActionGoal();
+        this.f_21345_.m_25352_(2, this.combatGoal);
         this.f_21345_.m_25352_(8, new Summoned.WanderGoal<>(this, 1.0D));
     }
 
     @Override public MobType m_6336_() { return MobType.f_21641_; }
     @Override public boolean m_6040_() { return true; }
     @Override public void m_7311_(int ticks) { super.m_7311_(Math.min(0, ticks)); }
-    @Override public boolean m_7301_(MobEffectInstance effect) {
-        return effect.m_19544_().m_19483_() != MobEffectCategory.HARMFUL && super.m_7301_(effect);
+    @Override public boolean m_203441_(net.minecraft.world.level.material.FluidState fluid) {
+        return ServantMobility.canStandOn(fluid);
+    }
+    @Override
+    public boolean m_7301_(MobEffectInstance effect) {
+        return effect.m_19544_()!=com.Polarice3.Goety.common.effects.GoetyEffects.BURN_HEX.get()
+                && effect.m_19544_()!=net.minecraft.world.effect.MobEffects.f_19615_
+                && effect.m_19544_().m_19483_()!=MobEffectCategory.HARMFUL && super.m_7301_(effect);
+    }
+
+    @Override public boolean m_147207_(MobEffectInstance effect, @javax.annotation.Nullable Entity source) {
+        return (source==this || effect.m_19544_().m_19486_()) && super.m_147207_(effect,source);
     }
     @Override public boolean m_142535_(float distance, float multiplier, DamageSource source) { return false; }
     @Override protected float m_6431_(Pose pose, EntityDimensions dimensions) { return 1.55F; }
     @Override public void tryKill(Player player) {
-        if (this.getKillChance() <= 0) this.warnKill(player); else super.tryKill(player);
+        if (this.getKillChance() <= 0) { this.warnKill(player); return; }
+        this.trustedDeath = true;
+        this.healthProtection.beginRestore();
+        try { super.tryKill(player); }
+        finally { this.healthProtection.endRestore(); this.trustedDeath = false; }
     }
 
     public boolean isHalfHealth() { return this.m_21223_() <= this.m_21233_() * 0.5F; }
-    private boolean isCombatPhaseTwo() { return this.isHalfHealth(); }
-    public boolean isCastingAction() { return this.f_19804_.m_135370_(CASTING); }
+    public boolean isCombatPhaseTwo() { return this.f_19804_.m_135370_(SECOND_PHASE); }
+    public boolean isPhaseTransition() { return this.f_19804_.m_135370_(PHASE_TRANSITION); }
+    public boolean isCastingAction() { return this.f_19804_.m_135370_(CASTING) || this.isPhaseTransition(); }
     private void setCasting(boolean value) {
         this.f_19804_.m_135381_(CASTING, value);
-        if (!value) this.f_19804_.m_135381_(CAST_DURATION, 0);
+        if (!value && !this.isPhaseTransition()) this.f_19804_.m_135381_(CAST_DURATION, 0);
     }
 
     public static boolean isPigName(String name) {
@@ -261,7 +305,11 @@ public final class ApollyonServantEntity extends Summoned implements GeoEntity {
         double safeSpeed = Double.isFinite(speed) ? Math.max(0.01D, speed) : 1.0D;
         return Math.max(1, (int) Math.ceil((halfHealth ? (double) PHASE_TWO_ARROW_INTERVAL_TICKS : ARROW_INTERVAL_TICKS) / safeSpeed));
     }
-    public int shotIntervalTicks() { return shotInterval(this.isHalfHealth(), this.m_21133_(Attributes.f_22283_)); }
+    public int shotIntervalTicks() {
+        if (this.monolithWeakened()) return Math.max(1,(int)Math.ceil(60.0D/Math.max(.01D,this.m_21133_(Attributes.f_22283_))));
+        return shotInterval(this.isCombatPhaseTwo() && this.isHalfHealth(), this.m_21133_(Attributes.f_22283_));
+    }
+    public int meteorIntervalTicks() { return this.isHalfHealth() ? 10 : 20; }
     private int bowDrawTicks() { return Math.max(1, Math.min(20, shotIntervalTicks() / 2)); }
     public float scaleOutgoingDamage(float base) { return (float) (base * Math.max(0.0D, this.m_21133_(Attributes.f_22281_)) / 10.0D); }
 
@@ -282,11 +330,23 @@ public final class ApollyonServantEntity extends Summoned implements GeoEntity {
         return !this.isStaying() && target != null && !this.isFriendlyEntity(target) && super.m_6779_(target);
     }
 
+    private HadesServantEntity mountedHadesServant() {
+        return this.m_20202_() instanceof HadesServantEntity hades
+                && hades.mountedApollyonServant() == this ? hades : null;
+    }
+
+    private LivingEntity mountedTarget(HadesServantEntity hades) {
+        LivingEntity target = hades.m_5448_();
+        return target != null && hades.canHarm(target) && this.m_6779_(target) ? target : null;
+    }
+
     @Override public void overrideSetTarget(LivingEntity target) {
+        HadesServantEntity hades = this.m_9236_().f_46443_ ? null : this.mountedHadesServant();
+        if (hades != null) target = this.mountedTarget(hades);
         super.overrideSetTarget(this.isStaying() ? null : target);
     }
     @Override public void setPriorityTarget(LivingEntity target) {
-        super.setPriorityTarget(this.isStaying() ? null : target);
+        super.setPriorityTarget(this.isStaying() || this.mountedHadesServant() != null ? null : target);
     }
 
     @Override public void setStaying(boolean staying) {
@@ -360,15 +420,16 @@ public final class ApollyonServantEntity extends Summoned implements GeoEntity {
 
     public float getCooperativeShield() { return this.f_19804_.m_135370_(SHIELD); }
     public boolean hasCooperativeShield() { return getCooperativeShield() > 0.001F; }
-    private void activatePhaseTwoShield() {
-        this.f_19804_.m_135381_(SHIELD, this.m_21233_() * COOPERATIVE_SHIELD_HEALTH_RATIO);
-        this.invulnerabilityTicks=0;
+    public void addMonolithShield() {
+        this.f_19804_.m_135381_(SHIELD, Math.min(this.m_21233_() * COOPERATIVE_SHIELD_HEALTH_RATIO,
+                getCooperativeShield() + this.m_21233_() * 0.05F));
+        this.healthProtection.setInvulnerabilityTicks(0);
         this.f_19802_=0;
         this.updateKnockbackResistance();
     }
     public float absorbShield(DamageSource source, float damage) {
         if (damage <= 0 || !hasCooperativeShield()) return damage;
-        float cost = source.m_269533_(DamageTypeTags.f_268731_) ? MAGIC_SHIELD_COST_MULTIPLIER : 1.0F;
+        float cost = source != null && source.m_269533_(DamageTypeTags.f_268731_) ? MAGIC_SHIELD_COST_MULTIPLIER : 1.0F;
         float absorbed = Math.min(damage, getCooperativeShield() / cost);
         this.f_19804_.m_135381_(SHIELD, Math.max(0.0F, getCooperativeShield() - absorbed * cost));
         this.updateKnockbackResistance();
@@ -380,7 +441,7 @@ public final class ApollyonServantEntity extends Summoned implements GeoEntity {
     }
 
     public float applyIncomingDamageReductions(DamageSource source, float amount) {
-        if (source.m_269533_(DamageTypeTags.f_268738_)) return amount;
+        if (this.trustedDeath) return amount;
         double reduced = amount * (1.0D - ServantConfig.APOLLYON_DAMAGE_REDUCTION.get());
         if (source.m_269533_(DamageTypeTags.f_268731_)) reduced *= 1.0D - ServantConfig.APOLLYON_MAGIC_RESISTANCE.get();
         // Hidden non-casting defense shares the boss's live configuration.
@@ -389,58 +450,220 @@ public final class ApollyonServantEntity extends Summoned implements GeoEntity {
     }
 
     public float finishIncomingDamage(DamageSource source, float amount) {
-        if (source.m_269533_(DamageTypeTags.f_268738_)) return amount;
+        if (this.trustedDeath) return amount;
         double cap = ServantConfig.APOLLYON_DAMAGE_CAP.get();
         if (cap > 0) amount = Math.min(amount, (float) cap);
         return this.absorbShield(source, amount);
     }
 
     @Override public boolean m_6469_(DamageSource source, float amount) {
+        if (com.starfantasy.goety.combat.ApollyonDamageRules.commandKill(source,amount) && !trustedDeath) {
+            this.trustedDeath = true;
+            this.healthProtection.beginRestore();
+            try { return this.m_6469_(source,amount); }
+            finally { this.healthProtection.endRestore(); this.trustedDeath = false; }
+        }
+        source=com.starfantasy.goety.combat.ApollyonDamageRules.ordinaryKill(this,source,amount);
         if (this.m_6673_(source)) return false;
-        boolean bypass = source.m_269533_(DamageTypeTags.f_268738_);
-        if (!bypass && this.invulnerabilityTicks > 0) return false;
+        if (!trustedDeath && (combatHealthLocked() || healthProtection.invulnerabilityTicks()>0 && !bypassCombatHitImmunity())) return false;
         int vanillaTime = this.f_19802_;
         this.f_19802_=0;
-        float oldHealth=this.m_21223_();
         boolean previousShieldHit = this.shieldHitInProgress;
         this.shieldHitInProgress = this.hasCooperativeShield();
+        if (this.shieldHitInProgress) this.healthProtection.setInvulnerabilityTicks(0);
         this.updateKnockbackResistance();
         boolean hurt;
         try {
             hurt = super.m_6469_(source, amount);
         } finally {
+            if (this.shieldHitInProgress) this.healthProtection.setInvulnerabilityTicks(0);
             this.shieldHitInProgress = previousShieldHit;
             this.updateKnockbackResistance();
         }
         if (hurt) {
             this.f_19802_=0;
-            if (!bypass && this.m_21223_() < oldHealth) this.invulnerabilityTicks=ApollyonConfig.bossInvulnerabilityTime();
             this.combatTeleport.onHurt();
         } else this.f_19802_=vanillaTime;
         return hurt;
     }
 
+    @Override protected void m_6475_(DamageSource source, float amount) {
+        source=com.starfantasy.goety.combat.ApollyonDamageRules.ordinaryKill(this,source,amount);
+        if (!trustedDeath && (combatHealthLocked() || healthProtection.invulnerabilityTicks()>0 && !bypassCombatHitImmunity())) return;
+        ++damageProcessingDepth;
+        try { super.m_6475_(source,amount); }
+        finally { --damageProcessingDepth; }
+    }
+
+    @Override public com.starfantasy.library.combat.CombatHealthProtection combatHealthProtection() { return healthProtection; }
+    @Override public double combatDamageCap() { return ServantConfig.APOLLYON_DAMAGE_CAP.get(); }
+    @Override public int combatHitInvulnerabilityTicks() { return ApollyonConfig.bossInvulnerabilityTime(); }
+    @Override public boolean combatHealthLocked() { return isPhaseTransition() || hasMonolithProtection(); }
+    @Override public boolean bypassCombatHitImmunity() { return hasCooperativeShield() || shieldHitInProgress; }
+    @Override public float absorbCombatHealthLoss(float loss) { return damageProcessingDepth==0 ? absorbShield(null,loss) : loss; }
+
+    public void trackMonolith(UUID id) { if(monoliths.add(id)) monolithWeakTicks=Math.max(monolithWeakTicks,300); }
+    public void releaseMonolith(UUID id) { if(monoliths.remove(id)) monolithWeakTicks=Math.max(monolithWeakTicks,300); }
+    public java.util.Set<UUID> monolithIds() { return java.util.Set.copyOf(monoliths); }
+    public com.Polarice3.Goety.common.entities.hostile.servants.ObsidianMonolith aggroMonolith() {
+        if (!(m_9236_() instanceof ServerLevel level)) return null;
+        for (UUID id:monoliths) {
+            if (level.m_8791_(id) instanceof com.Polarice3.Goety.common.entities.hostile.servants.ObsidianMonolith p
+                    && p.m_6084_() && !p.isEmerging()) return p;
+        }
+        return null;
+    }
+    public boolean hasMonolithProtection() { return aggroMonolith()!=null; }
+    public boolean monolithVisible() { return this.f_19804_.m_135370_(MONOLITH_AURA); }
+    public boolean monolithWeakened() { return monolithWeakTicks>0 || hasMonolithProtection(); }
+    private void tickMonoliths() {
+        this.f_19804_.m_135381_(MONOLITH_AURA, hasMonolithProtection());
+        if (monolithWeakTicks>0) --monolithWeakTicks;
+        var speed=m_21051_(Attributes.f_22279_);
+        if (monolithWeakened()) {
+            if (!speed.m_22109_(MONOLITH_SLOW)) speed.m_22118_(MONOLITH_SLOW);
+        } else if (speed.m_22109_(MONOLITH_SLOW)) speed.m_22130_(MONOLITH_SLOW);
+        var pillar = aggroMonolith();
+        if (f_19797_%10==0 && pillar!=null) {
+            Entity mount = this.m_20202_() instanceof HadesServantEntity hades
+                    && hades.mountedApollyonServant()==this ? hades : null;
+            for (Mob mob:m_9236_().m_45976_(Mob.class,m_20191_().m_82400_(64))) {
+                if (mob instanceof net.minecraft.world.entity.monster.warden.Warden warden
+                        && (warden.m_5448_()==this || mount!=null && warden.m_5448_()==mount
+                            || warden.m_219449_().m_219286_(this)>0
+                            || mount!=null && warden.m_219449_().m_219286_(mount)>0)) {
+                    com.starfantasy.goety.combat.ApollyonServantMonoliths.redirectWarden(warden, this, pillar);
+                } else if ((mob.m_5448_()==this || mount!=null && mob.m_5448_()==mount) && !isFriendlyEntity(mob)) {
+                    mob.m_6710_(pillar);
+                }
+            }
+        }
+    }
+
     @Override public void m_8119_() {
+        if (!this.m_9236_().f_46443_) {
+            HadesServantEntity hades = this.mountedHadesServant();
+            if (hades != null) {
+                this.followingMountTarget = true;
+                if (this.getPriorityTarget() != null) this.setPriorityTarget(null);
+                LivingEntity target = this.mountedTarget(hades);
+                if (this.m_5448_() != target) this.overrideSetTarget(target);
+            } else if (this.followingMountTarget) {
+                this.followingMountTarget = false;
+                this.setPriorityTarget(null);
+                this.setPriorityTime(0);
+            }
+        }
         if (this.m_6084_() && this.isStaying()) this.holdStandby(); else this.standbyLocked = false;
         super.m_8119_();
+        if (this.m_20159_()) this.m_21573_().m_26573_();
+        ServantMobility.floatInLava(this);
         if (this.m_6084_() && this.isStaying()) this.holdStandby();
+        if (this.m_9236_().f_46443_ && this.isPhaseTransition()) {
+            for (int i=0;i<40;i++) this.m_9236_().m_7107_(net.minecraft.core.particles.ParticleTypes.f_123755_,
+                    this.m_20185_(),this.m_20186_()+.5,this.m_20189_(),
+                    this.m_217043_().m_188583_()*.2,this.m_217043_().m_188583_()*.2,this.m_217043_().m_188583_()*.2);
+        }
         if (this.m_9236_().f_46443_ || !this.m_6084_()) return;
         this.updateKnockbackResistance();
-        if (invulnerabilityTicks > 0) --invulnerabilityTicks;
-        if (this.f_19797_ % 20 == 0) this.m_5634_(ServantConfig.APOLLYON_REGENERATION.get().floatValue());
+        this.healthProtection.tick();
+        this.tickMonoliths();
+        int expiredPillars=ServantOwnershipData.claimPillars((ServerLevel)this.m_9236_(),this.m_20148_());
+        for (int i=0;i<expiredPillars;i++) this.addMonolithShield();
         if (multishotCooldown > 0) --multishotCooldown;
         if (spellCooldown > 0) --spellCooldown;
         LivingEntity target = this.m_5448_();
         if (target != null && this.isFriendlyEntity(target)) { this.m_6710_(null); target=null; }
+        if (this.tickCombatPhase(target)) return;
+        if (this.f_19797_ % 20 == 0) this.m_5634_(ServantConfig.APOLLYON_REGENERATION.get().floatValue());
         this.combatTeleport.tick(target);
-        if (!this.isStaying() && isHalfHealth() && target != null && target.m_6084_()) {
-            if (meteorCooldown <= 0) { ApollyonMeteorManager.spawn(this); meteorCooldown=10; }
+        if (!this.isStaying() && isCombatPhaseTwo() && target != null && target.m_6084_()) {
+            if (meteorCooldown <= 0) { ApollyonMeteorManager.spawn(this); meteorCooldown=meteorIntervalTicks(); }
             --meteorCooldown;
         } else meteorCooldown=0;
     }
 
+    private boolean tickCombatPhase(LivingEntity target) {
+        boolean fighting = target != null && target.m_6084_();
+        if (isCombatPhaseTwo()) {
+            if (!ServantConfig.APOLLYON_AUTO_RESET_PHASE.get() || fighting) idleSecondTicks=0;
+            else if (++idleSecondTicks>=1200) {
+                this.resetCombatPhase();
+            }
+            if (isCombatPhaseTwo() && this.f_19797_%100==0)
+                com.starfantasy.goety.combat.ServantPhaseWeather.thunder(this);
+        } else idleSecondTicks=0;
+        if (!isCombatPhaseTwo() && !isPhaseTransition() && fighting && isHalfHealth()) {
+            this.combatGoal.m_8041_();
+            this.combatTeleport.clear();
+            this.phaseTransitionHealth=this.m_21223_();
+            this.phaseTransitionTicks=0;
+            this.f_19804_.m_135381_(PHASE_TRANSITION,true);
+            this.beginCastingAnimation(100,false);
+        }
+        if (!isPhaseTransition()) return false;
+        this.combatTeleport.clear();
+        this.m_21573_().m_26573_();
+        this.m_5810_();
+        this.m_20256_(new Vec3(0,this.m_20184_().f_82480_,0));
+        ++this.phaseTransitionTicks;
+        this.m_21153_(Math.max(this.m_21223_(),ApostleServantEntity.transitionHealth(
+                this.phaseTransitionHealth,this.m_21233_(),this.phaseTransitionTicks)));
+        ServerLevel level=(ServerLevel)this.m_9236_();
+        com.Polarice3.Goety.utils.ServerParticleUtil.windParticle(level,com.Polarice3.Goety.utils.ColorUtil.BLACK,2,1.5F,this.m_19879_(),this.m_20182_());
+        com.Polarice3.Goety.utils.ServerParticleUtil.windParticle(level,com.Polarice3.Goety.utils.ColorUtil.BLACK,4,.5F,this.m_19879_(),this.m_20182_());
+        if (this.phaseTransitionTicks>=100) {
+            this.m_21153_(this.m_21233_());
+            this.f_19804_.m_135381_(SECOND_PHASE,true);
+            this.f_19804_.m_135381_(PHASE_TRANSITION,false);
+            this.setCasting(false);
+            com.starfantasy.goety.combat.ServantPhaseWeather.thunder(this);
+        }
+        return true;
+    }
+
+    private void resetCombatPhase() {
+        this.f_19804_.m_135381_(SECOND_PHASE, false);
+        this.idleSecondTicks = 0;
+        this.meteorCooldown = 0;
+    }
+
+    @Override
+    public InteractionResult m_6071_(Player player, InteractionHand hand) {
+        ItemStack stack = player.m_21120_(hand);
+        if (this.m_6084_() && stack.m_150930_(ModItems.UNHOLY_BLOOD.get())) {
+            if (stack.m_41783_() == null || !stack.m_41783_().m_128471_("Pure")) {
+                return InteractionResult.FAIL;
+            }
+            boolean fullHealthBeforeFeeding = this.m_21223_() >= this.m_21233_();
+            if (!this.isCombatPhaseTwo() && fullHealthBeforeFeeding) {
+                if (!this.m_9236_().f_46443_) {
+                    player.m_5661_(net.minecraft.network.chat.Component.m_237110_(
+                            "message.starfantasy_goety.servant.best_condition", this.m_7755_())
+                            .m_130940_(net.minecraft.ChatFormatting.RED), true);
+                }
+                return InteractionResult.FAIL;
+            }
+            if (!this.m_9236_().f_46443_) {
+                this.m_21153_(Math.min(this.m_21233_(), this.m_21223_() + this.m_21233_() * 0.25F));
+                if (!ServantConfig.APOLLYON_AUTO_RESET_PHASE.get() && this.isCombatPhaseTwo()
+                        && fullHealthBeforeFeeding) {
+                    this.resetCombatPhase();
+                    player.m_5661_(net.minecraft.network.chat.Component.m_237110_(
+                            "message.starfantasy_goety.servant.restored_condition", this.m_7755_())
+                            .m_130940_(net.minecraft.ChatFormatting.GREEN), true);
+                }
+                if (!player.m_150110_().f_35937_) stack.m_41774_(1);
+                this.m_5496_(net.minecraft.sounds.SoundEvents.f_11911_, 1.0F, 1.0F);
+            }
+            return InteractionResult.m_19078_(this.m_9236_().f_46443_);
+        }
+        return super.m_6071_(player, hand);
+    }
+
     @Override public void m_6667_(DamageSource source) {
         if (this.deathAge() > 0) return;
+        com.starfantasy.goety.combat.ApollyonServantMonoliths.clear(this);
         this.playPigDeathSound();
         this.combatTeleport.clear();
         this.deathGroundY = this.m_20186_();
@@ -456,6 +679,7 @@ public final class ApollyonServantEntity extends Summoned implements GeoEntity {
         this.m_20242_(true);
         this.f_19812_ = true;
         this.f_19804_.m_135381_(SHIELD, 0.0F);
+        this.f_19804_.m_135381_(PHASE_TRANSITION, false);
         ApollyonFireTrapManager.clearForBoss(this);
         ApollyonLightningStormManager.clearForBoss(this);
         ApollyonWildSurgeManager.clearManagedThornsForBoss(this);
@@ -471,12 +695,14 @@ public final class ApollyonServantEntity extends Summoned implements GeoEntity {
         this.f_19812_ = true;
         if (this.m_9236_().f_46443_ || this.m_213877_()) return;
         int age = this.deathAge() + 1;
+        if (age==1) com.starfantasy.goety.combat.ApollyonServantMonoliths.clear(this);
         this.f_20919_ = age;
         this.f_19804_.m_135381_(DEATH_AGE, age);
         boolean finished = this.isPigVariant()
                 ? age >= ApollyonDeathEffects.APOLLYON_DEATH_TICKS
                 : ApollyonDeathEffects.tickApollyon(this, age, this.deathGroundY);
         if (finished) {
+            com.starfantasy.goety.combat.ServantPhaseWeather.death(this);
             if (!this.recallDropped && this.getOwnerId() != null) {
                 this.recallDropped = true;
                 FadedHaloItem.returnToOwner(this);
@@ -489,12 +715,19 @@ public final class ApollyonServantEntity extends Summoned implements GeoEntity {
 
     public void prepareRevival() {
         this.combatTeleport.reset();
+        this.monoliths.clear();
+        this.monolithWeakTicks=0;
+        this.m_21051_(Attributes.f_22279_).m_22130_(MONOLITH_SLOW);
         this.setHasLifespan(false);
-        this.f_20919_ = this.f_19802_ = this.invulnerabilityTicks = 0;
+        this.f_20919_ = this.f_19802_ = 0;
+        this.healthProtection.setInvulnerabilityTicks(0);
         this.recallDropped = false;
         this.pigDeathSoundPlayed = false;
         this.f_19804_.m_135381_(DEATH_AGE, 0);
         this.f_19804_.m_135381_(SHIELD, 0.0F);
+        this.f_19804_.m_135381_(SECOND_PHASE, false);
+        this.f_19804_.m_135381_(PHASE_TRANSITION, false);
+        this.phaseTransitionTicks=this.idleSecondTicks=0;
         this.setCasting(false);
         this.setVoidRayMovementLocked(false);
         this.setStaying(false);
@@ -523,12 +756,21 @@ public final class ApollyonServantEntity extends Summoned implements GeoEntity {
         tag.m_128405_("ApollyonServantMeteorCooldown", meteorCooldown);
         tag.m_128356_("ApollyonServantNextShot", nextShotTick);
         tag.m_128350_("ApollyonServantShield", getCooperativeShield());
-        tag.m_128405_("ApollyonServantInvulnerability", invulnerabilityTicks);
+        tag.m_128405_("ApollyonServantInvulnerability", healthProtection.invulnerabilityTicks());
+        tag.m_128405_("ApollyonServantMonolithWeakTicks",monolithWeakTicks);
+        CompoundTag pillars=new CompoundTag();monoliths.forEach(id->pillars.m_128379_(id.toString(),true));
+        tag.m_128365_("ApollyonServantMonoliths",pillars);
         tag.m_128405_("ApollyonServantDeathAge", this.deathAge());
         tag.m_128347_("ApollyonServantDeathGroundY", this.deathGroundY);
         tag.m_128379_("ApollyonServantRecallDropped", this.recallDropped);
+        tag.m_128379_("ApollyonServantSecondPhase", this.isCombatPhaseTwo());
+        tag.m_128405_("ApollyonServantIdleSecondTicks", this.idleSecondTicks);
+        tag.m_128405_("ApollyonServantTransitionTicks", this.isPhaseTransition()?this.phaseTransitionTicks:-1);
+        tag.m_128350_("ApollyonServantTransitionHealth", this.phaseTransitionHealth);
     }
     @Override public void m_7378_(CompoundTag tag) {
+        this.healthProtection.beginRestore();
+        try {
         super.m_7378_(tag);
         this.m_21051_(Attributes.f_22278_).m_22100_(0.75D);
         this.standbyLocked = false;
@@ -537,12 +779,23 @@ public final class ApollyonServantEntity extends Summoned implements GeoEntity {
         meteorCooldown=Math.max(0, tag.m_128451_("ApollyonServantMeteorCooldown"));
         nextShotTick=Math.max(0, tag.m_128454_("ApollyonServantNextShot"));
         this.f_19804_.m_135381_(SHIELD, Math.max(0, tag.m_128457_("ApollyonServantShield")));
-        invulnerabilityTicks=Math.max(0, tag.m_128451_("ApollyonServantInvulnerability"));
+        this.healthProtection.setInvulnerabilityTicks(tag.m_128451_("ApollyonServantInvulnerability"));
+        monolithWeakTicks=Math.max(0,tag.m_128451_("ApollyonServantMonolithWeakTicks"));
+        monoliths.clear();
+        for(String id:tag.m_128469_("ApollyonServantMonoliths").m_128431_())
+            try {monoliths.add(UUID.fromString(id));} catch(IllegalArgumentException ignored) { }
         this.f_19804_.m_135381_(DEATH_AGE, Math.max(0, tag.m_128451_("ApollyonServantDeathAge")));
         this.deathGroundY = tag.m_128441_("ApollyonServantDeathGroundY")
                 ? tag.m_128459_("ApollyonServantDeathGroundY") : this.m_20186_();
         this.recallDropped = tag.m_128471_("ApollyonServantRecallDropped");
         this.pigDeathSoundPlayed = this.deathAge() > 0;
+        this.f_19804_.m_135381_(SECOND_PHASE, tag.m_128471_("ApollyonServantSecondPhase"));
+        this.idleSecondTicks=Math.max(0,tag.m_128451_("ApollyonServantIdleSecondTicks"));
+        this.phaseTransitionTicks=tag.m_128441_("ApollyonServantTransitionTicks")?tag.m_128451_("ApollyonServantTransitionTicks"):-1;
+        this.phaseTransitionHealth=tag.m_128457_("ApollyonServantTransitionHealth");
+        this.f_19804_.m_135381_(PHASE_TRANSITION,this.phaseTransitionTicks>=0);
+        if (this.isPhaseTransition()) this.beginCastingAnimation(Math.max(1,100-this.phaseTransitionTicks),false);
+        } finally { this.healthProtection.endRestore(); }
     }
 
     @Override public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
@@ -761,7 +1014,7 @@ public final class ApollyonServantEntity extends Summoned implements GeoEntity {
         @Override
         public boolean m_8036_() {
             LivingEntity target = ApollyonServantEntity.this.m_5448_();
-            return !ApollyonServantEntity.this.isStaying() && target != null && target.m_6084_()
+            return !ApollyonServantEntity.this.isStaying() && !isPhaseTransition() && target != null && target.m_6084_()
                     && !ApollyonServantEntity.this.isFriendlyEntity(target)
                     && ApollyonServantEntity.this.m_21205_().m_41720_() instanceof BowItem;
         }
@@ -804,7 +1057,7 @@ public final class ApollyonServantEntity extends Summoned implements GeoEntity {
         @Override
         public void m_8037_() {
             LivingEntity target = ApollyonServantEntity.this.m_5448_();
-            if (ApollyonServantEntity.this.isStaying() || target == null || !target.m_6084_()) return;
+            if (ApollyonServantEntity.this.isStaying() || isPhaseTransition() || target == null || !target.m_6084_()) return;
             if (combatTeleport.isPending()) return;
             if (this.activeSpell != CastingSpell.NONE) { this.tickSpell(target); return; }
             boolean canSee = ApollyonServantEntity.this.m_21574_().m_148306_(target);
@@ -823,7 +1076,7 @@ public final class ApollyonServantEntity extends Summoned implements GeoEntity {
             }
             if (spellCooldown <= 0 && canSee) {
                 CastingSpell spell = multishotCooldown <= 0 ? CastingSpell.MULTISHOT : drawPoolSpell();
-                this.phaseTwoChainSpellsRemaining = isHalfHealth() && spell.isPoolSpell() ? 1 : 0;
+                this.phaseTwoChainSpellsRemaining = isCombatPhaseTwo() && spell.isPoolSpell() ? 1 : 0;
                 this.startSpell(spell);
                 return;
             }
@@ -835,6 +1088,12 @@ public final class ApollyonServantEntity extends Summoned implements GeoEntity {
         }
 
         private void updateMovement(LivingEntity target, boolean canSee) {
+            if (ApollyonServantEntity.this.m_20159_()) {
+                ApollyonServantEntity.this.m_21573_().m_26573_();
+                ApollyonServantEntity.this.m_21566_().m_24988_(0.0F, 0.0F);
+                ApollyonServantEntity.this.m_21563_().m_24960_(target, 30.0F, 30.0F);
+                return;
+            }
             double distanceSqr = ApollyonServantEntity.this.m_20275_(
                     target.m_20185_(), target.m_20186_(), target.m_20189_());
             boolean wasSeeing = this.seeTime > 0;
@@ -942,7 +1201,7 @@ public final class ApollyonServantEntity extends Summoned implements GeoEntity {
                 case FROST_IMPACT, LIGHTNING_STORM -> 40;
                 // These spells resolve their first event after incrementing castTicks.
                 case FIRE_TRAP, WILD_SURGE, VOID_RAY -> 39;
-                // Fang Feast has two complete warnings inside its own 60-tick timeline.
+                // Fang Feast uses its own 80-tick timeline, so chained casts start at tick 0.
                 case FANG_FEAST -> 0;
                 default -> 0;
             };
@@ -1034,8 +1293,8 @@ public final class ApollyonServantEntity extends Summoned implements GeoEntity {
             if (completedSpell == CastingSpell.MULTISHOT) {
                 ApollyonServantEntity.this.m_7292_(new MobEffectInstance(
                         ApollyonEffectRegistry.MULTISHOT.get(), MULTISHOT_DURATION, 9, false, true));
+                com.starfantasy.goety.combat.ApollyonServantMonoliths.summon(ApollyonServantEntity.this);
                 if (ApollyonServantEntity.this.isCombatPhaseTwo()) {
-                    ApollyonServantEntity.this.activatePhaseTwoShield();
                     ApollyonServantEntity.this.setPhaseTwoSpellDelay();
                 } else {
                     ApollyonServantEntity.this.setSpellDelay(MULTISHOT_SPELL_COOLDOWN_TICKS);

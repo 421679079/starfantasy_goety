@@ -182,7 +182,7 @@ public final class ApollyonFireTrapManager {
                     || !intersectsSphere(target.m_20191_(), trap.center, TRAP_RADIUS)) {
                 continue;
             }
-            target.m_6469_(ApollyonDamageSources.front(target, source), ApollyonSpellSupport.damage(boss, TRAP_DAMAGE));
+            target.m_6469_(ApollyonDamageSources.front(target, source), ApollyonSpellSupport.damage(boss, target, TRAP_DAMAGE, 0.10F));
         }
     }
 

@@ -18,6 +18,7 @@ public final class HadesServantGeoRenderer extends GeoEntityRenderer<HadesServan
         super(context, new Model());
         this.withScale(1);
         this.f_114477_ = 1;
+        this.addRenderLayer(new HadesServantAuraLayer(this));
     }
 
     @Override protected float getDeathMaxRotation(HadesServantEntity entity) { return 0; }
@@ -46,7 +47,7 @@ public final class HadesServantGeoRenderer extends GeoEntityRenderer<HadesServan
         @Override public void setCustomAnimations(HadesServantEntity entity, long instanceId,
                                                    AnimationState<HadesServantEntity> state) {
             super.setCustomAnimations(entity, instanceId, state);
-            if (entity.m_6688_() == null || !entity.m_6084_()) return;
+            if (!entity.hasSeatPassenger() || !entity.m_6084_()) return;
             // The visible head and physical passenger share the same animation clock and curves.
             HadesRiderSeat.Pose pose = HadesSeatInterpolation.pose(entity, state.getPartialTick());
             getBone("body").ifPresent(bone -> apply(bone, pose.body()));

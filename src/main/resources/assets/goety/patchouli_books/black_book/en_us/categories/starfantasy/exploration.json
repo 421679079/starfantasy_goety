@@ -1,0 +1,7 @@
+{
+  "name": "Exploration",
+  "description": "Structures added by Star Fantasy are documented here.",
+  "icon": "minecraft:map",
+  "parent": "goety:starfantasy",
+  "sortnum": 3
+}

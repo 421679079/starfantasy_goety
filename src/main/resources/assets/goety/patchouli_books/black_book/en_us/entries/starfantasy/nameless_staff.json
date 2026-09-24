@@ -1,0 +1,19 @@
+{
+  "name": "Nameless Staff",
+  "icon": "goety:nameless_staff",
+  "category": "goety:starfantasy/staves",
+  "sortnum": 9,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "The Apostles' halos can be used to upgrade staves of the corresponding schools."
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "goety:nameless_staff"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "goety:nameless_staff": 1
+  }
+}

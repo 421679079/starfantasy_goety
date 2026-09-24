@@ -1,0 +1,19 @@
+{
+  "name": "冥界之眼",
+  "icon": "starfantasy_goety:underworld_eye",
+  "category": "goety:starfantasy/exploration",
+  "sortnum": 1,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "你可以制作冥界之眼快速找到冥界教堂的位置。"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:underworld_eye"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "starfantasy_goety:underworld_eye": 1
+  }
+}

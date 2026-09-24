@@ -1,0 +1,7 @@
+{
+  "name": "Summoning Titled Apostles",
+  "description": "Offer an additional token in the ritual that summons the Nether's pale envoys, and you can direct the summons toward a specific being.$(br2)If you seek to seize a particular Apostle's divinity, use these rituals to challenge them to battle.",
+  "icon": "starfantasy_goety:halo_of_the_risen",
+  "parent": "goety:starfantasy",
+  "sortnum": 4
+}

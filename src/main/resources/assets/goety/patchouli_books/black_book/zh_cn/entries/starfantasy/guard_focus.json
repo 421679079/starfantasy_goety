@@ -1,12 +1,13 @@
 {
   "name": "格挡聚晶",
   "icon": "starfantasy_goety:guard_focus",
-  "category": "goety:starfantasy",
+  "category": "goety:starfantasy/foci",
   "sortnum": 0,
   "pages": [
     {
       "type": "patchouli:text",
-      "text": "施法时在前方张开护盾，格挡来自正面的大部分攻击。格挡成功会恢复灵魂能量、获得额外受击无敌时间，并免除本次施法的冷却。$(br2)附魔持久可以增加格挡时间。"
+      "text": "施法时在前方张开护盾，格挡来自正面的大部分攻击。格挡成功会恢复灵魂能量、获得额外受击无敌时间，并免除本次施法的冷却。$(br2)附魔持久可以增加格挡时间。",
+      "title": "格挡聚晶"
     },
     {
       "type": "goety:ritual",

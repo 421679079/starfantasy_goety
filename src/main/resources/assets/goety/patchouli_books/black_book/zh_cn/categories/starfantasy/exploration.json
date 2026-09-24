@@ -1,0 +1,7 @@
+{
+  "name": "探索",
+  "description": "这里记录了星翼幻想新增的结构。",
+  "icon": "minecraft:map",
+  "parent": "goety:starfantasy",
+  "sortnum": 3
+}

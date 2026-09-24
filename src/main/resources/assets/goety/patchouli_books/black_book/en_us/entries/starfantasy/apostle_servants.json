@@ -1,0 +1,60 @@
+{
+  "name": "Apostle Servants",
+  "icon": "starfantasy_goety:halo_of_the_terrible",
+  "category": "goety:starfantasy/servants",
+  "sortnum": 0,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Place an Apostle halo at the center of a Sabbath ritual, and offer an Unholy Hat, an Unholy Robe, and a bow to summon an Apostle servant bearing the corresponding title.$(br2)Unholy Blood can be used to restore your servant's health."
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:summon_apostle_servant_risen"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:summon_apostle_servant_abhorrent"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:summon_apostle_servant_defiler"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:summon_apostle_servant_dark"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:summon_apostle_servant_great_shadow"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:summon_apostle_servant_witch_king"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:summon_apostle_servant_pyre_lord"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:summon_apostle_servant_profane"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:summon_apostle_servant_cruel"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:summon_apostle_servant_terrible"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:summon_apostle_servant_glorious"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:summon_apostle_servant_atrocious"
+    }
+  ]
+}

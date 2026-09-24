@@ -1,0 +1,20 @@
+{
+  "name": "帷幕终景聚晶",
+  "icon": "starfantasy_goety:final_art_focus",
+  "category": "goety:starfantasy/foci",
+  "sortnum": 3,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "title": "帷幕终景聚晶",
+      "text": "在前方张开虚质空间，持续吸引周围的敌方生物并造成伤害。$(br2)可附魔强效、持久、范围、半径。"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:final_art_focus"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "starfantasy_goety:final_art_focus": 1
+  }
+}

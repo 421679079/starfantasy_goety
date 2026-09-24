@@ -1,12 +1,12 @@
 {
   "name": "Little Apollyon Servant",
   "icon": "starfantasy_goety:faded_crown",
-  "category": "goety:starfantasy",
-  "sortnum": 5,
+  "category": "goety:starfantasy/servants",
+  "sortnum": 2,
   "pages": [
     {
       "type": "patchouli:text",
-      "text": "Combine the Faded Halo left by a Hades Servant with the vestments of the Nether's pale envoys, then offer an Apostle's body as a vessel. Perhaps a sliver of that great being's divinity will awaken, descending into the vessel to fight at your side."
+      "text": "Combine the Faded Halo left by a Hades Servant with the vestments of the Nether's pale envoys, then offer an Apostle's body as a vessel. Perhaps a sliver of that great being's divinity will awaken, descending into the vessel to fight at your side.$(br2)Pure Blood can be used to restore your servant's health."
     },
     {
       "type": "goety:ritual",

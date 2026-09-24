@@ -1,6 +1,6 @@
 package com.starfantasy.goety.combat.apostle;
 
-import com.Polarice3.Goety.common.entities.boss.Apostle;
+import net.minecraft.world.entity.Mob;
 import com.starfantasy.goety.entity.ApostleFangEntity;
 import com.starfantasy.library.vfx.StarFantasyVfx;
 import net.minecraft.core.BlockPos;
@@ -21,11 +21,11 @@ public final class ApostleFangSpell {
     private static final double HIT_RADIUS = 1.5D;
     private static final double HIT_RADIUS_SQR = HIT_RADIUS * HIT_RADIUS;
     private static final float HEAL_RATIO = 0.10F;
-    private final Apostle boss;
+    private final Mob boss;
     private Vec3 anchor;
     private List<Vec3> points = List.of();
     private final List<ApostleFangEntity> visuals = new ArrayList<>();
-    public ApostleFangSpell(Apostle boss) { this.boss = boss; }
+    public ApostleFangSpell(Mob boss) { this.boss = boss; }
 
     public static List<Vec3> pattern(Vec3 center, boolean secondWave) {
         var result = new ArrayList<Vec3>(secondWave ? 21 : 20);
@@ -81,7 +81,7 @@ public final class ApostleFangSpell {
     private void warn(boolean secondWave) {
         points = pattern(anchor, secondWave).stream().map(this::ground).toList();
         for (Vec3 point : points) {
-            StarFantasyVfx.redGroundWarningCircle(boss, point, 20, HIT_RADIUS);
+            if (com.starfantasy.goety.combat.apostle.ApostleSpellSupport.showWarnings(boss)) StarFantasyVfx.redGroundWarningCircle(boss, point, 20, HIT_RADIUS);
         }
     }
     private Vec3 ground(Vec3 point) {

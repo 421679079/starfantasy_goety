@@ -1,0 +1,16 @@
+{
+  "name": "The Defiler",
+  "icon": "starfantasy_goety:halo_of_the_defiler",
+  "category": "goety:starfantasy/directed_apostles",
+  "sortnum": 2,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Add a special material to the summoning ritual to summon an Apostle with the specified title."
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:directed_apostle_defiler"
+    }
+  ]
+}

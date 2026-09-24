@@ -43,7 +43,7 @@ public final class ApollyonSummonManager {
             "starfantasy_apollyon_summon_no_rewards";
     private static final int MONOLITH_LIFETIME_TICKS = 1200;
     private static final int SERVANT_LIFETIME_TICKS = 600;
-    private static final double MONOLITH_DISTANCE = 15.0D;
+    private static final double MONOLITH_DISTANCE = 14.0D;
     private static final double MONOLITH_DIAGONAL_OFFSET =
             MONOLITH_DISTANCE / Math.sqrt(2.0D);
     private static final double[][] MONOLITH_DIAGONAL_OFFSETS = {
@@ -111,6 +111,12 @@ public final class ApollyonSummonManager {
                 || monolith.m_9236_().f_46443_
                 || !monolith.getPersistentData().m_128471_(MANAGED_MONOLITH_TAG)
                 || monolith.getPersistentData().m_128471_(MONOLITH_TRANSFORMING_TAG)) {
+            return;
+        }
+        if (monolith.getTrueOwner() instanceof ApollyonEntity owner
+                && (!owner.m_6084_() || owner.isPlayingDeathAnimation())) {
+            monolith.getPersistentData().m_128379_(MONOLITH_TRANSFORMING_TAG, true);
+            monolith.silentDie(monolith.m_269291_().m_269264_());
             return;
         }
         if (monolith.getTrueOwner() instanceof ApollyonEntity boss

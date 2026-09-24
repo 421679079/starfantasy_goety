@@ -1,0 +1,7 @@
+{
+  "name": "Staves",
+  "description": "Staves added by Star Fantasy are documented here.",
+  "icon": "goety:dark_wand",
+  "parent": "goety:starfantasy",
+  "sortnum": 2
+}

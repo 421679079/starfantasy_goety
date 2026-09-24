@@ -262,7 +262,7 @@ public final class ApollyonStarArrowEntity extends AbstractArrow
     private void hurtNearbyEntities() {
         Entity owner = this.m_19749_();
         float damage = owner instanceof ApollyonServantEntity servant
-                ? servant.scaleOutgoingDamage(this.isMeteor() ? DAMAGE_PER_TYPE : SERVANT_ARROW_DAMAGE_PER_TYPE)
+                ? servant.scaleOutgoingDamage(SERVANT_ARROW_DAMAGE_PER_TYPE)
                 : owner instanceof ApollyonEntity boss
                 ? boss.scaleOutgoingDamage(DAMAGE_PER_TYPE)
                 : DAMAGE_PER_TYPE;
@@ -275,15 +275,17 @@ public final class ApollyonStarArrowEntity extends AbstractArrow
                 continue;
             }
 
+            float hitDamage = owner instanceof ApollyonEntity boss
+                    ? boss.outgoingDamage(target, DAMAGE_PER_TYPE, 0.04F) : damage;
             target.f_19802_ = 0;
             boolean damaged = target.m_6469_(
-                    this.m_269291_().m_269104_(this, owner), damage);
+                    this.m_269291_().m_269104_(this, owner), hitDamage);
             target.f_19802_ = 0;
             damaged |= target.m_6469_(
-                    this.m_269291_().m_269036_(this, owner), damage);
+                    this.m_269291_().m_269036_(this, owner), hitDamage);
             target.f_19802_ = 0;
             damaged |= target.m_6469_(
-                    this.m_269291_().m_269418_(this, owner), damage);
+                    this.m_269291_().m_269418_(this, owner), hitDamage);
             if (damaged) {
                 this.applyApostleTitleEffects(target, owner);
             }
@@ -317,6 +319,11 @@ public final class ApollyonStarArrowEntity extends AbstractArrow
 
     private static void apply(LivingEntity target, MobEffect effect, int duration, Entity source) {
         target.m_147207_(new MobEffectInstance(effect, duration, 0), source);
+    }
+
+    @Override
+    public boolean starFantasyStarArrowDepthTested() {
+        return true;
     }
 
     @Override

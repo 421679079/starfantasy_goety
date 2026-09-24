@@ -1,6 +1,6 @@
 package com.starfantasy.goety.combat.apostle;
 
-import com.Polarice3.Goety.common.entities.boss.Apostle;
+import net.minecraft.world.entity.Mob;
 import com.starfantasy.goety.entity.ApostleMeteorEntity;
 import com.starfantasy.library.vfx.StarFantasyVfx;
 import net.minecraft.core.BlockPos;
@@ -11,8 +11,8 @@ import net.minecraft.world.phys.Vec3;
 
 public final class ApostleMeteorSpell {
     private ApostleMeteorSpell() {}
-    public static void spawn(Apostle boss, LivingEntity target, boolean centered) {
-        double maxRadius = boss.isSecondPhase() ? 14 : 10;
+    public static void spawn(Mob boss, LivingEntity target, boolean centered) {
+        double maxRadius = com.starfantasy.goety.combat.apostle.ApostleSpellSupport.secondPhase(boss) ? 14 : 10;
         double radius = centered ? 0 : Math.sqrt(4 + boss.m_217043_().m_188500_() * (maxRadius * maxRadius - 4));
         double angle = boss.m_217043_().m_188500_() * Math.PI * 2;
         double x = target.m_20185_() + Math.cos(angle) * radius;
@@ -31,7 +31,7 @@ public final class ApostleMeteorSpell {
         var meteor = new ApostleMeteorEntity(level, boss);
         meteor.m_6034_(x, impact.f_82480_ + 20, z);
         meteor.configureMeteor(impact);
-        if (level.m_7967_(meteor)) StarFantasyVfx.redGroundWarningCircle(boss, impact,
+        if (level.m_7967_(meteor)) if (com.starfantasy.goety.combat.apostle.ApostleSpellSupport.showWarnings(boss)) StarFantasyVfx.redGroundWarningCircle(boss, impact,
                 ApostleMeteorEntity.METEOR_FALL_TICKS, ApostleMeteorEntity.explosionRadius());
     }
 }

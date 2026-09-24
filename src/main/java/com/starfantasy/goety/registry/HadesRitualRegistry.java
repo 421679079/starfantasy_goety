@@ -20,6 +20,8 @@ public final class HadesRitualRegistry {
             "summon_apollyon", () -> new ModRitualFactory(ServantHaloRitual::new));
     public static final RegistryObject<ModRitualFactory> REVIVE_APOLLYON = RITUALS.register(
             "revive_apollyon", () -> new ModRitualFactory(recipe -> new ServantHaloRitual(recipe, true)));
+    public static final RegistryObject<ModRitualFactory> SUMMON_APOSTLE_SERVANT = RITUALS.register(
+            "summon_apostle_servant", () -> new ModRitualFactory(com.starfantasy.goety.ritual.ApostleServantRitual::new));
     public static void init(IEventBus bus) { RITUALS.register(bus); }
     private HadesRitualRegistry() { }
 }

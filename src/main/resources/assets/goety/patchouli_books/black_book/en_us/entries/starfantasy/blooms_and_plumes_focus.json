@@ -1,0 +1,20 @@
+{
+  "name": "Blooms and Plumes Focus",
+  "icon": "starfantasy_goety:blooms_and_plumes_focus",
+  "category": "goety:starfantasy/foci",
+  "sortnum": 1,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "title": "Blooms and Plumes Focus",
+      "text": "Summon a meteor shower to devastate the area ahead, dealing sonic boom damage.$(br2)Enchanting with Potency increases damage."
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:blooms_and_plumes_focus"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "starfantasy_goety:blooms_and_plumes_focus": 1
+  }
+}

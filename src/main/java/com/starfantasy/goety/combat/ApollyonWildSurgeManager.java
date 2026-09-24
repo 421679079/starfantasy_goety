@@ -155,7 +155,7 @@ public final class ApollyonWildSurgeManager {
             return true;
         }
         if (target.m_6469_(ApollyonDamageSources.front(target, target.m_269291_().m_269333_(boss)),
-                ApollyonSpellSupport.damage(boss, EARTH_FIST_DAMAGE))) {
+                ApollyonSpellSupport.damage(boss, target, EARTH_FIST_DAMAGE, 0.10F))) {
             Vec3 movement = target.m_20184_();
             target.m_20256_(new Vec3(
                     movement.f_82479_,
@@ -190,7 +190,7 @@ public final class ApollyonWildSurgeManager {
                 continue;
             }
             if (target.m_6469_(ApollyonDamageSources.front(target, ModDamageSource.acid(thorn, boss)),
-                    ApollyonSpellSupport.damage(boss, BLOSSOM_THORN_DAMAGE))) {
+                    ApollyonSpellSupport.damage(boss, target, BLOSSOM_THORN_DAMAGE, 0.10F))) {
                 target.m_7292_(new MobEffectInstance(
                         (MobEffect) GoetyEffects.ACID_VENOM.get(),
                         ACID_VENOM_TICKS, ACID_VENOM_AMPLIFIER));

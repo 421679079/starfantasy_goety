@@ -12,7 +12,7 @@ import com.starfantasy.goety.registry.ApollyonParticleRegistry;
 import com.starfantasy.goety.registry.ApollyonSoundRegistry;
 import com.starfantasy.library.vfx.StarFantasyVfx;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
@@ -194,12 +194,6 @@ public final class ApostleTitleSpellGoal extends Goal {
         else ApostleWildSurgeManager.spawnEarthPoints(boss, points);
     }
 
-    private List<ServerPlayer> players(double range) {
-        return ((ServerLevel) boss.m_9236_()).m_45976_(ServerPlayer.class,
-                boss.m_20191_().m_82400_(range)).stream()
-                .filter(p -> p.m_6084_() && !p.m_7500_() && !p.m_5833_()
-                        && p.m_20280_(boss) <= range * range).toList();
-    }
     private void famine() {
         ApollyonFamineWaveEntity.spawnForCaster(boss, boss.m_20182_().m_82520_(0, .04, 0));
         boss.m_5496_(ApollyonSoundRegistry.CAST_PROFANE.get(), 3, 1);
@@ -215,19 +209,22 @@ public final class ApostleTitleSpellGoal extends Goal {
                     Math.cos(angle) * speed, .15 + boss.m_217043_().m_188500_() * .3,
                     Math.sin(angle) * speed, 1);
         }
-        for (ServerPlayer player : players(20)) {
-            player.m_36324_().m_38717_(0);
-            int food = player.m_36324_().m_38702_();
-            player.m_36324_().m_38705_(food - food / 2);
-            player.m_147207_(new MobEffectInstance(ApollyonEffectRegistry.FAMINE.get(),
-                    second ? 200 : 100, 0, false, false, true), boss);
+        var source = new net.minecraft.world.damagesource.DamageSource(
+                boss.m_269291_().m_269064_().m_269150_(), boss);
+        for (LivingEntity enemy : ApostleSpellSupport.enemies(boss, 20)) {
+            if (enemy instanceof Player player) {
+                player.m_147207_(new MobEffectInstance(ApollyonEffectRegistry.FAMINE.get(),
+                        second ? 200 : 100, 0, false, false, true), boss);
+            } else {
+                enemy.m_6469_(source, enemy.m_21233_() * .2F + 10.0F);
+            }
         }
     }
     private void glorious() {
         boss.m_5496_(ApollyonSoundRegistry.CAST_GLORIOUS.get(), 2, 1);
         StarFantasyVfx.horizontalRoarWave(boss, boss.m_20182_().m_82520_(0, .06, 0), .1, 10, 10);
         ApollyonGloriousSphereEntity.spawnForCaster(boss, boss.m_20182_().m_82520_(0, 1, 0));
-        for (ServerPlayer player : players(10)) {
+        for (LivingEntity player : ApostleSpellSupport.enemies(boss, 10)) {
             Vec3 delta = player.m_20182_().m_82546_(boss.m_20182_());
             double length = Math.sqrt(delta.f_82479_ * delta.f_82479_ + delta.f_82481_ * delta.f_82481_);
             double dx = length > 1.0E-7 ? delta.f_82479_ / length : 1;

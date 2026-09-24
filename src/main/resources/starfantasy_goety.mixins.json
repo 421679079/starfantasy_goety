@@ -10,9 +10,8 @@
     "HaloLivingProtectionMixin",
     "GuardWandMixin",
     "GuardHurtMemoryAccessor",
-    "ApollyonPlayerInventoryMixin",
-    "ApollyonServerPlayerInventoryMixin",
     "ApostleAppearanceMixin",
+    "ApostleServantUnholyMixin",
     "ApostleMixin",
     "ApostleNativeSpellMixin",
     "BlossomThornMixin",
@@ -22,6 +21,7 @@
     "ChurchNetherFossilMixin",
     "EarthFistMixin",
     "SEHelperCooldownMixin",
+    "SEHelperSoulConsumptionMixin",
     "SoulBoltSpellMixin",
     "FinalStaffZombiePriorityMixin",
     "FinalStaffSkeletonPriorityMixin",
@@ -31,6 +31,8 @@
     "WandUtilMixin"
   ],
   "client": [
+    "FocusTooltipMixin",
+    "WandFocusTooltipMixin",
     "FinalStaffSchoolWheelMixin",
     "GuardWandClientMixin",
     "HadesRidingCameraMixin",
@@ -39,7 +41,8 @@
     "ApostleShieldRenderMixin",
     "ApostleCastingParticleMixin",
     "DeathArrowTrailMixin",
-    "ApollyonFamineHudMixin"
+    "ApollyonFamineHudMixin",
+    "ApollyonServantMonolithChainMixin"
   ],
   "injectors": {
     "defaultRequire": 1

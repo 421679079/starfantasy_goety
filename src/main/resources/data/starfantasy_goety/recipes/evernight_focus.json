@@ -1,0 +1,20 @@
+{
+  "type": "goety:ritual",
+  "ritual_type": "goety:craft",
+  "activation_item": {
+    "item": "goety:ghost_fire_focus"
+  },
+  "craftType": "necroturgy",
+  "soulCost": 1,
+  "duration": 10,
+  "ingredients": [
+    { "item": "starfantasy_goety:halo_of_the_risen" },
+    { "item": "minecraft:wither_rose" },
+    { "item": "minecraft:wither_rose" },
+    { "item": "goety:cryptic_eye" }
+  ],
+  "result": {
+    "item": "starfantasy_goety:evernight_focus",
+    "count": 1
+  }
+}

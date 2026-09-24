@@ -4,7 +4,7 @@ import com.Polarice3.Goety.common.entities.projectiles.BlossomThorn;
 import com.Polarice3.Goety.common.entities.projectiles.EarthFist;
 import com.Polarice3.Goety.common.effects.GoetyEffects;
 import com.Polarice3.Goety.utils.ModDamageSource;
-import com.Polarice3.Goety.common.entities.boss.Apostle;
+import net.minecraft.world.entity.Mob;
 import com.starfantasy.library.vfx.StarFantasyVfx;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -22,7 +22,7 @@ import net.minecraft.world.phys.Vec3;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Owns the Apostle's managed Earth Fist and Blossom Thorn spell sequence. */
+/** Owns the Mob's managed Earth Fist and Blossom Thorn spell sequence. */
 public final class ApostleWildSurgeManager {
     private static final String MANAGED_EARTH_FIST_TAG =
             "starfantasy_apostle_managed_earth_fist";
@@ -43,7 +43,8 @@ public final class ApostleWildSurgeManager {
     private ApostleWildSurgeManager() {
     }
 
-    public static void warnPoints(Apostle boss, List<Vec3> points, boolean thorns, int ticks) {
+    public static void warnPoints(Mob boss, List<Vec3> points, boolean thorns, int ticks) {
+        if (!ApostleSpellSupport.showWarnings(boss)) return;
         for (Vec3 point : points) {
             if (thorns) StarFantasyVfx.purpleGroundWarningCircle(boss,
                     point.m_82520_(0, 0.06D, 0), ticks, THORN_WARNING_RADIUS);
@@ -52,7 +53,7 @@ public final class ApostleWildSurgeManager {
         }
     }
 
-    public static void spawnEarthPoints(Apostle boss, List<Vec3> points) {
+    public static void spawnEarthPoints(Mob boss, List<Vec3> points) {
         if (!(boss.m_9236_() instanceof ServerLevel level)) return;
         for (Vec3 point : points) {
             EarthFist fist = new EarthFist(level, point, boss);
@@ -62,7 +63,7 @@ public final class ApostleWildSurgeManager {
         }
     }
 
-    public static Vec3 captureAnchor(Apostle boss, LivingEntity target) {
+    public static Vec3 captureAnchor(Mob boss, LivingEntity target) {
         if (boss == null || target == null) {
             return null;
         }
@@ -72,7 +73,7 @@ public final class ApostleWildSurgeManager {
                 Mth.m_14107_(target.m_20189_()));
     }
 
-    public static void spawnThornRings(Apostle boss, List<Vec3> thornPoints) {
+    public static void spawnThornRings(Mob boss, List<Vec3> thornPoints) {
         if (boss == null || thornPoints == null || thornPoints.isEmpty()
                 || !(boss.m_9236_() instanceof ServerLevel level)) {
             return;
@@ -93,7 +94,7 @@ public final class ApostleWildSurgeManager {
             return false;
         }
         LivingEntity owner = fist.m_269323_();
-        if (!(owner instanceof Apostle boss) || shouldSkip(boss, target)) {
+        if (!(owner instanceof Mob boss) || shouldSkip(boss, target)) {
             return true;
         }
         if (target.m_6469_(target.m_269291_().m_269333_(boss),
@@ -118,7 +119,7 @@ public final class ApostleWildSurgeManager {
         return thorn != null && thorn.m_19880_().contains(MANAGED_BLOSSOM_THORN_TAG);
     }
 
-    private static void damageBlossomArea(ServerLevel level, Apostle boss,
+    private static void damageBlossomArea(ServerLevel level, Mob boss,
                                           BlossomThorn thorn, Vec3 center) {
         AABB searchBox = new AABB(
                 center.f_82479_ - THORN_WARNING_RADIUS, center.f_82480_ - 1.0D,
@@ -140,11 +141,11 @@ public final class ApostleWildSurgeManager {
         }
     }
 
-    public static List<Vec3> earthRingPoints(Apostle boss, Vec3 anchor) {
+    public static List<Vec3> earthRingPoints(Mob boss, Vec3 anchor) {
         return ringPoints(boss, anchor, EARTH_RING_RADIUS, EARTH_RING_COUNT, 0.0D);
     }
 
-    public static List<Vec3> thornRingPoints(Apostle boss, Vec3 anchor) {
+    public static List<Vec3> thornRingPoints(Mob boss, Vec3 anchor) {
         List<Vec3> points = new ArrayList<>();
         for (int radius : THORN_RING_RADII) {
             double angleOffset = boss.m_217043_().m_188500_() * Math.PI * 2.0D;
@@ -153,7 +154,7 @@ public final class ApostleWildSurgeManager {
         return points;
     }
 
-    private static List<Vec3> ringPoints(Apostle boss, Vec3 anchor,
+    private static List<Vec3> ringPoints(Mob boss, Vec3 anchor,
                                          double radius, int count, double angleOffset) {
         List<Vec3> points = new ArrayList<>();
         if (boss == null || anchor == null || count <= 0) {
@@ -170,7 +171,7 @@ public final class ApostleWildSurgeManager {
         return points;
     }
 
-    private static boolean shouldSkip(Apostle boss, LivingEntity target) {
+    private static boolean shouldSkip(Mob boss, LivingEntity target) {
         if (target == null || ApostleSpellSupport.friendly(boss, target) || !target.m_6084_()
                 || target.m_20147_()) {
             return true;

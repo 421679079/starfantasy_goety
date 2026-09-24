@@ -23,6 +23,7 @@ public final class StarFantasyGoetyCreativeTabRegistry {
                     .m_257737_(() -> HaloItemRegistry.HALO_OF_HADES.get().m_7968_())
                     .m_257501_((parameters, output) -> {
                         output.m_246326_((ItemLike)com.starfantasy.goety.church.ChurchContent.ALTAR_ITEM.get());
+                        output.m_246326_((ItemLike)com.starfantasy.goety.church.ChurchContent.UNDERWORLD_EYE.get());
                         output.m_246326_((ItemLike)com.starfantasy.goety.church.ChurchContent.ETERNAL_RESPAWN_ANCHOR_ITEM.get());
                         for (ResourceLocation staffId : StaffItemRegistry.STAFF_IDS) {
                             addStaff(output, staffId);
@@ -33,6 +34,14 @@ public final class StarFantasyGoetyCreativeTabRegistry {
                         output.m_246326_(HaloItemRegistry.FADED_HALO.get());
                         output.m_246326_(HaloItemRegistry.FADED_CROWN.get());
                         output.m_246326_(com.starfantasy.goety.magic.guard.GuardFocusContent.GUARD_FOCUS.get());
+                        output.m_246326_(com.starfantasy.goety.magic.focus.BattleFocusContent.BLOOMS_AND_PLUMES_FOCUS.get());
+                        output.m_246326_(com.starfantasy.goety.magic.focus.BattleFocusContent.EVERNIGHT_FOCUS.get());
+                        output.m_246326_(com.starfantasy.goety.magic.focus.BattleFocusContent.FINAL_ART_FOCUS.get());
+                        output.m_246326_(ServantSpawnEggRegistry.HADES_SERVANT.get());
+                        output.m_246326_(ServantSpawnEggRegistry.APOLLYON_SERVANT.get());
+                        for (RegistryObject<Item> egg : ServantSpawnEggRegistry.APOSTLE_SERVANTS) {
+                            output.m_246326_(egg.get());
+                        }
                     })
                     .m_257652_()
     );

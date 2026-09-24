@@ -1,0 +1,20 @@
+{
+  "name": "长夜聚晶",
+  "icon": "starfantasy_goety:evernight_focus",
+  "category": "goety:starfantasy/foci",
+  "sortnum": 2,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "title": "长夜聚晶",
+      "text": "缠绕前方的敌人使其无法移动，随后召唤长夜攻击牢笼内的敌人，造成凋零伤害。$(br2)附魔强效可以增加伤害。"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:evernight_focus"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "starfantasy_goety:evernight_focus": 1
+  }
+}

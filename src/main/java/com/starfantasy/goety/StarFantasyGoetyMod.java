@@ -26,6 +26,7 @@ import com.starfantasy.goety.registry.ApollyonSoundRegistry;
 import com.starfantasy.goety.registry.HadesEntityRegistry;
 import com.starfantasy.goety.registry.HaloItemRegistry;
 import com.starfantasy.goety.registry.StarFantasyGoetyCreativeTabRegistry;
+import com.starfantasy.goety.registry.ServantSpawnEggRegistry;
 import com.starfantasy.goety.network.StarFantasyGoetyNetwork;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -56,6 +57,7 @@ public final class StarFantasyGoetyMod {
         IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
         com.starfantasy.goety.church.ChurchContent.init(modBus);
         com.starfantasy.goety.magic.guard.GuardFocusContent.init(modBus);
+        com.starfantasy.goety.magic.focus.BattleFocusContent.init(modBus);
         ApollyonEntityRegistry.init(modBus);
         ApollyonEffectRegistry.init(modBus);
         ApollyonParticleRegistry.init(modBus);
@@ -65,6 +67,7 @@ public final class StarFantasyGoetyMod {
         com.starfantasy.goety.registry.HadesRitualRegistry.init(modBus);
         SpellAttributeRegistry.init(modBus);
         HaloItemRegistry.init(modBus);
+        ServantSpawnEggRegistry.init(modBus);
         StarFantasyGoetyCreativeTabRegistry.init(modBus);
         modBus.register(StaffItemRegistry.class);
         MinecraftForge.EVENT_BUS.register(StaffAttributeEvents.class);

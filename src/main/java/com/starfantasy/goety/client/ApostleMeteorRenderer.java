@@ -74,7 +74,8 @@ public final class ApostleMeteorRenderer extends EntityRenderer<ApostleMeteorEnt
         }
 
         int color = arrow.starFantasyStarArrowColor();
-        StarFantasyStarArrowVisualRenderer.renderWorldTrail(
+        // The explosion's lingering trail must keep the same scene occlusion as the live arrow.
+        StarFantasyStarArrowVisualRenderer.renderWorldTrailDepthTested(
                 localTrail,
                 poseStack,
                 buffer,

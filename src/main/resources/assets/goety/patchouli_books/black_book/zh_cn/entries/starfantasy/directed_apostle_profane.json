@@ -1,0 +1,16 @@
+{
+  "name": "天启饥荒",
+  "icon": "starfantasy_goety:halo_of_the_profane",
+  "category": "goety:starfantasy/directed_apostles",
+  "sortnum": 7,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "在召唤仪式中额外添加一个特殊材料，即可召唤出指定头衔的使徒。"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:directed_apostle_profane"
+    }
+  ]
+}

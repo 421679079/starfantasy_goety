@@ -1,0 +1,20 @@
+{
+  "name": "Final Art Focus",
+  "icon": "starfantasy_goety:final_art_focus",
+  "category": "goety:starfantasy/foci",
+  "sortnum": 3,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "title": "Final Art Focus",
+      "text": "Open an immaterial space ahead that continuously draws in nearby enemies and deals damage.$(br2)Can be enchanted with Potency, Duration, Range, and Radius."
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:final_art_focus"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "starfantasy_goety:final_art_focus": 1
+  }
+}

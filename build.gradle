@@ -2,7 +2,7 @@
 // set is compiled by tools/build.ps1 with SRG mappings.
 plugins { id 'net.minecraftforge.gradle' version '[6.0,6.2)' }
 group = 'com.starfantasy'
-version = '0.6.1'
+version = '0.8.42'
 java { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
 minecraft { mappings channel: 'official', version: '1.20.1' }
 sourceSets.main.java.srcDirs = ['src/church/java', 'src/mojang/java', 'tools/build-stubs']

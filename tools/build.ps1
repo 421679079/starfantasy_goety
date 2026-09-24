@@ -2,7 +2,7 @@
 param(
     [string]$MinecraftRoot = $env:STARFANTASY_MC_ROOT,
     [string]$GradlePath = $env:STARFANTASY_GRADLE,
-    [string]$Version = '0.6.1'
+    [string]$Version = '0.8.42'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -220,9 +220,19 @@ try {
         'com/starfantasy/goety/config/ApostleConfig.class',
         'com/starfantasy/goety/client/apostle/ConfigurableApostleRenderer.class',
         'com/starfantasy/goety/client/apostle/ApostleSoundEvents.class',
+        'com/starfantasy/goety/magic/focus/BattleFocusContent.class',
+        'com/starfantasy/goety/magic/focus/BattleFocusSpell.class',
+        'com/starfantasy/goety/magic/focus/FlowerArrowRain.class',
+        'com/starfantasy/goety/magic/focus/EvernightCast.class',
+        'com/starfantasy/goety/magic/focus/client/BattleFocusRenderers.class',
+        'assets/starfantasy_goety/models/item/blooms_and_plumes_focus.json',
+        'assets/starfantasy_goety/models/item/evernight_focus.json',
+        'assets/starfantasy_goety/textures/item/blooms_and_plumes_focus.png',
+        'assets/starfantasy_goety/textures/item/evernight_focus.png',
         'assets/starfantasy_goety/geo/entity/apollyon/apollyon.geo.json',
         'assets/starfantasy_goety/textures/entity/apollyon/apollyon.png',
         'assets/starfantasy_goety/animations/entity/apostle/apostle.animation.json',
+        'data/forge/tags/entity_types/bosses.json',
         'THIRD_PARTY_NOTICES.md',
         'THIRD_PARTY/Mhzy/LICENSE.txt',
         'CREDITS.md',

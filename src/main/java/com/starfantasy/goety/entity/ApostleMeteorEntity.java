@@ -1,6 +1,6 @@
 package com.starfantasy.goety.entity;
 
-import com.Polarice3.Goety.common.entities.boss.Apostle;
+import net.minecraft.world.entity.Mob;
 import com.starfantasy.goety.combat.apostle.ApostleSpellSupport;
 import com.starfantasy.goety.registry.ApollyonEntityRegistry;
 import com.starfantasy.library.vfx.StarFantasyStarArrowVisual;
@@ -26,7 +26,7 @@ import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * Ordinary Apostle meteor: isolated copy of the star-arrow flight and visuals;
+ * Ordinary Mob meteor: isolated copy of the star-arrow flight and visuals;
  * only the shared Star Fantasy library renderer/effect API is used for visuals.
  */
 public final class ApostleMeteorEntity extends AbstractArrow
@@ -83,8 +83,8 @@ public final class ApostleMeteorEntity extends AbstractArrow
 
     @Override
     public void m_8119_() {
-        if (!this.m_9236_().f_46443_ && (!(this.m_19749_() instanceof Apostle owner)
-                || !owner.m_6084_() || owner.isSettingUpSecond())) {
+        if (!this.m_9236_().f_46443_ && (!(this.m_19749_() instanceof Mob owner)
+                || !owner.m_6084_() || com.starfantasy.goety.combat.apostle.ApostleSpellSupport.transitioning(owner))) {
             this.m_146870_();
             return;
         }
@@ -260,7 +260,7 @@ public final class ApostleMeteorEntity extends AbstractArrow
     }
 
     private void hurtNearbyEntities() {
-        if (!(this.m_19749_() instanceof Apostle owner) || !owner.m_6084_()) return;
+        if (!(this.m_19749_() instanceof Mob owner) || !owner.m_6084_()) return;
         AABB area = this.m_20191_().m_82400_(EXPLOSION_RADIUS);
         for (LivingEntity target : this.m_9236_().m_45976_(LivingEntity.class, area)) {
             if (!target.m_6084_() || this.isFriendlyToOwner(target)
@@ -272,6 +272,11 @@ public final class ApostleMeteorEntity extends AbstractArrow
     private boolean isFriendlyToOwner(Entity entity) {
         Entity owner = this.m_19749_();
         return entity == owner || (owner != null && owner.m_7307_(entity));
+    }
+
+    @Override
+    public boolean starFantasyStarArrowDepthTested() {
+        return true;
     }
 
     @Override

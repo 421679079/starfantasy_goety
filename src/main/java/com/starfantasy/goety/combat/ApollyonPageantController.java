@@ -1,6 +1,7 @@
 package com.starfantasy.goety.combat;
 
 import com.Polarice3.Goety.client.particles.CircleExplodeParticleOption;
+import com.Polarice3.Goety.api.entities.IOwned;
 import com.Polarice3.Goety.client.particles.ModParticleTypes;
 import com.Polarice3.Goety.client.particles.SlamParticleOption;
 import com.Polarice3.Goety.client.particles.SphereExplodeParticleOption;
@@ -65,6 +66,7 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.OwnableEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.monster.Enemy;
@@ -76,7 +78,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
-/** Owns the first complete Apollyon pageant and all of its reset semantics. */
+/** Manages Apollyon's scripted pageant, including retry and reset transitions. */
 public final class ApollyonPageantController {
     public static final int INACTIVE = 0;
     public static final int FADE_OUT = 1;
@@ -1155,8 +1157,8 @@ public final class ApollyonPageantController {
                 DamageSource source = hardMode
                         ? player.m_269291_().m_269341_()
                         : player.m_269291_().m_269425_();
-                player.m_6469_(source, hardMode
-                        ? SECOND_TRIO_BEAM_HARD_DAMAGE : SECOND_TRIO_BEAM_DAMAGE);
+                player.m_6469_(source, this.boss.outgoingDamage(player, hardMode
+                        ? SECOND_TRIO_BEAM_HARD_DAMAGE : SECOND_TRIO_BEAM_DAMAGE, 0.05F));
                 this.beamHitCooldowns.put(
                         player.m_20148_(), this.stateTicks + SECOND_TRIO_BEAM_HIT_COOLDOWN);
             }
@@ -1754,7 +1756,7 @@ public final class ApollyonPageantController {
                     player.m_20191_(), center, FOURTH_ICE_RADIUS)) {
                 continue;
             }
-            if (player.m_6469_(ApollyonDamageSources.front(player, source), FOURTH_ICE_DAMAGE)) {
+            if (player.m_6469_(ApollyonDamageSources.front(player, source), this.boss.outgoingDamage(player, FOURTH_ICE_DAMAGE, 0.20F))) {
                 player.m_7292_(new MobEffectInstance(
                         (MobEffect) GoetyEffects.STUNNED.get(), FOURTH_STUN_TICKS));
             }
@@ -1916,21 +1918,40 @@ public final class ApollyonPageantController {
         StarFantasyVfx.areaImpactShake(
                 this.boss, home, 64.0D, 0, 40, 20,
                 FIFTH_JUDGMENT_SHAKE_INTENSITY);
-        for (LivingEntity player : this.arenaLivingTargets(level)) {
-            if (player instanceof ServerPlayer serverPlayer) {
-                StarFantasyGoetyNetwork.startPageantWhiteout(serverPlayer);
+        List<LivingEntity> targets = this.arenaLivingTargets(level);
+        Set<UUID> passedPlayers = new HashSet<>();
+        for (LivingEntity target : targets) {
+            if (!(target instanceof ServerPlayer player)) {
+                continue;
             }
+            StarFantasyGoetyNetwork.startPageantWhiteout(player);
             if (MiscCapHelper.getShields(player) > 0) {
                 MiscCapHelper.setShields(player, 0);
                 MiscCapHelper.setShieldTime(player, 0);
-            } else if (player instanceof ServerPlayer serverPlayer) {
-                StarFantasyTrueKillHelper.trueKillPlayer(
-                        serverPlayer, Float.MAX_VALUE, "apollyon_judgment");
+                passedPlayers.add(player.m_20148_());
             } else {
-                // Other living entities get one ordinary kill attempt, without forced cleanup.
-                player.m_6074_();
+                StarFantasyTrueKillHelper.trueKillPlayer(
+                        player, Float.MAX_VALUE, "apollyon_judgment");
             }
         }
+        for (LivingEntity target : targets) {
+            if (target instanceof ServerPlayer || !target.m_6084_()) {
+                continue;
+            }
+            if (MiscCapHelper.getShields(target) > 0) {
+                MiscCapHelper.setShields(target, 0);
+                MiscCapHelper.setShieldTime(target, 0);
+            } else if (!ownedByPassedPlayer(target, passedPlayers)) {
+                // Other living entities get one ordinary kill attempt, without forced cleanup.
+                target.m_6074_();
+            }
+        }
+    }
+
+    private static boolean ownedByPassedPlayer(LivingEntity target, Set<UUID> passedPlayers) {
+        return target instanceof IOwned owned && passedPlayers.contains(owned.getOwnerId())
+                || target instanceof OwnableEntity ownable
+                    && passedPlayers.contains(ownable.m_21805_());
     }
 
     private void finishPageant(ServerLevel level) {
@@ -1948,7 +1969,7 @@ public final class ApollyonPageantController {
             if (intersectsHorizontalCircle(player.m_20191_(), center, METEOR_RADIUS)
                     && player.m_20191_().f_82292_ >= center.f_82480_ - 1.0D
                     && player.m_20191_().f_82289_ <= center.f_82480_ + 6.0D) {
-                player.m_6469_(ApollyonDamageSources.front(player, source), METEOR_DAMAGE);
+                player.m_6469_(ApollyonDamageSources.front(player, source), this.boss.outgoingDamage(player, METEOR_DAMAGE, 0.20F));
             }
         }
     }

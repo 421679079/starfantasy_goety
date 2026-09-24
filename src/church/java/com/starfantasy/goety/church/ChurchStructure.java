@@ -12,10 +12,17 @@ public final class ChurchStructure extends Structure {
     public static final Codec<ChurchStructure> CODEC = simpleCodec(ChurchStructure::new);
     public ChurchStructure(StructureSettings settings) { super(settings); }
     @Override protected Optional<GenerationStub> findGenerationPoint(GenerationContext context) {
+        if (!ChurchDestination.allows(context.randomState(), context.chunkPos())) return Optional.empty();
+        return candidate(context);
+    }
+    /** Read-only terrain probe. Selecting a destination never creates structure starts. */
+    public Optional<GenerationStub> candidate(GenerationContext context) {
         int homeX = context.chunkPos().getMiddleBlockX(), homeZ = context.chunkPos().getMiddleBlockZ();
         // The bridge top meets the lava sea surface; exterior template air below it is lava.
         int seaY = context.chunkGenerator().getSeaLevel();
         int bridgeY = seaY - 1;
+        var biome = context.biomeSource().getNoiseBiome(homeX >> 2, bridgeY >> 2, homeZ >> 2, context.randomState().sampler());
+        if (!context.validBiome().test(biome)) return Optional.empty();
         int lava = 0, air = 0;
         for (int dx : new int[]{-48, 0, 48}) for (int dz : new int[]{-32, 16, 64}) {
             var column = context.chunkGenerator().getBaseColumn(homeX + dx, homeZ + dz, context.heightAccessor(), context.randomState());

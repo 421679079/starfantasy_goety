@@ -5,6 +5,8 @@ import com.Polarice3.Goety.utils.SEHelper;
 import com.starfantasy.goety.config.SpellConfig;
 import com.starfantasy.goety.mixin.GuardHurtMemoryAccessor;
 import com.starfantasy.library.network.StarFantasyLibraryNetwork;
+import com.starfantasy.library.posture.GuardProbeEvent;
+import com.starfantasy.library.posture.PerfectGuardEvent;
 import com.starfantasy.library.vfx.StarFantasyVfx;
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -14,6 +16,7 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
@@ -74,12 +77,13 @@ public final class GuardChannel {
     }
     @SubscribeEvent(priority = EventPriority.HIGH)
     public static void attacked(LivingAttackEvent event) {
-        if (SpellConfig.GUARD_DAMAGE_REDUCTION.get() < 1.0D
+        double reduction = SpellConfig.GUARD_DAMAGE_REDUCTION.get();
+        if ((reduction < 1.0D && (!(event instanceof GuardProbeEvent) || reduction <= 0.0D))
                 || !(event.getEntity() instanceof ServerPlayer player)) return;
         Session s = eligible(player, event.getSource(), event.getAmount());
         if (s == null) return;
         event.setCanceled(true);
-        succeed(player, s, event.getSource().getSourcePosition());
+        succeed(player, s, event.getSource());
         int immunity = SpellConfig.GUARD_INVULNERABILITY.get();
         if (immunity > 0) {
             GuardHurtMemoryAccessor memory = (GuardHurtMemoryAccessor)player;
@@ -95,7 +99,7 @@ public final class GuardChannel {
         Session s = eligible(player, event.getSource(), event.getAmount());
         if (s == null) return;
         event.setAmount((float)(event.getAmount() * (1.0D - reduction)));
-        succeed(player, s, event.getSource().getSourcePosition());
+        succeed(player, s, event.getSource());
         int immunity = SpellConfig.GUARD_INVULNERABILITY.get();
         if (immunity > 0) PENDING_IMMUNITY.merge(player, immunity, Math::max);
     }
@@ -112,7 +116,7 @@ public final class GuardChannel {
         Vec3 incoming = origin.subtract(player.position()), look = player.getLookAngle();
         return GuardRules.inFront(look.x, look.z, incoming.x, incoming.z) ? s : null;
     }
-    private static void succeed(ServerPlayer player, Session s, Vec3 origin) {
+    private static void succeed(ServerPlayer player, Session s, DamageSource source) {
         if (s.cast.succeed()) {
             SEHelper.increaseSouls(player, SpellConfig.GUARD_SOUL_REWARD.get());
             SEHelper.sendSEUpdatePacket(player);
@@ -121,8 +125,13 @@ public final class GuardChannel {
         long now = player.level().getGameTime();
         if (s.feedbackTick != now) {
             s.feedbackTick = now;
-            StarFantasyVfx.guardClash(player, clashPosition(player.position(), origin));
+            StarFantasyVfx.guardClash(player, clashPosition(player.position(), source.getSourcePosition()));
             StarFantasyLibraryNetwork.sendShake(player, 10, 1.0F);
+        }
+        // Soul recovery is once per cast, but each guarded attack has its own source/reward.
+        // A zero-reduction configuration must not award boss guard mechanics.
+        if (SpellConfig.GUARD_DAMAGE_REDUCTION.get() > 0.0D) {
+            MinecraftForge.EVENT_BUS.post(new PerfectGuardEvent(player, source));
         }
     }
     public static Vec3 clashPosition(Vec3 player, Vec3 source) {

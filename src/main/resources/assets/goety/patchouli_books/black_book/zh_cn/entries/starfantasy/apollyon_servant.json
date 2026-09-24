@@ -1,12 +1,12 @@
 {
   "name": "亚小妹仆从",
   "icon": "starfantasy_goety:faded_crown",
-  "category": "goety:starfantasy",
-  "sortnum": 5,
+  "category": "goety:starfantasy/servants",
+  "sortnum": 2,
   "pages": [
     {
       "type": "patchouli:text",
-      "text": "将哈迪斯仆从遗留的失色神环，与下界苍白使者的衣冠相合，再以一名使徒的躯体为容器，或许能唤起那位伟大存在的一丝神格，借其身躯降临并为你而战。"
+      "text": "将哈迪斯仆从遗留的失色神环，与下界苍白使者的衣冠相合，再以一名使徒的躯体为容器，或许能唤起那位伟大存在的一丝神格，借其身躯降临并为你而战。$(br2)可以使用至纯之血恢复仆从的生命值。"
     },
     {
       "type": "goety:ritual",

@@ -1,0 +1,16 @@
+{
+  "name": "黑天使之影",
+  "icon": "starfantasy_goety:halo_of_the_great_shadow",
+  "category": "goety:starfantasy/directed_apostles",
+  "sortnum": 4,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "在召唤仪式中额外添加一个特殊材料，即可召唤出指定头衔的使徒。"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:directed_apostle_great_shadow"
+    }
+  ]
+}

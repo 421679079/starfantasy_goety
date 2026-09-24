@@ -1,0 +1,20 @@
+{
+  "name": "花与箭的聚晶",
+  "icon": "starfantasy_goety:blooms_and_plumes_focus",
+  "category": "goety:starfantasy/foci",
+  "sortnum": 1,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "title": "花与箭的聚晶",
+      "text": "召唤流星雨对前方区域发动毁灭性打击，造成音爆伤害。$(br2)附魔强效可以增加伤害。"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:blooms_and_plumes_focus"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "starfantasy_goety:blooms_and_plumes_focus": 1
+  }
+}

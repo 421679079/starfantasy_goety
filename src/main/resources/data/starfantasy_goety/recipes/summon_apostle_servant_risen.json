@@ -1,0 +1,26 @@
+{
+  "type": "goety:ritual",
+  "ritual_type": "starfantasy_goety:summon_apostle_servant",
+  "activation_item": {
+    "item": "starfantasy_goety:halo_of_the_risen"
+  },
+  "craftType": "sabbath",
+  "entity_to_summon": "starfantasy_goety:apostle_servant",
+  "soulCost": 1,
+  "duration": 10,
+  "summonLife": -1,
+  "ingredients": [
+    {
+      "item": "goety:unholy_hat"
+    },
+    {
+      "item": "goety:unholy_robe"
+    },
+    {
+      "item": "minecraft:bow"
+    }
+  ],
+  "result": {
+    "item": "goety:jei_dummy/none"
+  }
+}

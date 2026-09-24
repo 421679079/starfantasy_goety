@@ -38,12 +38,16 @@ public final class ApollyonDeathEffects {
     }
 
     public static void explodeApollyon(LivingEntity entity) {
+        explodeApollyon(entity, ParticleTypes.f_123745_);
+    }
+
+    public static void explodeApollyon(LivingEntity entity, ParticleOptions particle) {
         if (!(entity.m_9236_() instanceof ServerLevel level)) {
             return;
         }
         Vec3 center = entity.m_20182_().m_82520_(0.0D, 1.0D, 0.0D);
         playSound(level, center);
-        spawnSphere(level, center, ParticleTypes.f_123745_, 1.0D);
+        spawnSphere(level, center, particle, 1.0D);
         StarFantasyVfx.areaShake(entity, center, 36.0D, 16, 1.3F);
     }
 

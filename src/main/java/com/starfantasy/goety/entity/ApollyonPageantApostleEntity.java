@@ -632,6 +632,8 @@ public final class ApollyonPageantApostleEntity extends Cultist
             damage *= ARCHER_ENRAGED_DAMAGE_MULTIPLIER;
         }
         arrow.m_36745_(this, damage);
+        // Scale after vanilla initialization so difficulty/enchantment bonuses scale too.
+        arrow.m_36781_(ApollyonConfig.scaleDamage((float) arrow.m_36789_()));
         double dx = target.m_20185_() - this.m_20185_();
         double dy = target.m_20227_(0.5D) - this.m_20227_(0.5D);
         double dz = target.m_20189_() - this.m_20189_();
