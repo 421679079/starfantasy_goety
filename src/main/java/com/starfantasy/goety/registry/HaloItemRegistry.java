@@ -46,6 +46,8 @@ public final class HaloItemRegistry {
             ITEMS.register("faded_halo", com.starfantasy.goety.item.FadedHaloItem::new);
     public static final RegistryObject<Item> FADED_CROWN =
             ITEMS.register("faded_crown", com.starfantasy.goety.item.FadedHaloItem::new);
+    public static final RegistryObject<Item> ASCIAN_MASK =
+            ITEMS.register("ascian_mask", com.starfantasy.goety.item.AscianMaskItem::new);
 
     public static final List<RegistryObject<Item>> APOSTLE_HALOS = List.of(
             HALO_OF_THE_RISEN,

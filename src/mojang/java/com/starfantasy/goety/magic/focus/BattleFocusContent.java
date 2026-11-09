@@ -17,6 +17,11 @@ public final class BattleFocusContent {
     public static final RegistryObject<Item> BLOOMS_AND_PLUMES_FOCUS = ITEMS.register("blooms_and_plumes_focus", () -> new BattleFocusItem(BattleFocusSpell.FLOWER));
     public static final RegistryObject<Item> EVERNIGHT_FOCUS = ITEMS.register("evernight_focus", () -> new BattleFocusItem(BattleFocusSpell.EVERNIGHT));
     public static final RegistryObject<Item> FINAL_ART_FOCUS = ITEMS.register("final_art_focus", () -> new BattleFocusItem(FinalArtSpell.INSTANCE));
+    public static final RegistryObject<Item> CHAOS_METEOR_FOCUS = ITEMS.register("chaos_meteor_focus", () -> new BattleFocusItem(ChaosMeteorSpell.INSTANCE));
+    public static final RegistryObject<EntityType<ChaosMeteorEntity>> CHAOS_METEOR = ENTITIES.register("chaos_meteor",
+            () -> EntityType.Builder.<ChaosMeteorEntity>of(ChaosMeteorEntity::new, MobCategory.MISC)
+                    .sized(.25F, .25F).noSave().noSummon().fireImmune().clientTrackingRange(16).updateInterval(1)
+                    .build(MODID + ":chaos_meteor"));
     public static final RegistryObject<EntityType<FinalArtEntity>> FINAL_ART_EFFECT = ENTITIES.register("final_art_effect",
             () -> EntityType.Builder.<FinalArtEntity>of(FinalArtEntity::new, MobCategory.MISC)
                     .sized(1, 1).noSave().noSummon().fireImmune().clientTrackingRange(16).updateInterval(1).build(MODID+":final_art_effect"));
@@ -39,6 +44,7 @@ public final class BattleFocusContent {
     }
     public static final RegistryObject<SoundEvent> FINAL_ART_START = sound("final_art_start"),
             FINAL_ART_PULL = sound("final_art_pull");
+    public static final RegistryObject<SoundEvent> CHAOS_METEOR_CAST = sound("chaos_meteor_focus_cast");
     public static void init(IEventBus bus) { ITEMS.register(bus); ENTITIES.register(bus); SOUNDS.register(bus); }
     private BattleFocusContent() {}
 }

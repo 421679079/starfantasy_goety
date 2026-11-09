@@ -256,11 +256,30 @@ public final class ApollyonPageantApostleEntity extends Cultist
     }
 
     @Override
+    public void m_21153_(float health) {
+        // setHealth: keep the mechanic alive without opting every pageant actor into boss health hooks.
+        super.m_21153_(this.protectGloriousDeath() ? Math.max(1.0F, health) : health);
+    }
+
+    @Override
     public void m_6667_(DamageSource source) {
+        // Reject direct die() calls while the mechanic's protected actor still has health.
+        // If another mod has already bypassed health storage, allow death and let the controller retire it.
+        if (this.protectGloriousDeath() && this.m_21223_() > 0.0F) return;
         if (this.isPageantArcher()) {
             this.m_8061_(EquipmentSlot.MAINHAND, ItemStack.f_41583_);
         }
         super.m_6667_(source);
+    }
+
+    @Override
+    public void m_6074_() {
+        if (!this.protectGloriousDeath()) super.m_6074_();
+    }
+
+    private boolean protectGloriousDeath() {
+        return !this.m_9236_().f_46443_ && this.ownerUuid != null
+                && this.variant() == GLORIOUS && this.isPageantDamageable();
     }
 
     @Override

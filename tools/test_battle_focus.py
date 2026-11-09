@@ -45,6 +45,7 @@ spell_methods = '\n'.join(block(spell, sig) for sig in [
 item_methods = '\n'.join(block(item, sig) for sig in ['public boolean canApplyAtEnchantingTable(', 'public boolean isBookEnchantable('])
 fixture = r'''
 import java.util.*;
+import java.util.function.Predicate;
 public class BattleFocusRegression {
     static void check(boolean ok, String message) { if (!ok) throw new AssertionError(message); }
     enum SpellType { NONE, NECROMANCY }
@@ -243,7 +244,7 @@ public class BattleFocusRegression {
         focus.enchants.put(other,1);check(!item.isBookEnchantable(focus,focus),"mixed book rejected");focus.enchants.remove(other);
         WandUtil.enchantment=4;
         flower.SpellResult(level,player,focus,new SpellStat());night.SpellResult(level,player,focus,new SpellStat());
-        check(FlowerArrowRain.spawnedDamage==12 && EvernightCast.spawnedDamage==6 && FlowerArrowRain.spawnedHits==12 && EvernightCast.spawnedHits==8,"5 percent per potency, applied once");
+        check(FlowerArrowRain.spawnedDamage==12 && Math.abs(EvernightCast.spawnedDamage-6F)<.0001 && FlowerArrowRain.spawnedHits==12 && EvernightCast.spawnedHits==8,"5 percent per potency, applied once");
         check(Spell.damagePerHit(20,-1)==20,"negative potency ignored");
         SpellConfig.EVERNIGHT_DAMAGE.value=17;SpellConfig.EVERNIGHT_TOTAL_HITS.value=11;
         night.SpellResult(level,player,focus,new SpellStat());
@@ -391,7 +392,7 @@ public class BattleFocusRegression {
 '''
 parts = {
     'SPELL_METHODS': spell_methods, 'ITEM_METHODS': item_methods,
-    'COMBAT_METHODS': '\n'.join(block(combat, m) for m in ['static List<LivingEntity> targets(', 'static void damage(', 'static void damageFiltered(']),
+    'COMBAT_METHODS': '\n'.join(block(combat, m) for m in ['static List<LivingEntity> targets(', 'static List<LivingEntity> collectTargets(', 'static void damage(', 'static void damageFiltered(', 'static boolean hurtSegment(']),
     'FINAL_ART_TARGETING': '\n'.join(block(source('FinalArtTargeting.java'), m) for m in ['static boolean allows(', 'private static boolean isCasterSide(']),
     'IMMUNITY_METHOD': block(immunity, 'static void clear('),
     'GEOMETRY_BODY': geometry[geometry.index('    public static final int BLOOMS'):geometry.rfind('}')],

@@ -29,7 +29,7 @@ public final class StaffCreativeTabEvents {
 
     @SubscribeEvent
     public static void onBuildCreativeTabContents(BuildCreativeModeTabContentsEvent event) {
-        if (!event.getTabKey().equals((Object)CreativeModeTabs.f_256797_) && !event.getTabKey().equals((Object)CreativeModeTabs.f_256750_)) {
+        if (!event.getTabKey().equals((Object)CreativeModeTabs.f_256750_)) {
             return;
         }
         StaffCreativeTabEvents.add(event, StaffItemRegistry.OMINOUS_STAFF_2);
@@ -42,6 +42,7 @@ public final class StaffCreativeTabEvents {
         StaffCreativeTabEvents.add(event, StaffItemRegistry.VOID_STAFF_2);
         StaffCreativeTabEvents.add(event, StaffItemRegistry.NETHER_STAFF_2);
         StaffCreativeTabEvents.add(event, StaffItemRegistry.FINAL_STAFF);
+        StaffCreativeTabEvents.add(event, StaffItemRegistry.ASCIAN_STAFF);
     }
 
     private static void add(BuildCreativeModeTabContentsEvent event, ResourceLocation id) {

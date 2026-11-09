@@ -1,0 +1,20 @@
+{
+  "name": "混沌陨石聚晶",
+  "icon": "starfantasy_goety:chaos_meteor_focus",
+  "category": "goety:starfantasy/foci",
+  "sortnum": 4,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "title": "混沌陨石聚晶",
+      "text": "在施法者视线方向召唤一颗陨石从天而降，落地后继续朝前方滚动造成伤害$(br2)使用下界学派的魔杖施法时，每次爆炸再追加一个火焰陷阱"
+    },
+    {
+      "type": "goety:ritual",
+      "recipe": "starfantasy_goety:chaos_meteor_focus"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "starfantasy_goety:chaos_meteor_focus": 1
+  }
+}

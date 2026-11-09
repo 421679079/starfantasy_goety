@@ -29,7 +29,8 @@ final class HaloCurioRenderType extends RenderType {
                         .m_173290_(new TextureStateShard(key, false, false))
                         .m_173292_(f_234323_).m_110685_(glow ? GLOW : f_110139_)
                         .m_110661_(f_110110_).m_110671_(f_110152_).m_110677_(f_110154_)
-                        .m_110687_(f_110115_).m_110663_(f_110113_).m_110691_(false)));
+                        .m_110687_(!glow && key.m_135815_().equals("textures/entity/hades/hades.png") ? f_110114_ : f_110115_)
+                        .m_110663_(f_110113_).m_110691_(false)));
     }
 
     private HaloCurioRenderType(String name, VertexFormat format, VertexFormat.Mode mode,

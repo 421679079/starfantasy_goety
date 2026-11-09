@@ -12,7 +12,6 @@ public final class ChurchStructure extends Structure {
     public static final Codec<ChurchStructure> CODEC = simpleCodec(ChurchStructure::new);
     public ChurchStructure(StructureSettings settings) { super(settings); }
     @Override protected Optional<GenerationStub> findGenerationPoint(GenerationContext context) {
-        if (!ChurchDestination.allows(context.randomState(), context.chunkPos())) return Optional.empty();
         return candidate(context);
     }
     /** Read-only terrain probe. Selecting a destination never creates structure starts. */

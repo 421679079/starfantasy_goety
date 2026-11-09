@@ -1,12 +1,8 @@
 package com.starfantasy.goety.entity;
 
-import com.Polarice3.Goety.client.particles.CircleExplodeParticleOption;
 import com.Polarice3.Goety.init.ModSounds;
-import com.Polarice3.Goety.utils.ColorUtil;
 import com.starfantasy.goety.registry.ApollyonEntityRegistry;
 import java.util.UUID;
-import net.minecraft.core.particles.BlockParticleOption;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -16,7 +12,6 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.network.NetworkHooks;
 
@@ -60,15 +55,7 @@ public final class ApollyonPageantBlueIceEntity extends Entity
         if (level == null) {
             return;
         }
-        this.m_5496_((SoundEvent) ModSounds.ICE_CHUNK_HIT.get(), 2.0F, 1.0F);
-        level.m_8767_(new BlockParticleOption(
-                        ParticleTypes.f_123794_, Blocks.f_50354_.m_49966_()),
-                this.m_20185_(), this.m_20186_() + 1.5D, this.m_20189_(),
-                512, 1.5D, 1.5D, 1.5D, 1.0D);
-        level.m_8767_(new CircleExplodeParticleOption(
-                        new ColorUtil(0xFFFFBF), 10.0F, 1),
-                this.m_20185_(), this.m_20186_(), this.m_20189_(),
-                1, 0.0D, 0.0D, 0.0D, 0.5D);
+        com.starfantasy.goety.network.StarFantasyGoetyNetwork.sendIceImpact(this,2);
     }
 
     @Override

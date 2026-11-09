@@ -1,4 +1,7 @@
 {
   "replace": false,
-  "values": ["starfantasy_goety:eternal_respawn_anchor"]
+  "values": [
+    "starfantasy_goety:eternal_respawn_anchor",
+    "starfantasy_goety:ascian_altar"
+  ]
 }

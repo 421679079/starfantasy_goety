@@ -15,6 +15,8 @@ public final class FinalStaffSchoolKeys {
     public static final KeyMapping SWITCH = new KeyMapping("key.starfantasy_goety.staff_school",
             KeyConflictContext.IN_GAME, KeyModifier.ALT, InputConstants.Type.KEYSYM,
             GLFW.GLFW_KEY_X, "key.categories.starfantasy_goety");
+    public static final KeyMapping ASCIAN_SWITCH = new KeyMapping("key.starfantasy_goety.ascian_school",
+            KeyConflictContext.IN_GAME,KeyModifier.ALT,InputConstants.Type.KEYSYM,GLFW.GLFW_KEY_X,"key.categories.starfantasy_goety");
     private FinalStaffSchoolKeys() {}
-    @SubscribeEvent public static void register(RegisterKeyMappingsEvent event) { event.register(SWITCH); }
+    @SubscribeEvent public static void register(RegisterKeyMappingsEvent event) { event.register(SWITCH);event.register(ASCIAN_SWITCH); }
 }

@@ -24,6 +24,11 @@ extends ConfigurableDarkStaffItem {
     }
 
     @Override
+    public net.minecraft.network.chat.Component m_7626_(net.minecraft.world.item.ItemStack stack) {
+        return com.starfantasy.goety.item.FinalStaffName.create();
+    }
+
+    @Override
     public boolean m_41386_(net.minecraft.world.damagesource.DamageSource source) {
         return false;
     }

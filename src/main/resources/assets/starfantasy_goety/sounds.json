@@ -1,4 +1,10 @@
 {
+  "fire_burst": {
+    "sounds": [
+      "starfantasy_goety:fire_burst"
+    ],
+    "subtitle": "subtitle.starfantasy_goety.fire_burst"
+  },
   "original_apostle_ambient": {
     "sounds": [
       {
@@ -121,10 +127,20 @@
     ]
   },
   "final_art_start": {
-    "sounds": [{"name": "starfantasy_goety:final_art_start", "stream": false}]
+    "sounds": [
+      {
+        "name": "starfantasy_goety:final_art_start",
+        "stream": false
+      }
+    ]
   },
   "final_art_pull": {
-    "sounds": [{"name": "starfantasy_goety:final_art_pull", "stream": false}]
+    "sounds": [
+      {
+        "name": "starfantasy_goety:final_art_pull",
+        "stream": false
+      }
+    ]
   },
   "evernight_burst": {
     "sounds": [
@@ -132,6 +148,39 @@
         "name": "star_fantasy_library:cage_burst",
         "stream": false
       }
+    ]
+  },
+  "ascian_king": {
+    "sounds": [
+      {
+        "name": "starfantasy_goety:ascian_king",
+        "volume": 0.8,
+        "stream": true,
+        "attenuation_distance": 96
+      }
+    ]
+  },
+  "chaos_meteor": {
+    "sounds": [
+      {
+        "name": "starfantasy_goety:chaos_meteor",
+        "stream": false
+      }
+    ]
+  },
+  "ice_bolt_start": {
+    "sounds": [
+      "starfantasy_goety:ice_bolt_start"
+    ]
+  },
+  "chaos_meteor_focus_cast": {
+    "sounds": [
+      "starfantasy_goety:chaos_meteor"
+    ]
+  },
+  "ice_bolt_hit": {
+    "sounds": [
+      "starfantasy_goety:ice_bolt_hit"
     ]
   }
 }

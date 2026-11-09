@@ -28,9 +28,12 @@
     "FinalStaffSlimePriorityMixin",
     "FinalStaffHuntingPriorityMixin",
     "FinalStaffMaulingPriorityMixin",
-    "WandUtilMixin"
+    "WandUtilMixin",
+    "AscianSpellTypeMixin",
+    "AscianRightStaffMixin"
   ],
   "client": [
+    "FireTrapParticleBatchMixin",
     "FocusTooltipMixin",
     "WandFocusTooltipMixin",
     "FinalStaffSchoolWheelMixin",

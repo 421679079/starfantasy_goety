@@ -37,7 +37,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
@@ -82,7 +81,6 @@ import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.core.animation.AnimatableManager;
 import software.bernie.geckolib.util.GeckoLibUtil;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -511,25 +509,9 @@ public final class ApollyonEntity extends Cultist implements com.starfantasy.lib
     }
 
     @Override
-    protected void m_7625_(DamageSource source, boolean recentlyHit) {
-        if (this.usesDefaultDeathDrops()) {
-            super.m_7625_(source, recentlyHit);
-        }
-    }
-
-    @Override
     protected void m_7472_(DamageSource source, int looting, boolean recentlyHit) {
         super.m_7472_(source, looting, recentlyHit);
-        if (!this.usesDefaultDeathDrops()) {
-            for (String entry : ApollyonConfig.deathDrops()) {
-                this.dropConfiguredDeathEntry(entry);
-            }
-        }
         this.dropRandomApostleHalos();
-    }
-
-    private boolean usesDefaultDeathDrops() {
-        return ApollyonConfig.deathDrops().equals(ApollyonConfig.defaultDeathDrops());
     }
 
     private void dropRandomApostleHalos() {
@@ -546,63 +528,6 @@ public final class ApollyonEntity extends Cultist implements com.starfantasy.lib
         }
         for (int i = 0; i < dropCount; ++i) {
             this.m_19983_(new ItemStack(choices.get(i)));
-        }
-    }
-
-    private void dropConfiguredDeathEntry(String entry) {
-        if (entry == null || entry.isBlank()) {
-            return;
-        }
-        String trimmed = entry.trim();
-        if (trimmed.startsWith("#")) {
-            return;
-        }
-        String idText = trimmed;
-        int count = 1;
-        int lastColon = idText.lastIndexOf(':');
-        int firstColon = idText.indexOf(':');
-        if (lastColon > firstColon) {
-            String suffix = idText.substring(lastColon + 1);
-            if (isDropCountSpec(suffix)) {
-                idText = idText.substring(0, lastColon);
-                count = this.randomDropCount(suffix);
-            }
-        }
-        ResourceLocation id = ResourceLocation.m_135820_(idText);
-        if (id == null) {
-            return;
-        }
-        Item item = ForgeRegistries.ITEMS.getValue(id);
-        if (item != null && item != Items.f_42416_) {
-            this.m_19983_(new ItemStack(item,
-                    Mth.m_14045_(count, 1, item.m_41459_())));
-        }
-    }
-
-    private static boolean isDropCountSpec(String value) {
-        return value.matches("\\d+") || value.matches("\\d+-\\d+");
-    }
-
-    private int randomDropCount(String value) {
-        if (!value.contains("-")) {
-            return parsePositiveInt(value, 1);
-        }
-        String[] parts = value.split("-", 2);
-        int min = parsePositiveInt(parts[0], 1);
-        int max = parsePositiveInt(parts[1], min);
-        if (max < min) {
-            int swap = min;
-            min = max;
-            max = swap;
-        }
-        return min + this.m_217043_().m_188503_(max - min + 1);
-    }
-
-    private static int parsePositiveInt(String value, int fallback) {
-        try {
-            return Math.max(1, Integer.parseInt(value));
-        } catch (NumberFormatException ignored) {
-            return fallback;
         }
     }
 

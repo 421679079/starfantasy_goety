@@ -10,7 +10,7 @@ from PIL import Image
 
 parser = argparse.ArgumentParser()
 parser.add_argument('output', type=Path)
-parser.add_argument('--libraries', type=Path, default=Path('D:/MC/.minecraft/libraries'))
+parser.add_argument('--libraries', type=Path, required=True)
 args = parser.parse_args()
 root = Path(__file__).resolve().parents[1]
 output = args.output.resolve()

@@ -32,6 +32,7 @@ public final class ChurchRiftEntity extends Entity {
     private UUID ownerId;
     private InteractionHand chargingHand = InteractionHand.MAIN_HAND;
     private int blockedMessageCooldown;
+    private ChurchDestination.Destination destination;
 
     public ChurchRiftEntity(EntityType<? extends ChurchRiftEntity> type, Level level) {
         super(type, level);
@@ -62,7 +63,18 @@ public final class ChurchRiftEntity extends Entity {
                 || player.getTicksUsingItem() < ChurchRiftShape.CHARGE_TICKS - 1
                 || player.distanceToSqr(this) > 32 * 32) return;
         ServerLevel nether=player.server.getLevel(Level.NETHER);
-        if (nether==null || ChurchTravel.prepare(nether)==null) { cancelCharging(); return; }
+        if (nether == null) { cancelCharging(); return; }
+        double scale = net.minecraft.world.level.dimension.DimensionType.getTeleportationScale(player.level().dimensionType(), nether.dimensionType());
+        destination = ChurchDestination.get(nether).locate(nether,
+                net.minecraft.core.BlockPos.containing(player.getX() * scale, 31, player.getZ() * scale), player);
+        if (destination == null) {
+            String reason = ChurchDestination.get(nether).failure();
+            String key = "invalid_buildings".equals(reason) || "storage_error".equals(reason)
+                    ? "message.starfantasy_goety.underworld_eye.invalid" : "message.starfantasy_goety.underworld_eye.not_found";
+            player.displayClientMessage(net.minecraft.network.chat.Component.translatable(
+                    key), true);
+            cancelCharging(); return;
+        }
         entityData.set(PHASE, OPEN);
         entityData.set(PHASE_START, level().getGameTime());
         level().playSound(null, blockPosition(), SoundEvents.END_PORTAL_SPAWN, SoundSource.PLAYERS, 0.65F, 1.3F);
@@ -105,7 +117,7 @@ public final class ChurchRiftEntity extends Entity {
                 Vec3 current = local(player.position().add(0, player.getBbHeight() * 0.5, 0));
                 Vec3 previous = local(new Vec3(player.xo, player.yo + player.getBbHeight() * 0.5, player.zo));
                 if (ChurchRiftShape.crosses(previous.x, previous.y, previous.z, current.x, current.y, current.z)) {
-                    if (ChurchTravel.transfer(player)) {
+                    if (ChurchTravel.transfer(player, destination)) {
                         close();
                         server.playSound(null, blockPosition(), SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 1.0F, 0.7F);
                         break; // One successful transfer consumes this entrance, including in multiplayer.

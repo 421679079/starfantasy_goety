@@ -14,5 +14,6 @@ public final class BattleFocusRenderers {
         event.registerEntityRenderer(BattleFocusContent.FLOWER_BURST_RIBBON.get(), FlowerBurstRibbonRenderer::new);
         event.registerEntityRenderer(BattleFocusContent.EVERNIGHT_CAGE.get(), EvernightCageRenderer::new);
         event.registerEntityRenderer(BattleFocusContent.FINAL_ART_EFFECT.get(), FinalArtRenderer::new);
+        event.registerEntityRenderer(BattleFocusContent.CHAOS_METEOR.get(), ChaosMeteorRenderer::new);
     }
 }

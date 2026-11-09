@@ -1,16 +1,28 @@
 {
   "type": "goety:ritual",
   "ritual_type": "starfantasy_goety:revive_hades",
-  "activation_item": { "item": "starfantasy_goety:faded_halo" },
+  "activation_item": {
+    "item": "starfantasy_goety:faded_halo"
+  },
   "craftType": "sabbath",
   "entity_to_summon": "starfantasy_goety:hades_servant",
   "soulCost": 1,
   "duration": 15,
   "summonLife": -1,
   "ingredients": [
-    { "tag": "starfantasy_goety:halo_of_apostle" },
-    { "item": "minecraft:wither_skeleton_skull" },
-    { "item": "minecraft:nether_star" }
+    {
+      "type": "forge:partial_nbt",
+      "item": "starfantasy_goety:halo_of_hades",
+      "nbt": "{HadesApostleHalos:[{Slot:0,id:\"starfantasy_goety:halo_of_the_risen\",Count:1b},{Slot:1,id:\"starfantasy_goety:halo_of_the_abhorrent\",Count:1b},{Slot:2,id:\"starfantasy_goety:halo_of_the_defiler\",Count:1b},{Slot:3,id:\"starfantasy_goety:halo_of_the_dark\",Count:1b},{Slot:4,id:\"starfantasy_goety:halo_of_the_great_shadow\",Count:1b},{Slot:5,id:\"starfantasy_goety:halo_of_the_witch_king\",Count:1b},{Slot:6,id:\"starfantasy_goety:halo_of_the_pyre_lord\",Count:1b},{Slot:7,id:\"starfantasy_goety:halo_of_the_profane\",Count:1b},{Slot:8,id:\"starfantasy_goety:halo_of_the_cruel\",Count:1b},{Slot:9,id:\"starfantasy_goety:halo_of_the_terrible\",Count:1b},{Slot:10,id:\"starfantasy_goety:halo_of_the_glorious\",Count:1b},{Slot:11,id:\"starfantasy_goety:halo_of_the_atrocious\",Count:1b}]}"
+    },
+    {
+      "item": "minecraft:wither_skeleton_skull"
+    },
+    {
+      "item": "minecraft:nether_star"
+    }
   ],
-  "result": { "item": "goety:jei_dummy/none" }
+  "result": {
+    "item": "goety:jei_dummy/none"
+  }
 }

@@ -25,6 +25,9 @@ def method(source, marker):
 halo = (ROOT / 'src/main/java/com/starfantasy/goety/item/HaloCurioItem.java').read_text('utf-8')
 combat = (LIB / 'src/main/java/com/starfantasy/library/mixin/LivingEntityCombatMixin.java').read_text('utf-8')
 halo_methods = '\n'.join(method(halo, s) for s in ['public Multimap<Attribute, AttributeModifier> getAttributeModifiers(', 'private static AttributeModifier modifier('])
+mask=(ROOT/'src/main/java/com/starfantasy/goety/item/AscianMaskItem.java').read_text('utf-8')
+mask_method=method(mask,'public Multimap<Attribute,AttributeModifier> getAttributeModifiers(')
+assert all(s not in mask for s in ['curioTick','HadesHaloContents','HaloPotionEffects'])
 combat_methods = '\n'.join(method(combat, s) for s in ['private void starFantasyLibrary$applyDamageReductions(', 'private static double starFantasyLibrary$ratio('])
 attributes = re.findall(r'public static final RegistryObject<Attribute> (\w+) = reduction',
                        (LIB / 'src/main/java/com/starfantasy/library/combat/StarFantasyCombatAttributes.java').read_text('utf-8'))
@@ -36,6 +39,10 @@ public class HaloAttributeRegression {
  static int checks;
  static void eq(double expected,double actual){checks++;if(Math.abs(expected-actual)>.00001)throw new AssertionError(expected+" != "+actual);}
  static class Attribute {}
+ static class SlotAttribute extends Attribute {
+  static final Map<String,SlotAttribute> slots=new HashMap<>();
+  static SlotAttribute getOrCreate(String id){return slots.computeIfAbsent(id,key->new SlotAttribute());}
+ }
  record Registry<T>(T get) {}
  record AttributeModifier(UUID id,String name,double amount,Operation operation){enum Operation{ADDITION,MULTIPLY_BASE,MULTIPLY_TOTAL}}
  static class Multimap<K,V> extends HashMap<K,V>{}
@@ -43,7 +50,8 @@ public class HaloAttributeRegression {
   static <K,V> Builder<K,V> builder(){return new Builder<>();}
   static class Builder<K,V>{Multimap<K,V> values=new Multimap<>();void put(K k,V v){values.put(k,v);}Multimap<K,V> build(){return values;}}
  }
- static class SlotContext {}static class ItemStack {}
+ record SlotContext(String identifier,boolean cosmetic){SlotContext(){this("head",false);}}static class ItemStack {}
+ static class Mask { MASK_METHOD }
  static class StarFantasyCombatAttributes { ATTRIBUTES }
  static class StarFantasyDamageTypeTags { TAGS }
  static class SpellAttributeRegistry {
@@ -87,12 +95,30 @@ public class HaloAttributeRegression {
   Halo caster=new Halo();caster.school=new Object();var spell=caster.getAttributeModifiers(new SlotContext(),SLOT,new ItemStack()).get(SpellAttributeRegistry.SPELL_POWER.get());
   eq(1,spell.amount());if(spell.operation()!=AttributeModifier.Operation.ADDITION)throw new AssertionError("Spell power must remain flat");
   Halo hades=new Halo();hades.hades=true;checkHalo(hades,StarFantasyCombatAttributes.RESISTANCE.get(),.1,"ordinary");
+  var maskModifiers=new Mask().getAttributeModifiers(new SlotContext(),SLOT,new ItemStack());
+  var hadesModifiers=hades.getAttributeModifiers(new SlotContext(),SLOT,new ItemStack());
+  eq(4,maskModifiers.size());eq(4,hadesModifiers.size());
+  for(var entry:hadesModifiers.entrySet()){
+   var actual=maskModifiers.get(entry.getKey());eq(entry.getValue().amount(),actual.amount());
+   if(actual.operation()!=entry.getValue().operation())throw new AssertionError("mask uses Hades' exact attribute operation");
+  }
+  Attribute head=SlotAttribute.getOrCreate("head");
+  for(var modifiers:List.of(maskModifiers,hadesModifiers)){
+   var extra=modifiers.get(head);eq(1,extra.amount());
+   if(extra.operation()!=AttributeModifier.Operation.ADDITION)throw new AssertionError("Head capacity must add exactly one slot");
+  }
+  for(var context:List.of(new SlotContext("head",true),new SlotContext("ring",false))){
+   eq(0,hades.getAttributeModifiers(context,SLOT,new ItemStack()).containsKey(head)?1:0);
+   eq(0,new Mask().getAttributeModifiers(context,SLOT,new ItemStack()).containsKey(head)?1:0);
+  }
+  eq(0,caster.getAttributeModifiers(new SlotContext(),SLOT,new ItemStack()).containsKey(head)?1:0);
+  for(var halo:List.of(HALO_SLOT_CASES))eq(0,halo.getAttributeModifiers(new SlotContext(),SLOT,new ItemStack()).containsKey(head)?1:0);
   Applied p=new Applied();p.values.put(StarFantasyCombatAttributes.POISON_RESISTANCE.get(),new AttributeInstance(1.25));
   p.values.put(StarFantasyCombatAttributes.MAGIC_RESISTANCE.get(),new AttributeInstance(1.5));
   eq(37.5,p.damage(StarFantasyDamageTypeTags.POISON_DAMAGE,StarFantasyDamageTypeTags.MAGIC_DAMAGE));
   p.values.put(StarFantasyCombatAttributes.POISON_RESISTANCE.get(),new AttributeInstance(2));eq(0,p.damage(StarFantasyDamageTypeTags.POISON_DAMAGE));
   p.values.put(StarFantasyCombatAttributes.POISON_RESISTANCE.get(),new AttributeInstance(.5));eq(100,p.damage(StarFantasyDamageTypeTags.POISON_DAMAGE));
-  System.out.println("PASS "+checks+" halo checks: percent modifiers, unchanged spell power, all categories, absent attributes and composite damage");
+  System.out.println("PASS "+checks+" halo checks: functional head capacity, percent modifiers, unchanged spell power, all categories, absent attributes and composite damage");
  }
 }
 '''
@@ -102,10 +128,12 @@ cases = [('PYRE_LORD', 'FIRE', .25), ('GLORIOUS', 'PHYSICAL', .1), ('CRUEL', 'FR
 fixture = fixture.replace('ATTRIBUTES', '\n'.join('static final Registry<Attribute> '+a+'=new Registry<>(new Attribute());' for a in attributes))
 fixture = fixture.replace('TAGS', '\n'.join('static final String '+t+'="'+t+'";' for t in tags))
 fixture = fixture.replace('HALO_FIELDS', '\n'.join('static final Registry<Halo> HALO_OF_THE_'+n+'=new Registry<>(new Halo());' for n in names))
+fixture = fixture.replace('HALO_SLOT_CASES', ','.join('HaloItemRegistry.HALO_OF_THE_'+n+'.get()' for n in names))
 fixture = fixture.replace('CHECK_HALOS', '\n'.join('checkHalo(HaloItemRegistry.HALO_OF_THE_'+n+'.get(),StarFantasyCombatAttributes.'+a+'_RESISTANCE.get(),'+str(v)+',StarFantasyDamageTypeTags.'+a+'_DAMAGE);' for n,a,v in cases))
 fixture = fixture.replace('HALO_METHODS', halo_methods).replace('COMBAT_METHODS', combat_methods)
 # RESISTANCE also reduces an unrelated ordinary damage type; omit this check for its generic category.
 fixture = fixture.replace('eq(100,player.damage("unrelated"));', 'if(attribute!=StarFantasyCombatAttributes.RESISTANCE.get())eq(100,player.damage("unrelated"));')
+fixture=fixture.replace(' MASK_METHOD ',mask_method)
 java = OUT / 'HaloAttributeRegression.java'
 java.write_text(fixture, encoding='utf-8')
 subprocess.run(['javac', '--release', '17', '-encoding', 'UTF-8', '-d', str(OUT), str(java)], check=True)

@@ -60,6 +60,17 @@ public final class ApollyonDeathEffects {
         spawnSphere(level, center, ParticleTypes.f_123744_, 1.0D);
     }
 
+    /** Monarch finale: outward particle spheres and the same Dawnbreaker sound already bundled here. */
+    public static void explodeAscian(com.starfantasy.goety.entity.AscianKingEntity entity) {
+        if (!(entity.m_9236_() instanceof ServerLevel level)) return;
+        Vec3 center = entity.m_20182_();
+        level.m_5594_(null, BlockPos.m_274561_(center.f_82479_, center.f_82480_, center.f_82481_),
+                ApollyonSoundRegistry.DEATH_EXPLOSION.get(), SoundSource.HOSTILE, 3F, 1F);
+        spawnSphere(level, center, ParticleTypes.f_123755_, 1D);
+        spawnSphere(level, center, ParticleTypes.f_123799_, 1D);
+        spawnSphere(level, center, com.starfantasy.goety.registry.ApollyonParticleRegistry.ASCIAN_PURPLE_FLAME.get(), 1D);
+    }
+
     private static void playSound(ServerLevel level, Vec3 center) {
         level.m_5594_(null,
                 BlockPos.m_274561_(center.f_82479_, center.f_82480_, center.f_82481_),

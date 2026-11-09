@@ -13,7 +13,15 @@ public final class HaloProtection {
     public static boolean wears(Entity entity, Item halo) {
         return entity instanceof Player player
                 && CuriosApi.getCuriosInventory(player).resolve()
-                    .flatMap(inventory -> inventory.findFirstCurio(halo)).isPresent();
+                    .map(inventory -> inventory.findCurios(stack -> stack.m_41720_()==halo
+                            || com.starfantasy.goety.halo.HadesHaloContents.contains(stack,halo))
+                            .stream().anyMatch(result -> !result.slotContext().cosmetic())).orElse(false);
+    }
+
+    public static boolean inherited(Entity entity, Item halo) {
+        return entity instanceof Player player && CuriosApi.getCuriosInventory(player).resolve()
+                .map(inventory -> inventory.findCurios(stack -> com.starfantasy.goety.halo.HadesHaloContents.contains(stack,halo))
+                        .stream().anyMatch(result -> !result.slotContext().cosmetic())).orElse(false);
     }
 
     public static boolean preventsFreezing(Entity entity) {

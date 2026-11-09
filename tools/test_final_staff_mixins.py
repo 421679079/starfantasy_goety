@@ -1,6 +1,6 @@
 """Transform real released Goety bytecode with the game's Mixin 0.8.5 (no Minecraft startup).
 
-Usage: python tools/test_final_staff_mixins.py --minecraft-root D:/MC/.minecraft
+Usage: python tools/test_final_staff_mixins.py --minecraft-root <Minecraft目录>
        --addon build/releases/starfantasy_goety-0.5.45-clean.jar --goety path/to/goety.jar
 Run once per supported Goety version, after tools/build.ps1.
 """
@@ -8,6 +8,7 @@ import argparse
 import json
 import os
 from pathlib import Path
+import shutil
 import subprocess
 import time
 
@@ -17,10 +18,17 @@ p.add_argument('--addon', required=True, type=Path)
 p.add_argument('--goety', required=True, type=Path)
 p.add_argument('--health', action='store_true', help='Verify the boss health guards instead of staff priority hooks')
 p.add_argument('--apostle-servant', action='store_true', help='Verify native Apostle servant isolation and existing Apostle hooks')
+p.add_argument('--soul-consumption', action='store_true', help='Verify old/new soul deduction hooks and fail-fast group constraints')
+p.add_argument('--ascian-staff', action='store_true', help='Verify real single-school ISpell and Spell hooks')
 args = p.parse_args()
 root = Path(__file__).resolve().parents[1]
 build = root / 'build' / f'mixin-validation-{time.time_ns()}'
 build.mkdir(parents=True)
+# Java @argfiles on Windows can interpret UTF-8 Chinese mod filenames using the system code page.
+# Stage the requested Goety under an ASCII filename so lookup cannot silently fall back to the older
+# compile-time Goety already present in old_cp. The Java regression also verifies the resource URL.
+target_goety = build / 'target-goety.jar'
+shutil.copyfile(args.goety, target_goety)
 services = build / 'META-INF/services'
 services.mkdir(parents=True)
 (services / 'org.spongepowered.asm.service.IMixinService').write_text('validation.HeadlessMixinService\n')
@@ -43,6 +51,16 @@ mixins = ['FinalStaffZombiePriorityMixin', 'FinalStaffSkeletonPriorityMixin', 'F
     'package': 'com.starfantasy.goety.mixin',
     'mixins': ['ApostleAppearanceMixin', 'ApostleMixin'],
     'injectors': {'defaultRequire': 1}}))
+(build / 'soul-consumption-validation.mixins.json').write_text(json.dumps({
+    'required': True, 'minVersion': '0.8', 'compatibilityLevel': 'JAVA_17',
+    'package': 'com.starfantasy.goety.mixin',
+    'mixins': ['SEHelperSoulConsumptionMixin'],
+    'injectors': {'defaultRequire': 1}}))
+(build / 'ascian-staff-validation.mixins.json').write_text(json.dumps({
+    'required': True, 'minVersion': '0.8', 'compatibilityLevel': 'JAVA_17',
+    'package': 'com.starfantasy.goety.mixin',
+    'mixins': ['AscianSpellTypeMixin', 'AscianRightStaffMixin'],
+    'injectors': {'defaultRequire': 1}}))
 latest_args = max(root.glob('build/reproducible-*/main-partial.args'), key=lambda x: x.stat().st_mtime)
 lines = latest_args.read_text('utf-8-sig').splitlines()
 old_cp = lines[lines.index('"-classpath"') + 1].strip('"')
@@ -52,7 +70,7 @@ preferred += [libs / 'cpw/mods/modlauncher/10.0.9/modlauncher-10.0.9.jar']
 preferred += [libs / f'org/ow2/asm/{name}/9.5/{name}-9.5.jar'
               for name in ['asm', 'asm-tree', 'asm-analysis', 'asm-util', 'asm-commons']]
 cp = os.pathsep.join([str(build), *(str(x.resolve()) for x in preferred),
-                      str(args.addon.resolve()), str(args.goety.resolve()), old_cp])
+                      str(args.addon.resolve()), str(target_goety.resolve()), old_cp])
 def run_argfile(name, executable, arguments):
     file = build / name
     file.write_text('\n'.join('"' + str(x).replace('\\', '/').replace('"', '\\"') + '"' for x in arguments), encoding='utf-8')
@@ -64,7 +82,14 @@ def run_argfile(name, executable, arguments):
     print(result.stdout.strip())
 run_argfile('compile.args', 'javac', ['-proc:none', '--release', '17', '-encoding', 'UTF-8', '-cp', cp, '-d', build,
                                     *sorted((root / 'tools/mixin-test').glob('*.java'))])
-if args.apostle_servant:
+if args.ascian_staff:
+    run_argfile('ascian-staff.args', 'java', ['-cp', cp, 'validation.AscianStaffMixinRegression'])
+elif args.soul_consumption:
+    for scenario in ['normal', 'missing-hook', 'duplicate-hook']:
+        run_argfile('souls-' + scenario + '.args', 'java',
+                    ['-Dmixin.debug.countInjections=true', '-cp', cp,
+                     'validation.SoulConsumptionMixinRegression', scenario])
+elif args.apostle_servant:
     run_argfile('apostle-servant.args', 'java', ['-cp', cp, 'validation.ApostleServantMixinRegression'])
 elif args.health:
     run_argfile('health.args', 'java', ['-cp', cp, 'validation.HealthMixinRegression'])

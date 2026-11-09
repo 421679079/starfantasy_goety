@@ -44,6 +44,7 @@ public final class StaffItemRegistry {
     public static final ResourceLocation VOID_STAFF_2 = StaffItemRegistry.rl("void_staff_2");
     public static final ResourceLocation NETHER_STAFF_2 = StaffItemRegistry.rl("nether_staff_2");
     public static final ResourceLocation FINAL_STAFF = StaffItemRegistry.rl("final_staff");
+    public static final ResourceLocation ASCIAN_STAFF = StaffItemRegistry.rl("ascian_staff");
     public static final List<ResourceLocation> STAFF_IDS = List.of(
             OMINOUS_STAFF_2,
             GEO_STAFF_2,
@@ -54,7 +55,8 @@ public final class StaffItemRegistry {
             ABYSS_STAFF_2,
             VOID_STAFF_2,
             NETHER_STAFF_2,
-            FINAL_STAFF
+            FINAL_STAFF,
+            ASCIAN_STAFF
     );
     private static final Map<ResourceLocation, Item> REGISTERED = new HashMap<ResourceLocation, Item>();
 
@@ -75,9 +77,10 @@ public final class StaffItemRegistry {
             StaffItemRegistry.register((RegisterEvent.RegisterHelper<Item>)helper, WILD_STAFF_2, (Item)new ConfigurableDarkStaffItem(12.0, SpellType.WILD, () -> ((ForgeConfigSpec.DoubleValue)StaffConfig.TIER2_ATTACK_DAMAGE).get(), () -> ((ForgeConfigSpec.DoubleValue)StaffConfig.TIER2_ATTACK_SPEED).get(), () -> ((ForgeConfigSpec.DoubleValue)StaffConfig.TIER2_ENTITY_RANGE).get()));
             StaffItemRegistry.register((RegisterEvent.RegisterHelper<Item>)helper, ABYSS_STAFF_2, (Item)new ConfigurableDarkStaffItem(12.0, SpellType.ABYSS, () -> ((ForgeConfigSpec.DoubleValue)StaffConfig.TIER2_ATTACK_DAMAGE).get(), () -> ((ForgeConfigSpec.DoubleValue)StaffConfig.TIER2_ATTACK_SPEED).get(), () -> ((ForgeConfigSpec.DoubleValue)StaffConfig.TIER2_ENTITY_RANGE).get()));
             StaffItemRegistry.register((RegisterEvent.RegisterHelper<Item>)helper, VOID_STAFF_2, (Item)new ConfigurableDarkStaffItem(12.0, SpellType.VOID, () -> ((ForgeConfigSpec.DoubleValue)StaffConfig.TIER2_ATTACK_DAMAGE).get(), () -> ((ForgeConfigSpec.DoubleValue)StaffConfig.TIER2_ATTACK_SPEED).get(), () -> ((ForgeConfigSpec.DoubleValue)StaffConfig.TIER2_ENTITY_RANGE).get()));
-            Item.Properties netherProps = new Item.Properties().m_41486_();
+            Item.Properties netherProps = new Item.Properties().m_41487_(1).m_41486_();
             StaffItemRegistry.register((RegisterEvent.RegisterHelper<Item>)helper, NETHER_STAFF_2, (Item)new ConfigurableDarkStaffItem(netherProps, 12.0, SpellType.NETHER, () -> ((ForgeConfigSpec.DoubleValue)StaffConfig.TIER2_ATTACK_DAMAGE).get(), () -> ((ForgeConfigSpec.DoubleValue)StaffConfig.TIER2_ATTACK_SPEED).get(), () -> ((ForgeConfigSpec.DoubleValue)StaffConfig.TIER2_ENTITY_RANGE).get()));
             StaffItemRegistry.register((RegisterEvent.RegisterHelper<Item>)helper, FINAL_STAFF, (Item)new FinalStaffDarkItem(() -> ((ForgeConfigSpec.DoubleValue)StaffConfig.FINAL_ATTACK_DAMAGE).get(), () -> ((ForgeConfigSpec.DoubleValue)StaffConfig.FINAL_ATTACK_SPEED).get(), () -> ((ForgeConfigSpec.DoubleValue)StaffConfig.FINAL_ENTITY_RANGE).get()));
+            StaffItemRegistry.register(helper, ASCIAN_STAFF, new com.starfantasy.goety.item.AscianStaffItem());
         });
     }
 

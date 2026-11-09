@@ -7,6 +7,7 @@ import com.Polarice3.Goety.client.gui.radial.IRadialMenuHost;
 import com.Polarice3.Goety.client.gui.radial.RadialMenuItem;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.starfantasy.goety.magic.FinalStaffSchool;
+import com.starfantasy.goety.magic.AscianStaffSchool;
 import com.starfantasy.goety.network.ServerboundStaffSchoolPacket;
 import com.starfantasy.goety.network.StarFantasyGoetyNetwork;
 import net.minecraft.client.gui.Font;
@@ -16,6 +17,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.client.settings.KeyConflictContext;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.lwjgl.glfw.GLFW;
 
 /** Uses Goety's focus wheel, including its sectors, hover selection and animation. */
@@ -23,14 +25,16 @@ public final class FinalStaffSchoolScreen extends Screen implements IRadialMenuH
     private final int slot;
     private final ItemStack openedStack;
     private final FinalStaffSchool original;
+    private final boolean ascian;
     private GenericRadialMenu menu;
     private boolean finished;
 
     public FinalStaffSchoolScreen(int slot, ItemStack stack) {
-        super(Component.translatable("key.starfantasy_goety.staff_school"));
+        super(Component.translatable(AscianStaffSchool.isAscian(stack)?"key.starfantasy_goety.ascian_school":"key.starfantasy_goety.staff_school"));
         this.slot = slot;
         this.openedStack = stack.copy();
-        this.original = FinalStaffSchool.get(stack);
+        this.ascian=AscianStaffSchool.isAscian(stack);
+        this.original = ascian?AscianStaffSchool.get(stack):FinalStaffSchool.get(stack);
     }
 
     @Override protected void init() {
@@ -68,8 +72,8 @@ public final class FinalStaffSchoolScreen extends Screen implements IRadialMenuH
     // IN_GAME becomes inactive while any Screen is open. Poll the physical binding
     // with a GUI-independent modifier context instead (also supports mouse rebinds).
     private boolean shortcutHeld() {
-        return ClientEvents.isKeyDown0(FinalStaffSchoolKeys.SWITCH)
-                && FinalStaffSchoolKeys.SWITCH.getKeyModifier().isActive(KeyConflictContext.UNIVERSAL);
+        var key=ascian?FinalStaffSchoolKeys.ASCIAN_SWITCH:FinalStaffSchoolKeys.SWITCH;
+        return ClientEvents.isKeyDown0(key)&&key.getKeyModifier().isActive(KeyConflictContext.UNIVERSAL);
     }
 
     private void finish(FinalStaffSchool selected) {
@@ -110,18 +114,16 @@ public final class FinalStaffSchoolScreen extends Screen implements IRadialMenuH
     }
 
     private float wheelScale() {
-        return Math.max(.5F, Math.min(1.5F, Math.min((width - 24) / 120.0F, (height - 52) / 120.0F)));
+        return Math.max(.5F, Math.min(1F, Math.min((width - 24) / 120.0F, (height - 52) / 120.0F)));
     }
 
     /** Shared by native drawing and hit testing, scoped to this wheel's host. */
     public void configureWheelRadii(GenericRadialMenu wheel, boolean hitTest) {
         float progress = hitTest ? 1 : wheel.radiusOut / 60.0F;
-        // Final inner radius stays at the original 30px; outer radius is 90px.
-        // Only exceptionally small windows need a smaller central dead zone.
-        wheel.radiusIn = Math.min(30.0F / wheelScale(), 40.0F) * progress;
+        // Match Goety's native focus wheel; shrink only for exceptionally small windows.
+        wheel.radiusIn = 30 * progress;
         wheel.radiusOut = 60 * progress;
-        // A 70px final orbit leaves space for ten enlarged, separate buttons.
-        wheel.itemRadius = (140.0F / 3.0F) * progress;
+        wheel.itemRadius = 45 * progress;
     }
 
     private void scaleKeyboardCursor() {
@@ -141,7 +143,7 @@ public final class FinalStaffSchoolScreen extends Screen implements IRadialMenuH
         float cx = width / 2, cy = height / 2;
         graphics.flush();
         // Native sectors use raw vertices while icons use GuiGraphics. Transform
-        // their shared model-view matrix so both enlarge by exactly the same amount.
+        // their shared model-view matrix so small-window fitting affects both equally.
         var modelView = RenderSystem.getModelViewStack();
         modelView.pushPose();
         modelView.translate(cx, cy, 0);
@@ -158,10 +160,10 @@ public final class FinalStaffSchoolScreen extends Screen implements IRadialMenuH
         }
         RenderSystem.setShaderColor(1, 1, 1, 1);
         if (!finished && menu.isReady()) {
-            text(graphics, Component.translatable("tooltip.starfantasy_goety.staff_school", original.label()),
+            text(graphics, Component.translatable(ascian?"tooltip.starfantasy_goety.ascian_school":"tooltip.starfantasy_goety.staff_school", FinalStaffSchoolTooltip.coloredLabel(original)),
                     cx, cy - 60 * scale - 12, width - 16, 9, 0xFFFFFF);
             int hintY = Math.round(cy + 60 * scale + 8);
-            for (var line : font.split(Component.translatable("screen.starfantasy_goety.school_hint"), width - 24)) {
+            for (var line : font.split(Component.translatable(ascian?"screen.starfantasy_goety.ascian_school_hint":"screen.starfantasy_goety.school_hint"), width - 24)) {
                 graphics.drawCenteredString(font, line, Math.round(cx), hintY, 0xC4BACD);
                 hintY += font.lineHeight;
             }
@@ -171,33 +173,22 @@ public final class FinalStaffSchoolScreen extends Screen implements IRadialMenuH
 
     private final class SchoolItem extends RadialMenuItem {
         private final FinalStaffSchool school;
+        private final ItemStack icon;
         SchoolItem(FinalStaffSchool school) {
             super(menu);
             this.school = school;
+            var item = ForgeRegistries.ITEMS.getValue(new ResourceLocation("goety", school.focusId));
+            this.icon = item == null ? ItemStack.EMPTY : new ItemStack(item);
             setVisible(true);
         }
         @Override public boolean onClick() { finish(school); return true; }
         @Override public void draw(DrawingContext context) {
             GuiGraphics graphics = context.guiGraphics();
             int x = Math.round(context.x()), y = Math.round(context.y());
-            if (school == original) disc(graphics, x, y, 13, 0xFFEDE2C8);
-            disc(graphics, x, y, 12, 0xFF000000 | school.color);
-            disc(graphics, x, y, 11, 0xFF000000 | tint(school.color, .18F));
-            if (isHovered()) disc(graphics, x, y, 10, 0xFF000000 | tint(school.color, .32F));
-            Component label = school.label();
-            String name = label.getString();
-            if (name.length() >= 8 && font.width(label) > 26 && name.matches("[A-Za-z]+")) {
-                // Long English names stay readable instead of shrinking to one
-                // extremely thin line; both lines remain inside the medallion.
-                int middle = name.length() / 2;
-                text(graphics, Component.literal(name.substring(0, middle)), x, y - 3.3F, 18, 5, 0xFFF4E9);
-                text(graphics, Component.literal(name.substring(middle)), x, y + 3.3F, 18, 5, 0xFFF4E9);
-            } else {
-                text(graphics, label, x, y, 20, 8, 0xFFF4E9);
-            }
+            graphics.renderItem(icon, x - 8, y - 8);
         }
         @Override public void drawTooltips(DrawingContext context) {
-            context.guiGraphics().renderTooltip(font, school.label(), (int) context.x(), (int) context.y());
+            context.guiGraphics().renderTooltip(font, FinalStaffSchoolTooltip.coloredLabel(school), (int) context.x(), (int) context.y());
         }
     }
 
@@ -210,15 +201,4 @@ public final class FinalStaffSchoolScreen extends Screen implements IRadialMenuH
         graphics.pose().popPose();
     }
 
-    private static int tint(int rgb, float amount) {
-        return ((int) (((rgb >> 16) & 255)*amount) << 16)
-                | ((int) (((rgb >> 8) & 255)*amount) << 8) | (int) ((rgb & 255)*amount);
-    }
-
-    private static void disc(GuiGraphics graphics, int x, int y, int radius, int color) {
-        for (int row = -radius; row < radius; row++) {
-            int half = (int) Math.floor(Math.sqrt(radius * radius - (row + .5) * (row + .5)));
-            graphics.fill(x - half, y + row, x + half, y + row + 1, color);
-        }
-    }
 }

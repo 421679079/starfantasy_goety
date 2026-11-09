@@ -1,6 +1,7 @@
 package com.starfantasy.goety.network;
 
 import com.starfantasy.goety.magic.FinalStaffSchool;
+import com.starfantasy.goety.magic.AscianStaffSchool;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -32,17 +33,18 @@ public record ServerboundStaffSchoolPacket(int slot, String school, String previ
         if (packet.slot() != 40 && (packet.slot() < 0 || packet.slot() > 8
                 || packet.slot() != player.getInventory().selected)) return false;
         ItemStack stack = player.getInventory().getItem(packet.slot());
-        if (!FinalStaffSchool.isFinalStaff(stack)
-                || !FinalStaffSchool.get(stack).id.equals(packet.previousSchool())) return false;
+        boolean ascian=AscianStaffSchool.isAscian(stack);
+        if ((!ascian&&!FinalStaffSchool.isFinalStaff(stack))
+                || !(ascian?AscianStaffSchool.get(stack):FinalStaffSchool.get(stack)).id.equals(packet.previousSchool())) return false;
         if (player.isUsingItem()) {
-            player.displayClientMessage(Component.translatable("message.starfantasy_goety.school_casting"), true);
+            player.displayClientMessage(Component.translatable(ascian?"message.starfantasy_goety.ascian_school_casting":"message.starfantasy_goety.school_casting"), true);
             return false;
         }
-        FinalStaffSchool.set(stack, mode);
+        if(ascian)AscianStaffSchool.set(stack,mode);else FinalStaffSchool.set(stack, mode);
         player.getInventory().setChanged();
         player.inventoryMenu.broadcastChanges();
         if (player.containerMenu != player.inventoryMenu) player.containerMenu.broadcastChanges();
-        player.displayClientMessage(Component.translatable("message.starfantasy_goety.school_selected", mode.label()), true);
+        player.displayClientMessage(Component.translatable(ascian?"message.starfantasy_goety.ascian_school_selected":"message.starfantasy_goety.school_selected", mode.label()), true);
         return true;
     }
 }

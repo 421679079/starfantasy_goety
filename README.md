@@ -2,28 +2,18 @@
 
 `Goety:StarFantasy` 是星翼幻想系列的 Minecraft 1.20.1 Forge Goety 扩展模组。
 
+当前公开源码版本：**0.9.1**，运行需要 **Star Fantasy Library 0.2.29 或更高版本**。
+
 ## 主要内容
 
-- 为各头衔使徒提供不同的萌化模型。
-- 下界使徒添加了对应神环的掉落，添加不同头衔使徒的定向召唤配方。
-- 找到冥界教堂，挑战最终 BOSS 亚小妹。
-- 添加更强大的魔杖。
-- 新增一些强大的聚晶。
-- 新增一些有趣的仆从。
-
-当前源码版本：**0.8.42**，运行需要 **Star Fantasy Library 0.2.11 或更高版本**。
+- 为各头衔使徒提供不同的萌化模型、神环掉落与定向召唤配方。
+- 探索新结构，挑战全新的BOSS。
+- 扩展魔杖、聚晶和仆从。
 
 ## 许可证
 
-本项目代码采用 **GPL-3.0-only**，具体以根目录的 [LICENSE](LICENSE) 为准。
-使徒模型来源和原始许可见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
-未收录的 Hades 授权模型及其来源见 [CREDITS.md](CREDITS.md)。
+本项目代码采用 **GPL-3.0-only**，以根目录 [LICENSE](LICENSE) 为准。
+第三方模型、动画、纹理及其他资源保留各自许可，来源见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) 和 [CREDITS.md](CREDITS.md)。
 第三方资源不因放在同一项目中而自动变更原许可。
-
-模型工程与运行资源的对应关系及排除范围见 [SOURCE_SCOPE.md](SOURCE_SCOPE.md)。
-
-## 开发说明
-
-构建脚本与开发 workspace 保持同步，依赖同级 `star_fantasy_library` 项目及完整 workspace 的构建环境。此公开仓库不附带第三方依赖 JAR 或 Hades 专用资源，不是可独立构建完整发行版的源码包。
 
 本项目在开发过程中使用了 AI 辅助工具，请谨慎使用。

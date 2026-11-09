@@ -10,15 +10,17 @@ source = source.replace('public final class FinalStaffSchoolScreen', 'public sta
 fixture = r"""
 import java.util.*;
 public class WheelRegression {
+ static class FinalStaffSchoolTooltip {static Component coloredLabel(FinalStaffSchool school){return school.label();}}
  static int checks;
  static void check(boolean value,String label){checks++;if(!value)throw new AssertionError(label);}
  record Component(String value){String getString(){return value;}static Component literal(String s){return new Component(s);}static Component translatable(String key,Object... args){return new Component(key);}}
  record ResourceLocation(String namespace,String path){}
  static class Font {List<Component> split(Component c,int width){return List.of(c);}int lineHeight=9;int width(Component c){return c.value.length()*6;}}
  static class Pose {void pushPose(){}void popPose(){}void translate(float x,float y,int z){}void scale(float x,float y,int z){}}
- static class GuiGraphics {void drawCenteredString(Font f,Component c,int x,int y,int color){}void renderTooltip(Font f,Object o,int x,int y){}void flush(){}Pose pose(){return new Pose();}void drawString(Font f,Component c,int x,int y,int color,boolean shadow){}void fill(int a,int b,int c,int d,int color){}}
+ static class GuiGraphics {List<ItemStack> icons=new ArrayList<>();int strings,fills;void renderItem(ItemStack s,int x,int y){icons.add(s);}void drawCenteredString(Font f,Component c,int x,int y,int color){strings++;}void renderTooltip(Font f,Object o,int x,int y){}void flush(){}Pose pose(){return new Pose();}void drawString(Font f,Component c,int x,int y,int color,boolean shadow){strings++;}void fill(int a,int b,int c,int d,int color){fills++;}}
  static class RenderSystem {static Pose getModelViewStack(){return new Pose();}static void applyModelViewMatrix(){}static void setShaderColor(int a,int b,int c,int d){}}
- static class ItemStack {final int id;ItemStack(int id){this.id=id;}ItemStack copy(){return new ItemStack(id);}static boolean matches(ItemStack a,ItemStack b){return a.id==b.id;}}
+ static class ItemStack {static final ItemStack EMPTY=new ItemStack(-1);final int id;String focus;ItemStack(int id){this.id=id;}ItemStack(ResourceLocation item){id=item.hashCode();focus=item.path();}ItemStack copy(){return new ItemStack(id);}static boolean matches(ItemStack a,ItemStack b){return a.id==b.id;}}
+ static class ForgeRegistries {static Registry ITEMS=new Registry();static class Registry {ResourceLocation getValue(ResourceLocation id){return id;}}}
  static class Inventory {int selected=2;ItemStack stack=new ItemStack(1);ItemStack getItem(int slot){return stack;}}
  static class Player {boolean alive=true,spectator,using;Inventory inventory=new Inventory();boolean isAlive(){return alive;}boolean isSpectator(){return spectator;}boolean isUsingItem(){return using;}Inventory getInventory(){return inventory;}}
  static class Window {long getWindow(){return 1;}int getScreenWidth(){return 640;}int getScreenHeight(){return 480;}}
@@ -28,13 +30,14 @@ public class WheelRegression {
  record DrawingContext(GuiGraphics guiGraphics,float x,float y){}
  static class GenericRadialMenu {float radiusIn=30,radiusOut=60,itemRadius=45;List<RadialMenuItem> items=new ArrayList<>();boolean ready=true,closed;int hovered=-1,nextHover=-1,mouseX,mouseY;GenericRadialMenu(Minecraft m,ResourceLocation r,IRadialMenuHost h){}void setCentralItem(ItemStack s){}void add(RadialMenuItem i){items.add(i);}void tick(){}boolean isClosed(){return closed;}boolean isReady(){return ready&&!closed;}void close(){closed=true;}void onClickOutside(){}void clickItem(){if(isReady()&&hovered>=0)items.get(hovered).onClick();else onClickOutside();}void cyclePrevious(){}void cycleNext(){}void draw(GuiGraphics g,float f,int x,int y){hovered=nextHover;mouseX=x;mouseY=y;}}
  abstract static class RadialMenuItem {boolean visible;RadialMenuItem(GenericRadialMenu m){}void setVisible(boolean v){visible=v;}boolean isHovered(){return false;}abstract void draw(DrawingContext c);abstract void drawTooltips(DrawingContext c);boolean onClick(){return false;}}
- enum FinalStaffSchool {ILL,NECROMANCY,GEOMANCY,WIND,STORM,FROST,WILD,ABYSS,VOID,NETHER;final String id=name();int color=0xFF00FF;static FinalStaffSchool get(ItemStack s){return NECROMANCY;}Component label(){return new Component(id);}}
+ enum FinalStaffSchool {ILL("vexing_focus"),NECROMANCY("osseous_focus"),GEOMANCY("barricade_focus"),WIND("launch_focus"),STORM("lightning_focus"),FROST("frostborn_focus"),WILD("entangling_focus"),ABYSS("tidal_focus"),VOID("rupture_focus"),NETHER("lavaball_focus");final String id=name(),focusId;FinalStaffSchool(String focus){focusId=focus;}int color=0xFF00FF;static FinalStaffSchool get(ItemStack s){return NECROMANCY;}Component label(){return new Component(id);}}
+ static class AscianStaffSchool {static boolean isAscian(ItemStack stack){return stack.id==2;}static FinalStaffSchool get(ItemStack stack){return FinalStaffSchool.NETHER;}}
  record ServerboundStaffSchoolPacket(int slot,String school,String previousSchool){}
  static class StarFantasyGoetyNetwork {static List<ServerboundStaffSchoolPacket> sent=new ArrayList<>();static void selectStaffSchool(ServerboundStaffSchoolPacket p){sent.add(p);}}
  enum KeyConflictContext {UNIVERSAL}
  static class Modifier {boolean held=true;boolean isActive(KeyConflictContext c){return held;}}
  static class Key {Modifier modifier=new Modifier();Modifier getKeyModifier(){return modifier;}}
- static class FinalStaffSchoolKeys {static Key SWITCH=new Key();}
+ static class FinalStaffSchoolKeys {static Key SWITCH=new Key(),ASCIAN_SWITCH=new Key();}
  static class ClientEvents {static boolean held=true;static boolean isKeyDown0(Key k){return held;}}
  static class GLFW {static void glfwGetCursorPos(long w,double[] x,double[] y){}static void glfwSetCursorPos(long w,double x,double y){}static final int GLFW_KEY_ENTER=257,GLFW_KEY_KP_ENTER=335,GLFW_KEY_RIGHT=262,GLFW_KEY_DOWN=264,GLFW_KEY_TAB=258,GLFW_KEY_LEFT=263,GLFW_KEY_UP=265;}
  SCREEN
@@ -42,6 +45,10 @@ public class WheelRegression {
  static void frame(FinalStaffSchoolScreen s){s.render(new GuiGraphics(),0,0,0);}
  public static void main(String[] args){
   var s=open();check(s.menu.items.size()==10,"ten native entries");check(s.menu.items.stream().allMatch(i->i.visible),"native entries must explicitly be visible");
+  var icons=new GuiGraphics();for(var item:s.menu.items)item.draw(new DrawingContext(icons,100,100));
+  check(icons.icons.size()==10&&icons.strings==0,"ten focus icons replace school text inside buttons");
+  check(icons.fills==0,"focus options draw no custom frames, backgrounds or selected outlines");
+  for(int i=0;i<10;i++)check(icons.icons.get(i).focus.equals(FinalStaffSchool.values()[i].focusId),"each button uses the matching focus item");
   s.menu.nextHover=5;frame(s);check(StarFantasyGoetyNetwork.sent.isEmpty(),"hover alone must not spam updates");
   ClientEvents.held=false;frame(s);check(StarFantasyGoetyNetwork.sent.size()==1,"release commits without a mouse click");check(StarFantasyGoetyNetwork.sent.get(0).school().equals("FROST"),"latest hovered sector committed");frame(s);check(StarFantasyGoetyNetwork.sent.size()==1,"closing animation cannot send twice");
   s=open();s.menu.nextHover=5;frame(s);s.menu.nextHover=-1;ClientEvents.held=false;frame(s);check(StarFantasyGoetyNetwork.sent.isEmpty()&&s.finished,"returning to centre cancels previous hover");
@@ -54,15 +61,19 @@ public class WheelRegression {
   s=open();s.menu.ready=false;ClientEvents.held=false;frame(s);check(!s.finished,"release during opening waits for native animation");s.menu.ready=true;s.menu.nextHover=0;frame(s);check(StarFantasyGoetyNetwork.sent.size()==1,"early release resolves after opening");
   s=open();s.menu.nextHover=2;FinalStaffSchoolKeys.SWITCH.modifier.held=false;frame(s);check(StarFantasyGoetyNetwork.sent.size()==1,"modifier release also confirms");
   s=open();s.menu.nextHover=3;frame(s);s.mouseReleased(0,0,0);check(StarFantasyGoetyNetwork.sent.size()==1,"native left mouse release confirms");
-  s=open();s.width=640;s.height=360;check(s.wheelScale()==1.5F,"normal window scales wheel to 1.5");s.render(new GuiGraphics(),390,180,0);check(s.menu.mouseX==367&&s.menu.mouseY==180,"enlarged icon centre maps to native sector centre");
+  s=open();s.width=640;s.height=360;check(s.wheelScale()==1F,"normal window keeps native focus-wheel size");s.render(new GuiGraphics(),365,180,0);check(s.menu.mouseX==365&&s.menu.mouseY==180,"native icon centre maps directly to its sector centre");
   s.width=320;s.height=180;check(s.wheelScale()<2&&120*s.wheelScale()+52<=180.001,"small window keeps wheel and labels visible");
   s=open();s.width=640;s.height=360;s.configureWheelRadii(s.menu,true);
   check(s.menu.radiusIn*s.wheelScale()==30,"centre dead zone remains original size");
-  check(s.menu.radiusOut*s.wheelScale()==90,"outer radius is 1.5 times original");
-  check(Math.abs(s.menu.itemRadius*s.wheelScale()-70)<.001,"larger icons placed on 70px orbit");
+  check(s.menu.radiusOut*s.wheelScale()==60,"outer radius matches Goety focus wheel");
+  check(Math.abs(s.menu.itemRadius*s.wheelScale()-45)<.001,"icons use native 45px orbit");
   for(float progress:new float[]{.1F,.5F,1}){s.menu.radiusOut=60*progress;s.configureWheelRadii(s.menu,false);check(Math.abs(s.menu.radiusIn*s.wheelScale()-30*progress)<.001,"inner radius follows native animation");}
   s.menu.radiusOut=60;s.configureWheelRadii(s.menu,false);float drawn=s.menu.radiusIn;s.configureWheelRadii(s.menu,true);check(s.menu.radiusIn==drawn,"render and hover dead zones match");
-  for(float radius:new float[]{29,30,31,45,70,89,90}){float nativeRadius=radius/s.wheelScale();check((nativeRadius>=s.menu.radiusIn&&nativeRadius<s.menu.radiusOut)==(radius>=30&&radius<90),"annular hit boundary "+radius);}
+  for(float radius:new float[]{29,30,31,45,59,60}){float nativeRadius=radius/s.wheelScale();check((nativeRadius>=s.menu.radiusIn&&nativeRadius<s.menu.radiusOut)==(radius>=30&&radius<60),"annular hit boundary "+radius);}
+  ClientEvents.held=true;StarFantasyGoetyNetwork.sent.clear();s=new FinalStaffSchoolScreen(2,new ItemStack(2));s.minecraft.player.inventory.stack=new ItemStack(2);s.init();
+  check(s.ascian&&s.original==FinalStaffSchool.NETHER&&s.menu.items.size()==10,"Ascian opens the same ten-icon wheel with Nether default");
+  s.menu.nextHover=8;ClientEvents.held=false;frame(s);
+  check(StarFantasyGoetyNetwork.sent.size()==1&&StarFantasyGoetyNetwork.sent.get(0).school().equals("VOID")&&StarFantasyGoetyNetwork.sent.get(0).previousSchool().equals("NETHER"),"Ascian wheel commits selected real school with correct prior value");
   System.out.println("PASS: "+checks+" real-screen interaction/lifecycle checks (headless API fixtures)");
  }
 }

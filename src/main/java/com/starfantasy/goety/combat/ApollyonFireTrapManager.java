@@ -4,6 +4,7 @@ import com.Polarice3.Goety.common.entities.util.FireBlastTrap;
 import com.Polarice3.Goety.utils.ModDamageSource;
 import com.starfantasy.goety.StarFantasyGoetyMod;
 import net.minecraft.world.entity.Mob;
+import com.starfantasy.goety.network.StarFantasyGoetyNetwork;
 import com.starfantasy.library.vfx.StarFantasyVfx;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -64,13 +65,15 @@ public final class ApollyonFireTrapManager {
                 Math.max(target.m_20186_(), boss.m_20186_()) + 8.0D,
                 target.m_20189_(), Mth.m_14107_(target.m_20185_()), Mth.m_14107_(target.m_20189_()));
         Set<BlockPos> spawned = new LinkedHashSet<>();
-        spawnTrapOnce(boss, base, spawned);
+        List<Vec3> visuals = new ArrayList<>();
+        spawnTrapOnce(boss, base, spawned, visuals);
         for (int distance : CROSS_DISTANCES) {
-            spawnTrapOnce(boss, base.m_82520_(distance, 0.0D, 0.0D), spawned);
-            spawnTrapOnce(boss, base.m_82520_(-distance, 0.0D, 0.0D), spawned);
-            spawnTrapOnce(boss, base.m_82520_(0.0D, 0.0D, distance), spawned);
-            spawnTrapOnce(boss, base.m_82520_(0.0D, 0.0D, -distance), spawned);
+            spawnTrapOnce(boss, base.m_82520_(distance, 0.0D, 0.0D), spawned, visuals);
+            spawnTrapOnce(boss, base.m_82520_(-distance, 0.0D, 0.0D), spawned, visuals);
+            spawnTrapOnce(boss, base.m_82520_(0.0D, 0.0D, distance), spawned, visuals);
+            spawnTrapOnce(boss, base.m_82520_(0.0D, 0.0D, -distance), spawned, visuals);
         }
+        StarFantasyGoetyNetwork.sendFireTraps(boss, visuals);
         PENDING_RINGS.add(new PendingRing(boss, base, RING_DELAY_TICKS));
     }
 
@@ -84,9 +87,11 @@ public final class ApollyonFireTrapManager {
                 target.m_20186_() + 8.0D, target.m_20189_(),
                 Mth.m_14107_(target.m_20185_()), Mth.m_14107_(target.m_20189_()));
         Set<BlockPos> spawned = new LinkedHashSet<>();
+        List<Vec3> visuals = new ArrayList<>();
         for (Vec3 point : pageantTriplePositions(ApollyonSpellSupport.home(boss), center)) {
-            spawnTrapOnce(boss, point, spawned);
+            spawnTrapOnce(boss, point, spawned, visuals);
         }
+        StarFantasyGoetyNetwork.sendFireTraps(boss, visuals);
     }
 
     public static List<Vec3> pageantTriplePositions(Vec3 home, Vec3 first) {
@@ -104,6 +109,8 @@ public final class ApollyonFireTrapManager {
         if (boss == null || !(boss.m_9236_() instanceof ServerLevel level)) {
             return;
         }
+        StarFantasyGoetyNetwork.clearFireTraps(boss);
+        // Retain cleanup for managed traps saved by older builds.
         UUID bossUuid = boss.m_20148_();
         PENDING_RINGS.removeIf(ring -> ring.bossUuid.equals(bossUuid));
         PENDING_TRAPS.removeIf(trap -> trap.bossUuid.equals(bossUuid));
@@ -188,16 +195,18 @@ public final class ApollyonFireTrapManager {
 
     private static void spawnRing(Mob boss, Vec3 base) {
         Set<BlockPos> spawned = new LinkedHashSet<>();
+        List<Vec3> visuals = new ArrayList<>();
         for (int i = 0; i < RING_COUNT; ++i) {
             double angle = Math.PI * 2.0D * i / RING_COUNT;
             spawnTrapOnce(boss, base.m_82520_(
                     Math.cos(angle) * RING_RADIUS,
                     0.0D,
-                    Math.sin(angle) * RING_RADIUS), spawned);
+                    Math.sin(angle) * RING_RADIUS), spawned, visuals);
         }
+        StarFantasyGoetyNetwork.sendFireTraps(boss, visuals);
     }
 
-    private static void spawnTrapOnce(Mob boss, Vec3 desired, Set<BlockPos> spawned) {
+    private static void spawnTrapOnce(Mob boss, Vec3 desired, Set<BlockPos> spawned, List<Vec3> visuals) {
         Level level = boss.m_9236_();
         Vec3 center = groundCenterAt(level, desired.f_82479_, desired.f_82480_ + 8.0D, desired.f_82481_,
                 Mth.m_14107_(desired.f_82479_), Mth.m_14107_(desired.f_82481_));
@@ -210,26 +219,9 @@ public final class ApollyonFireTrapManager {
             StarFantasyVfx.redGroundWarningCircle(
                 boss, center.m_82520_(0.0D, 0.06D, 0.0D), WARNING_TICKS, TRAP_RADIUS);
         }
-        if (spawnVisual(boss, center)) {
-            PENDING_TRAPS.add(new PendingTrap(boss, center, DAMAGE_DELAY_TICKS));
-        }
-    }
-
-    private static boolean spawnVisual(Mob boss, Vec3 center) {
-        if (!(boss.m_9236_() instanceof ServerLevel level)) {
-            return false;
-        }
-
-        FireBlastTrap trap = new FireBlastTrap(level,
-                center.f_82479_, center.f_82480_, center.f_82481_);
-        trap.m_20049_(MANAGED_TRAP_TAG);
-        trap.m_20256_(Vec3.f_82478_);
-        trap.setOwner(boss);
-        trap.setAreaOfEffect(0.0F);
-        trap.setExtraDamage(0.0F);
-        trap.setBurning(0);
-        trap.setImmediate(false);
-        return level.m_7967_(trap);
+        // Damage is server-owned; the client receives only a bounded visual wave.
+        visuals.add(center);
+        PENDING_TRAPS.add(new PendingTrap(boss, center, DAMAGE_DELAY_TICKS));
     }
 
     private static boolean shouldSkip(Mob boss, LivingEntity target) {

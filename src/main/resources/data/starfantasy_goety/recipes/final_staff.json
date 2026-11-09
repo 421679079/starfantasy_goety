@@ -2,47 +2,16 @@
   "type": "goety:ritual",
   "ritual_type": "goety:craft",
   "activation_item": {
-    "item": "starfantasy_goety:halo_of_hades"
+    "item": "starfantasy_goety:ascian_staff"
   },
   "craftType": "magic",
   "soulCost": 1,
   "duration": 10,
   "ingredients": [
     {
-      "item": "goety:nameless_staff"
-    },
-    {
-      "item": "starfantasy_goety:ominous_staff_2"
-    },
-    {
-      "item": "starfantasy_goety:geo_staff_2"
-    },
-    {
-      "item": "starfantasy_goety:wind_staff_2"
-    },
-    {
-      "item": "starfantasy_goety:storm_staff_2"
-    },
-    {
-      "item": "starfantasy_goety:frost_staff_2"
-    },
-    {
-      "item": "starfantasy_goety:wild_staff_2"
-    },
-    {
-      "item": "starfantasy_goety:abyss_staff_2"
-    },
-    {
-      "item": "starfantasy_goety:void_staff_2"
-    },
-    {
-      "item": "starfantasy_goety:nether_staff_2"
-    },
-    {
-      "item": "starfantasy_goety:halo_of_the_profane"
-    },
-    {
-      "item": "starfantasy_goety:halo_of_the_glorious"
+      "type": "forge:partial_nbt",
+      "item": "starfantasy_goety:halo_of_hades",
+      "nbt": "{HadesApostleHalos:[{Slot:0,id:\"starfantasy_goety:halo_of_the_risen\",Count:1b},{Slot:1,id:\"starfantasy_goety:halo_of_the_abhorrent\",Count:1b},{Slot:2,id:\"starfantasy_goety:halo_of_the_defiler\",Count:1b},{Slot:3,id:\"starfantasy_goety:halo_of_the_dark\",Count:1b},{Slot:4,id:\"starfantasy_goety:halo_of_the_great_shadow\",Count:1b},{Slot:5,id:\"starfantasy_goety:halo_of_the_witch_king\",Count:1b},{Slot:6,id:\"starfantasy_goety:halo_of_the_pyre_lord\",Count:1b},{Slot:7,id:\"starfantasy_goety:halo_of_the_profane\",Count:1b},{Slot:8,id:\"starfantasy_goety:halo_of_the_cruel\",Count:1b},{Slot:9,id:\"starfantasy_goety:halo_of_the_terrible\",Count:1b},{Slot:10,id:\"starfantasy_goety:halo_of_the_glorious\",Count:1b},{Slot:11,id:\"starfantasy_goety:halo_of_the_atrocious\",Count:1b}]}"
     }
   ],
   "result": {

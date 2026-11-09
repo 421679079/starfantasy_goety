@@ -1,0 +1,20 @@
+{
+  "name": "Altar of Ascian Desolation",
+  "icon": "starfantasy_goety:ascian_altar",
+  "category": "goety:starfantasy/crafting",
+  "sortnum": 0,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "title": "Altar of Ascian Desolation",
+      "text": "After crafting the ancient altar, place it at the very top of the Nether and interact with it while holding any Apostle halo to summon the oldest being of the Ascian order into this world from another plane."
+    },
+    {
+      "type": "patchouli:crafting",
+      "recipe": "starfantasy_goety:ascian_altar"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "starfantasy_goety:ascian_altar": 1
+  }
+}

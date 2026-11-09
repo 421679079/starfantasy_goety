@@ -19,7 +19,7 @@ public final class UnderworldEyeItem extends Item {
         if (!canOpen(player)) return InteractionResultHolder.fail(stack);
         if(level instanceof ServerLevel server && player instanceof ServerPlayer owner) {
             ServerLevel nether=server.getServer().getLevel(Level.NETHER);
-            if(nether==null || ChurchDestination.get(nether).home()==null) {
+            if(nether==null) {
                 owner.displayClientMessage(Component.translatable("message.starfantasy_goety.underworld_eye.not_found"),true);
                 return InteractionResultHolder.fail(stack);
             }

@@ -1,0 +1,20 @@
+{
+  "name": "无影绝念祭坛",
+  "icon": "starfantasy_goety:ascian_altar",
+  "category": "goety:starfantasy/crafting",
+  "sortnum": 0,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "title": "无影绝念祭坛",
+      "text": "制作出古老祭坛后，将它放置在下界的最上层，手持任意使徒的神环与之交互，就可以从另一位面召唤无影教团最古老的存在降临此世。"
+    },
+    {
+      "type": "patchouli:crafting",
+      "recipe": "starfantasy_goety:ascian_altar"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "starfantasy_goety:ascian_altar": 1
+  }
+}

@@ -20,6 +20,10 @@ public final class ApollyonParticleRegistry {
             PARTICLES.register("apollyon_profane_spell", () -> new SimpleParticleType(true) {
             });
 
+    public static final RegistryObject<SimpleParticleType> ASCIAN_PURPLE_FLAME =
+            PARTICLES.register("ascian_purple_flame", () -> new SimpleParticleType(false) {
+            });
+
     private ApollyonParticleRegistry() {
     }
 

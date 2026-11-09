@@ -45,6 +45,8 @@ public final class StarFantasyGoetyMod {
     public StarFantasyGoetyMod() {
         StarFantasyGoetyNetwork.init();
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON,
+                com.starfantasy.goety.config.AscianKingConfig.SPEC, "starfantasy_goety/ascian_king.toml");
+        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON,
                 com.starfantasy.goety.config.SpellConfig.SPEC, "starfantasy_goety/spell.toml");
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON,
                 com.starfantasy.goety.config.HaloConfig.SPEC, "starfantasy_goety/halo.toml");
@@ -55,11 +57,14 @@ public final class StarFantasyGoetyMod {
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON,
                 com.starfantasy.goety.config.ApostleConfig.SPEC, "starfantasy_goety/apostle.toml");
         IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
+        com.starfantasy.goety.halo.HadesHaloContent.init(modBus);
         com.starfantasy.goety.church.ChurchContent.init(modBus);
         com.starfantasy.goety.magic.guard.GuardFocusContent.init(modBus);
         com.starfantasy.goety.magic.focus.BattleFocusContent.init(modBus);
         ApollyonEntityRegistry.init(modBus);
+        com.starfantasy.goety.registry.AscianKingRegistry.init(modBus);
         ApollyonEffectRegistry.init(modBus);
+        com.starfantasy.goety.registry.StarFantasyEffectRegistry.init(modBus);
         ApollyonParticleRegistry.init(modBus);
         ApollyonSoundRegistry.init(modBus);
         com.starfantasy.goety.registry.ApostleAppearanceSounds.init(modBus);

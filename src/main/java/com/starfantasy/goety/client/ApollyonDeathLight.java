@@ -7,6 +7,7 @@ import com.starfantasy.goety.entity.ApollyonEntity;
 import com.starfantasy.goety.entity.HadesEntity;
 import java.util.Random;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.util.Mth;
 import org.joml.Matrix4f;
 
@@ -23,8 +24,19 @@ final class ApollyonDeathLight {
     private static final int[] HADES_INNER = {190, 75, 255};
     private static final int[] HADES_MID = {105, 20, 220};
     private static final int[] HADES_OUTER = {35, 0, 80};
+    private static final int[] ASCIAN_CORE = {255, 24, 24}, ASCIAN_INNER = {160, 8, 8},
+            ASCIAN_MID = {160, 40, 40}, ASCIAN_OUTER = {255, 64, 64};
 
     private ApollyonDeathLight() {
+    }
+
+    static void renderAscian(com.starfantasy.goety.entity.AscianKingEntity entity, float partialTick,
+                             PoseStack pose, MultiBufferSource buffers) {
+        if (entity.m_21224_()) {
+            // Chaos Monarch uses an 80-tick death but a 200-tick ray clock (about 17 rays at the end).
+            render(entity.f_20919_, 200, partialTick, pose, buffers, 4D, 1F, 60, 432L,
+                    ASCIAN_CORE, ASCIAN_INNER, ASCIAN_MID, ASCIAN_OUTER, true);
+        }
     }
 
     static void renderApollyon(ApollyonEntity entity, float partialTick,
@@ -64,6 +76,15 @@ final class ApollyonDeathLight {
             PoseStack poseStack, MultiBufferSource buffer, double yOffset,
             float scale, int maxBeams, long seed,
             int[] core, int[] inner, int[] mid, int[] outer) {
+        render(deathTicks, durationTicks, partialTick, poseStack, buffer, yOffset, scale,
+                maxBeams, seed, core, inner, mid, outer, false);
+    }
+
+    private static void render(
+            int deathTicks, int durationTicks, float partialTick,
+            PoseStack poseStack, MultiBufferSource buffer, double yOffset,
+            float scale, int maxBeams, long seed,
+            int[] core, int[] inner, int[] mid, int[] outer, boolean monarch) {
         if (deathTicks <= 0) {
             return;
         }
@@ -73,12 +94,13 @@ final class ApollyonDeathLight {
         float fadeOut = Math.min(
                 progress > 0.8F ? (progress - 0.8F) / 0.2F : 0.0F, 1.0F);
         Random random = new Random(seed);
-        VertexConsumer consumer = buffer.m_6299_(ApollyonDeathLightRenderType.get());
+        VertexConsumer consumer = buffer.m_6299_(monarch ? RenderType.m_110502_() : ApollyonDeathLightRenderType.get());
         poseStack.m_85836_();
         poseStack.m_85837_(0.0D, yOffset, 0.0D);
         poseStack.m_85841_(scale, scale, scale);
 
-        int beams = Mth.m_14167_((progress + progress * progress) * (maxBeams * 0.5F));
+        float count = (progress + progress * progress) * (maxBeams * 0.5F);
+        int beams = monarch ? (int)Math.ceil(count) : Mth.m_14167_(count);
         for (int i = 0; i < beams; ++i) {
             poseStack.m_252781_(Axis.f_252529_.m_252977_(random.nextFloat() * 360.0F));
             poseStack.m_252781_(Axis.f_252436_.m_252977_(random.nextFloat() * 360.0F));
@@ -87,8 +109,8 @@ final class ApollyonDeathLight {
             poseStack.m_252781_(Axis.f_252436_.m_252977_(random.nextFloat() * 360.0F));
             poseStack.m_252781_(Axis.f_252403_.m_252977_(
                     random.nextFloat() * 360.0F + progress * 90.0F));
-            float length = random.nextFloat() * 10.0F + 4.0F + fadeOut * 8.0F;
-            float width = random.nextFloat() * 1.2F + 0.65F + fadeOut * 1.5F;
+            float length = random.nextFloat() * (monarch ? 20F : 10F) + (monarch ? 5F : 4F) + fadeOut * (monarch ? 10F : 8F);
+            float width = random.nextFloat() * (monarch ? 2F : 1.2F) + (monarch ? 1F : .65F) + fadeOut * (monarch ? 2F : 1.5F);
             Matrix4f matrix = poseStack.m_85850_().m_252922_();
             int alpha = (int) (255.0F * (1.0F - fadeOut));
             renderCore(consumer, matrix, alpha, core);

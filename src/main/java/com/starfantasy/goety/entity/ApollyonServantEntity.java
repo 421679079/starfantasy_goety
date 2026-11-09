@@ -137,6 +137,7 @@ public final class ApollyonServantEntity extends Summoned implements GeoEntity, 
     private static final EntityDataAccessor<Boolean> PHASE_TRANSITION = SynchedEntityData.m_135353_(ApollyonServantEntity.class, EntityDataSerializers.f_135035_);
     private static final UUID DEFENSIVE_KNOCKBACK = UUID.fromString("08659df8-0da6-43b9-8be4-795962fd5fd8");
     private static final RawAnimation STANDBY_ANIMATION = RawAnimation.begin().thenLoop("standby");
+    private static final RawAnimation SEATED_ANIMATION = RawAnimation.begin().thenLoop("seated_without_throne");
     private final AnimatableInstanceCache animationCache = GeckoLibUtil.createInstanceCache(this);
     private final ApollyonServantTeleport combatTeleport = new ApollyonServantTeleport(this);
     private final List<CastingSpell> remainingPoolSpells = new ArrayList<>();
@@ -798,10 +799,14 @@ public final class ApollyonServantEntity extends Summoned implements GeoEntity, 
         } finally { this.healthProtection.endRestore(); }
     }
 
+    public boolean isSittingOnGoetySeat() {
+        return this.m_20202_() instanceof com.Polarice3.Goety.common.entities.vehicle.SeatEntity;
+    }
+
     @Override public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         controllers.add(new AnimationController<>(this, "standby", 0, state -> {
-            if (!this.isPigVariant() && this.isStaying() && this.m_6084_()) {
-                state.getController().setAnimation(STANDBY_ANIMATION);
+            if (!this.isPigVariant() && this.m_6084_() && (this.isStaying() || this.isSittingOnGoetySeat())) {
+                state.getController().setAnimation(this.isSittingOnGoetySeat() ? SEATED_ANIMATION : STANDBY_ANIMATION);
                 return PlayState.CONTINUE;
             }
             return PlayState.STOP;

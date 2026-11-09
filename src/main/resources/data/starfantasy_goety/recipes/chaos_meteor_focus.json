@@ -1,0 +1,20 @@
+{
+  "type": "goety:ritual",
+  "ritual_type": "goety:craft",
+  "activation_item": {
+    "item": "goety:meteor_shower_focus"
+  },
+  "craftType": "expert_nether",
+  "soulCost": 1,
+  "duration": 10,
+  "ingredients": [
+    { "item": "starfantasy_goety:ascian_mask" },
+    { "item": "starfantasy_goety:halo_of_the_pyre_lord" },
+    { "item": "minecraft:torchflower" },
+    { "item": "minecraft:fire_charge" }
+  ],
+  "result": {
+    "item": "starfantasy_goety:chaos_meteor_focus",
+    "count": 1
+  }
+}

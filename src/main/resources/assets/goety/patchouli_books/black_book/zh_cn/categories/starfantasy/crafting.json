@@ -1,0 +1,7 @@
+{
+  "name": "合成",
+  "description": "这里记录了星翼幻想的合成配方。",
+  "icon": "minecraft:crafting_table",
+  "parent": "goety:starfantasy",
+  "sortnum": 5
+}

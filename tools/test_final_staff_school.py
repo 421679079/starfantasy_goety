@@ -11,6 +11,9 @@ def body(relative):
     return re.sub(r'^(?:package|import) .*;\s*$', '', source, flags=re.M)
 
 school = body('src/mojang/java/com/starfantasy/goety/magic/FinalStaffSchool.java')
+ascian = body('src/mojang/java/com/starfantasy/goety/magic/AscianStaffSchool.java').replace('public final class', 'public static final class')
+type_source=(root/'src/mojang/java/com/starfantasy/goety/mixin/AscianSpellTypeMixin.java').read_text('utf-8')
+type_method=type_source[type_source.index('default boolean typeStaff'):type_source.rindex('}')]
 packet = body('src/mojang/java/com/starfantasy/goety/network/ServerboundStaffSchoolPacket.java')
 priority = body('src/mojang/java/com/starfantasy/goety/magic/FinalStaffPriority.java').replace('public final class', 'public static final class')
 summon = body('src/mojang/java/com/starfantasy/goety/magic/FinalStaffSummonPriority.java').replace('public final class', 'public static final class')
@@ -21,8 +24,15 @@ public class SchoolRegression {
  static int checks;
  static void check(boolean b,String m){checks++;if(!b)throw new AssertionError(m);}
  enum SpellType {NONE,ILL,NECROMANCY,GEOMANCY,WIND,STORM,FROST,WILD,ABYSS,VOID,NETHER}
- record Component(String text){static Component translatable(String key,Object... args){return new Component(key);}}
- static class FinalStaffDarkItem {}
+ static class Style {int color;Style withColor(int c){color=c;return this;}}
+ record Component(String text,Object[] args,Integer color){
+  static Component translatable(String key,Object... args){return new Component(key,args,null);}
+  Component withStyle(java.util.function.UnaryOperator<Style> op){return new Component(text,args,op.apply(new Style()).color);}
+ }
+ interface IWand {List<SpellType> getSpellTypes();}
+ static class FinalStaffDarkItem implements IWand {public List<SpellType> getSpellTypes(){return Arrays.stream(SpellType.values()).filter(t->t!=SpellType.NONE).toList();}}
+ static class AscianStaffItem implements IWand {public List<SpellType> getSpellTypes(){return List.of(SpellType.NETHER);}}
+ interface TestedSpell { TYPE_METHOD }
  static class Tag {Map<String,String> data=new HashMap<>();String getString(String k){return data.getOrDefault(k,"");}void putString(String k,String v){data.put(k,v);}void remove(String k){data.remove(k);}}
  static class ItemStack {Object item;Tag tag;ItemStack(Object i){item=i;}boolean isEmpty(){return item==null;}Object getItem(){return item;}Tag getTag(){return tag;}Tag getOrCreateTag(){if(tag==null)tag=new Tag();return tag;}}
  static class Inventory {int selected=2;int dirty;ItemStack[] slots=new ItemStack[41];Inventory(){Arrays.setAll(slots,i->new ItemStack(null));}ItemStack getItem(int i){return slots[i];}void setChanged(){dirty++;}}
@@ -38,13 +48,29 @@ public class SchoolRegression {
  static class SlimeSummon extends Summoned {SlimeSummon(EntityType<?> t){super(t);}}
  static class EntityType<T extends Entity> {int creates;java.util.function.Function<EntityType<T>,T> factory;T create(ServerLevel w){creates++;return factory.apply(this);}}
  static class Registry {Map<ResourceLocation,EntityType<?>> data=new HashMap<>();EntityType<?> getValue(ResourceLocation k){return data.get(k);}}
- static class ForgeRegistries {static Registry ENTITY_TYPES=new Registry();}
+ static class ForgeRegistries {static Registry ENTITY_TYPES=new Registry();static ItemRegistry ITEMS=new ItemRegistry();}
+ static class ItemRegistry {ResourceLocation getKey(Object item){return item instanceof AscianStaffItem?new ResourceLocation("starfantasy_goety","ascian_staff"):null;}}
  SCHOOL
+ ASCIAN
  PRIORITY
  SUMMON
  PACKET
  public static void main(String[] args){
+  var dynamic=new ItemStack(new AscianStaffItem());var otherDynamic=new ItemStack(dynamic.item);var nativeSpell=new TestedSpell(){};
+  check(AscianStaffSchool.get(dynamic)==FinalStaffSchool.NETHER&&dynamic.tag==null,"Ascian initially Nether without mutating inventory NBT");
+  for(var mode:FinalStaffSchool.values()){
+   AscianStaffSchool.set(dynamic,mode);
+   check(AscianStaffSchool.get(dynamic)==mode&&AscianStaffSchool.get(otherDynamic)==FinalStaffSchool.NETHER,"Ascian selection belongs to one stack only");
+   for(var requested:FinalStaffSchool.values())check(nativeSpell.typeStaff(dynamic,requested.type)==(requested==mode),"only the selected school is effective");
+  }
+  var ascianPlayer=new ServerPlayer();ascianPlayer.inventory.slots[2]=otherDynamic;
+  check(ServerboundStaffSchoolPacket.apply(ascianPlayer,new ServerboundStaffSchoolPacket(2,"frost","nether")),"Ascian server packet accepts a real school change");
+  check(AscianStaffSchool.get(otherDynamic)==FinalStaffSchool.FROST&&ascianPlayer.inventory.dirty==1,"Ascian choice persists and syncs");
+  check(!ServerboundStaffSchoolPacket.apply(ascianPlayer,new ServerboundStaffSchoolPacket(2,"storm","nether")),"stale Ascian prior-school packet rejected");
+  ascianPlayer.casting=true;check(!ServerboundStaffSchoolPacket.apply(ascianPlayer,new ServerboundStaffSchoolPacket(2,"storm","frost")),"cannot change actual school during an active cast");
+  ascianPlayer.casting=false;otherDynamic.getOrCreateTag().putString(AscianStaffSchool.TAG,"bad");check(AscianStaffSchool.get(otherDynamic)==FinalStaffSchool.NETHER,"invalid Ascian data falls back to Nether");
   var sharedItem=new FinalStaffDarkItem();var a=new ItemStack(sharedItem);var b=new ItemStack(sharedItem);
+  for(var requested:FinalStaffSchool.values())check(nativeSpell.typeStaff(a,requested.type),"Final Staff still supplies all ten schools");
   check(FinalStaffSchool.values().length==10,"ten priority choices");
   check(FinalStaffSchool.get(a)==FinalStaffSchool.NECROMANCY&&a.tag==null,"unset stacks default to necromancy without mutation");
   var ordinary=new ItemStack(new Object());
@@ -106,37 +132,36 @@ public class SchoolRegression {
   for(var mode:FinalStaffSchool.values()){
    var request=new ServerboundStaffSchoolPacket(40,mode.id,"necromancy");var buf=new FriendlyByteBuf();ServerboundStaffSchoolPacket.encode(request,buf);
    check(request.equals(ServerboundStaffSchoolPacket.decode(buf)),"bounded packet roundtrip");
+   check(mode.label().color==mode.color,"school labels keep their explicit RGB in server actionbar components");
   }
   System.out.println("PASS: "+checks+" school, per-stack, packet validation and inventory-sync checks");
  }
 }
-'''.replace('SCHOOL', school).replace('PACKET', packet).replace('PRIORITY', priority).replace('SUMMON', summon)
+'''.replace('SCHOOL', school).replace('ASCIAN',ascian).replace('TYPE_METHOD',type_method).replace('PACKET', packet).replace('PRIORITY', priority).replace('SUMMON', summon)
 out = root / 'build' / ('staff-school-check-' + str(time.time_ns()))
 out.mkdir(parents=True)
 (out / 'SchoolRegression.java').write_text(fixture, 'utf-8')
 subprocess.run(['javac', '--release', '17', '-encoding', 'UTF-8', '-d', str(out), str(out/'SchoolRegression.java')], check=True)
 subprocess.run(['java', '-cp', str(out), 'SchoolRegression'], check=True)
 
-# Check enlarged medallions against the new annulus, including small windows.
+# Check bare 16px icons against Goety's native annulus, including small windows.
 screen = (root/'src/mojang/java/com/starfantasy/goety/client/FinalStaffSchoolScreen.java').read_text('utf-8')
-assert 'x, y, 20, 8' in screen and 'Math.min(maxWidth / Math.max(1, font.width(label)), maxHeight / font.lineHeight)' in screen
+assert 'graphics.renderItem(icon, x - 8, y - 8)' in screen
 import math
 for width,height in [(320,180),(320,240),(427,240),(640,360),(854,480),(1920,1080)]:
-    scale=max(.5,min(1.5,(width-24)/120,(height-52)/120))
-    orbit=140/3*scale; outer=60*scale; inner=min(30/scale,40)*scale
+    scale=max(.5,min(1,(width-24)/120,(height-52)/120))
+    orbit=45*scale; outer=60*scale; inner=30*scale
     for i in range(10):
         a=-math.pi/2+i*math.tau/10;x=width//2+math.cos(a)*orbit;y=height//2+math.sin(a)*orbit
-        # Exactly one icon has an extra 1px selection outline.
-        radius=(13 if i==0 else 12)*scale
+        radius=math.hypot(8,8)*scale
         assert 0<x-radius<x+radius<width and 0<y-radius<y+radius<height
         assert orbit-radius>=inner and orbit+radius<=outer
-        assert math.hypot(10,4)<11
-        assert math.hypot(9,5.8)<11
+        assert math.hypot(8,8)<12
         for j in range(i):
-            b=-math.pi/2+j*math.tau/10; previous=(13 if j==0 else 12)*scale
+            b=-math.pi/2+j*math.tau/10; previous=math.hypot(8,8)*scale
             assert math.hypot((math.cos(a)-math.cos(b))*orbit,(math.sin(a)-math.sin(b))*orbit)>radius+previous
 for lang in ['zh_cn','en_us']:
     labels=json.loads((root/f'src/main/resources/assets/starfantasy_goety/lang/{lang}.json').read_text('utf-8'))
     assert len([k for k in labels if k.startswith('school.starfantasy_goety.')])==10
     assert all(labels['school.starfantasy_goety.'+name] for name in re.findall(r'\b[A-Z]+\("([a-z]+)"',school))
-print('PASS: ten localized priority options; native-wheel icons and bounded text at six GUI sizes')
+print('PASS: ten localized priority options; focus icons fit native wheel at six GUI sizes')

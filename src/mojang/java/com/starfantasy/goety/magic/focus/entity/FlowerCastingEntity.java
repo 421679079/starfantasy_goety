@@ -9,6 +9,7 @@ import net.minecraft.network.syncher.*;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.entity.IEntityAdditionalSpawnData;
@@ -55,7 +56,7 @@ public final class FlowerCastingEntity extends Entity implements IEntityAddition
             caster.getPersistentData().putUUID(CAST_TAG, visual.getUUID());
         }
         visual.lastRefresh = level.getGameTime();
-        // Actual wand clock, including cast-speed modifiers; never use the config duration.
+        // Actual cast clock, including cast-speed modifiers, supplied by the spell lifecycle.
         visual.entityData.set(START, level.getGameTime() - ticks);
         visual.entityData.set(DURATION, duration);
     }
@@ -106,7 +107,8 @@ public final class FlowerCastingEntity extends Entity implements IEntityAddition
             if (caster == null || caster.isRemoved() || !caster.isAlive() || caster.level() != level()) {
                 beginFade(); discard(); return;
             }
-            if (!caster.isUsingItem() || level().getGameTime() - lastRefresh > 2) beginFade();
+            if ((caster instanceof Player && !caster.isUsingItem())
+                    || level().getGameTime() - lastRefresh > 2) beginFade();
             setPos(anchor(caster, 1));
             if (entityData.get(END) >= 0 && level().getGameTime() - entityData.get(END) >= FADE_TICKS) discard();
         }

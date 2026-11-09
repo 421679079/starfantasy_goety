@@ -1,5 +1,3 @@
-本公开源码不收录 Hades 专用美术资源；以下鸣谢描述完整模组的授权使用。
-
 # Credits
 
 ## Third-Party Assets
@@ -24,4 +22,14 @@ For Apostle and Apollyon model credits and third-party code notices, see THIRD_P
 - **Reference revision:** bf66895.
 - **Reference:** `src/main/java/com/mega/uom/common/entity/boss/uom/UomWither.java`, including the independent hit-immunity timer and `UomEntityData` health-write limit.
 - **Used for:** The design of Little Apollyon's final health-write guard (the shared Star Fantasy Library combat-health API and the Apollyon entity integration). The implementation uses a scoped data-write hook and this add-on's existing immunity/damage-cap settings. It does not replace the entity's data object or adopt Mhzy's removal/death protection.
-- **License:** MIT; the unmodified upstream notice is included in `src/main/resources/THIRD_PARTY/Mhzy/LICENSE.txt`. Its copyright placeholders are preserved as supplied by upstream.
+- **License:** MIT; the unmodified upstream notice is included in `THIRD_PARTY/Mhzy/LICENSE.txt`. Its copyright placeholders are preserved as supplied by upstream.
+- **Integration and adaptation:** Funits / Goety:StarFantasy.
+
+
+### Marium’s Soulslike Weaponry — Ascian King Animation Adaptation
+
+- **Creator/project:** Marium / mariumbacchus — https://github.com/mariumbacchus/Soulslike-Weaponry
+- **Source:** Chaos Monarch animation, `assets/soulsweapons/animations/entity/chaos_monarch.animation.json` (branch `1.20-1.20.1`).
+- **License:** CC0 1.0 Universal.
+- **Used for:** Base animations adapted to Ascian King's skeleton and combat timing, with additional `attack1`–`attack4` melee clips. The unused `swing_staff` and `spawn` clips are omitted.
+- **Integration and adaptation:** Funits / Goety:StarFantasy. See `THIRD_PARTY_NOTICES.md` for related death-effect credits.

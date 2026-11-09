@@ -1,16 +1,9 @@
 package com.starfantasy.goety.entity;
 
-import com.Polarice3.Goety.client.particles.CircleExplodeParticleOption;
-import com.Polarice3.Goety.client.particles.GatherFrostParticleOption;
-import com.Polarice3.Goety.common.entities.projectiles.IceChunk;
 import com.Polarice3.Goety.init.ModSounds;
-import com.Polarice3.Goety.utils.ColorUtil;
-import com.Polarice3.Goety.utils.ServerParticleUtil;
 import com.starfantasy.goety.registry.ApollyonEntityRegistry;
 import com.starfantasy.goety.config.ApollyonConfig;
 import java.util.UUID;
-import net.minecraft.core.particles.BlockParticleOption;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -23,7 +16,6 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.network.NetworkHooks;
 
@@ -32,7 +24,7 @@ import net.minecraftforge.network.NetworkHooks;
  * translucent-purple rotating formation, rises from Y+4 to Y+6, and drops during
  * the final five warning ticks. The landed blue-ice obstacle is a separate entity.
  */
-public final class ApollyonPageantIceChunkEntity extends IceChunk
+public final class ApollyonPageantIceChunkEntity extends LocalIceChunkEntity
         implements ApollyonPageantOwned {
     private static final int FORMATION_TICKS = 20;
     private static final int RISE_TICKS = 20;
@@ -98,6 +90,7 @@ public final class ApollyonPageantIceChunkEntity extends IceChunk
         }
         this.hovering = Math.min(20,
                 (this.timelineTick + 1) * 20 / FORMATION_TICKS);
+        this.clientFormation();
         if (this.m_9236_().f_46443_) {
             // Run the same deterministic motion on both sides. Entity rendering
             // interpolates between the previous and current positions, including
@@ -139,12 +132,6 @@ public final class ApollyonPageantIceChunkEntity extends IceChunk
         if (this.timelineTick == 0) {
             this.m_5496_((SoundEvent) ModSounds.ICE_CHUNK_IDLE.get(), 2.0F, 1.0F);
         }
-        if (this.timelineTick < FORMATION_TICKS) {
-            ServerParticleUtil.outerCircleParticles(level,
-                    new GatherFrostParticleOption(
-                            this.m_20182_().m_82520_(0.0D, 1.0D, 0.0D)),
-                    this, 8.0F);
-        }
         if (this.timelineTick == this.fallStartTick()) {
             this.m_5496_((SoundEvent) ModSounds.ICE_CHUNK_DROP.get(), 2.0F, 1.0F);
         }
@@ -171,15 +158,8 @@ public final class ApollyonPageantIceChunkEntity extends IceChunk
         if (level == null) {
             return;
         }
-        this.m_5496_((SoundEvent) ModSounds.ICE_CHUNK_HIT.get(), 2.0F, 1.0F);
-        level.m_8767_(new BlockParticleOption(
-                        ParticleTypes.f_123794_, Blocks.f_50354_.m_49966_()),
-                this.m_20185_(), this.groundY + 1.5D, this.m_20189_(),
-                512, 1.5D, 1.5D, 1.5D, 1.0D);
-        level.m_8767_(new CircleExplodeParticleOption(
-                        new ColorUtil(0xFFFFBF), 10.0F, 1),
-                this.m_20185_(), this.groundY, this.m_20189_(),
-                1, 0.0D, 0.0D, 0.0D, 0.5D);
+        this.m_6034_(this.m_20185_(),this.groundY,this.m_20189_());
+        this.impact(2);
     }
 
     @Override

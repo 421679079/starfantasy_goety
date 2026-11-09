@@ -1,9 +1,20 @@
 # 公开源码范围
 
-此仓库同步 Goety 附属的代码、配置默认值和允许公开的运行资源。当前版本为 0.8.42，运行依赖 Star Fantasy Library 0.2.11 或更高版本。
+当前快照为 **0.9.1**，运行依赖 Star Fantasy Library **0.2.29+**。本仓库用于查错和审阅 Goety 附属实现。
 
-`model_sources/apostle` 与 `model_sources/apollyon` 保留可公开的 Blockbench 模型工程；运行模型、贴图和动画位于 `src/main/resources/assets/starfantasy_goety` 下的对应目录。
+## 收录内容
 
-Hades 专用美术资源不收录于公开源码，授权与鸣谢见 CREDITS.md。第三方依赖 JAR、构建产物及本机配置亦不上传。
+- `src/main/java`：主体代码，使用既有 SRG 符号。
+- `src/mojang/java` 与 `src/church/java`：使用官方 Mojang 映射的代码。
+- `src/main/resources`：默认配置相关资源、配方、战利品、翻译、黑暗秘典条目、结构及允许公开的客户端资源。
+- `model_sources/apostle` 与 `model_sources/apollyon`：原有可公开 Blockbench 工程，保留供模型审阅。
+- 构建脚本与此前公开的辅助工具；工具不代表独立完整的开发环境。
+- 许可证、作者鸣谢和第三方声明。无影之王相关改编动画的来源列于第三方声明中。
 
-构建脚本沿用完整 workspace 的项目布局，要求同级 `star_fantasy_library` 以及脚本指定的依赖环境。公开快照不保证独立构建完整发行版；缺失的授权资源需要另行取得。
+## 不收录内容
+
+- Hades 专用授权美术资源；沿用公开仓库现有的 `assets/**/hades*`、`assets/**/*hades*` 排除规则，相关代码仍保留。来源见 [CREDITS.md](CREDITS.md)。
+- 第三方依赖 JAR、编译产物、缓存、游戏实例、存档、个人配置、崩溃日志和开发交接资料。
+- 内部 QA 源码目录、临时预览、音频处理文件及未公开的美术制作流水线。
+
+公开模型工程与运行资源分别位于 `model_sources` 和 `src/main/resources/assets/starfantasy_goety`。

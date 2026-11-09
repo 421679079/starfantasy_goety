@@ -9,7 +9,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import top.theillusivec4.curios.api.CuriosApi;
 
 @Mixin(value = Entity.class, remap = false)
 public abstract class PyreHaloFireMixin {
@@ -32,8 +31,6 @@ public abstract class PyreHaloFireMixin {
         if (!((Object) this instanceof Player player)) {
             return false;
         }
-        return CuriosApi.getCuriosInventory(player).resolve()
-                .flatMap(inventory -> inventory.findFirstCurio(HaloItemRegistry.HALO_OF_THE_PYRE_LORD.get()))
-                .isPresent();
+        return com.starfantasy.goety.combat.HaloProtection.wears(player,HaloItemRegistry.HALO_OF_THE_PYRE_LORD.get());
     }
 }

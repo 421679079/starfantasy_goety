@@ -13,7 +13,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 
 /** Compact, one-shot visual messages owned by this addon. */
 public final class StarFantasyGoetyNetwork {
-    private static final String PROTOCOL = "10";
+    private static final String PROTOCOL = "24";
     private static final double LIGHTNING_TRACKING_RANGE = 256.0D;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -24,6 +24,23 @@ public final class StarFantasyGoetyNetwork {
     }
 
     public static void init() {
+        CHANNEL.messageBuilder(ClientboundAscianIceRingPacket.class, 13, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(ClientboundAscianIceRingPacket::encode).decoder(ClientboundAscianIceRingPacket::decode)
+                .consumerMainThread(ClientboundAscianIceRingPacket::handle).add();
+        CHANNEL.messageBuilder(ClientboundAscianMeteorPacket.class, 12, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(ClientboundAscianMeteorPacket::encode).decoder(ClientboundAscianMeteorPacket::decode)
+                .consumerMainThread(ClientboundAscianMeteorPacket::handle).add();
+        CHANNEL.messageBuilder(ClientboundAscianEffectPacket.class, 11, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(ClientboundAscianEffectPacket::encode).decoder(ClientboundAscianEffectPacket::decode)
+                .consumerMainThread(ClientboundAscianEffectPacket::handle).add();
+        CHANNEL.messageBuilder(ClientboundIceImpactPacket.class, 10, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(ClientboundIceImpactPacket::encode).decoder(ClientboundIceImpactPacket::decode)
+                .consumerMainThread(ClientboundIceImpactPacket::handle).add();
+        CHANNEL.messageBuilder(ClientboundFireTrapWavePacket.class, 9, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(ClientboundFireTrapWavePacket::encode)
+                .decoder(ClientboundFireTrapWavePacket::decode)
+                .consumerMainThread(ClientboundFireTrapWavePacket::handle)
+                .add();
         CHANNEL.messageBuilder(ClientboundApollyonLightningStrikePacket.class, 0,
                         NetworkDirection.PLAY_TO_CLIENT)
                 .encoder(ClientboundApollyonLightningStrikePacket::encode)
@@ -78,6 +95,62 @@ public final class StarFantasyGoetyNetwork {
 
     public static void sendHadesRideInput(ServerboundHadesRidePacket packet) {
         CHANNEL.sendToServer(packet);
+    }
+
+    public static void sendFireTraps(Entity owner, java.util.List<Vec3> centers) {
+        if (centers.isEmpty() || !(owner.m_9236_() instanceof ServerLevel level)) return;
+        Vec3 center = centers.get(0);
+        PacketDistributor.TargetPoint target = new PacketDistributor.TargetPoint(
+                center.f_82479_, center.f_82480_, center.f_82481_, 256.0D, level.m_46472_());
+        CHANNEL.send(PacketDistributor.NEAR.with(() -> target), new ClientboundFireTrapWavePacket(
+                level.m_46472_().m_135782_(), owner.m_20148_(), owner.m_19879_(),
+                level.m_46467_(), level.m_213780_().m_188505_(), centers));
+    }
+    public static void sendAscianMeteorState(Entity owner,ClientboundAscianMeteorPacket packet){
+        CHANNEL.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(()->owner),packet);
+    }
+    public static void sendAscianIceRings(Entity owner,ClientboundAscianIceRingPacket packet){
+        CHANNEL.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(()->owner),packet);
+    }
+    public static void sendAscianIceRings(ServerPlayer player,ClientboundAscianIceRingPacket packet){
+        CHANNEL.send(PacketDistributor.PLAYER.with(()->player),packet);
+    }
+    public static void sendAscianMeteorState(ServerPlayer player,ClientboundAscianMeteorPacket packet){
+        CHANNEL.send(PacketDistributor.PLAYER.with(()->player),packet);
+    }
+    public static void sendAscianEffects(Entity owner,int kind,java.util.List<Vec3> centers){
+        sendAscianEffects(owner,kind,centers,0);
+    }
+    public static void sendAscianEffects(Entity owner,int kind,java.util.List<Vec3> centers,int initialAge){
+        if(!(owner.m_9236_() instanceof ServerLevel level))return;
+        var packet=new ClientboundAscianEffectPacket(level.m_46472_().m_135782_(),owner.m_20148_(),owner.m_19879_(),level.m_46467_()-Math.max(0,initialAge),kind,centers);
+        sendAscianWave(owner,level,packet);
+    }
+    public static void sendAscianMeleeEffects(Entity owner,int phase,int styleOffset,java.util.List<Vec3> centers){
+        if(!(owner.m_9236_() instanceof ServerLevel level))return;
+        sendAscianWave(owner,level,new ClientboundAscianEffectPacket(level.m_46472_().m_135782_(),owner.m_20148_(),owner.m_19879_(),level.m_46467_(),8,centers,phase,styleOffset));
+    }
+    private static void sendAscianWave(Entity owner,ServerLevel level,ClientboundAscianEffectPacket packet){
+        if(packet.kind()==0){CHANNEL.send(PacketDistributor.DIMENSION.with(level::m_46472_),packet);return;}
+        var centers=packet.centers();
+        Vec3 p=centers.isEmpty()?owner.m_20182_():centers.get(0);
+        var target=new PacketDistributor.TargetPoint(p.f_82479_,p.f_82480_,p.f_82481_,256,level.m_46472_());
+        CHANNEL.send(PacketDistributor.NEAR.with(()->target),packet);
+    }
+
+    public static void sendIceImpact(Entity entity,float scale) {
+        if(!(entity.m_9236_() instanceof ServerLevel level))return;
+        Vec3 p=entity.m_20182_();
+        PacketDistributor.TargetPoint target=new PacketDistributor.TargetPoint(p.f_82479_,p.f_82480_,p.f_82481_,128,level.m_46472_());
+        CHANNEL.send(PacketDistributor.NEAR.with(()->target),new ClientboundIceImpactPacket(p,scale,level.m_213780_().m_188505_()));
+    }
+
+    public static void clearFireTraps(Entity owner) {
+        if (!(owner.m_9236_() instanceof ServerLevel level)) return;
+        // All viewers in this dimension must clear, including those who moved away.
+        CHANNEL.send(PacketDistributor.DIMENSION.with(level::m_46472_), new ClientboundFireTrapWavePacket(
+                level.m_46472_().m_135782_(), owner.m_20148_(), owner.m_19879_(),
+                level.m_46467_(), 0L, java.util.List.of()));
     }
 
     public static void selectStaffSchool(ServerboundStaffSchoolPacket packet) {

@@ -21,6 +21,8 @@ public final class SpellConfig {
     public static final ForgeConfigSpec.IntValue FINAL_ART_CAST, FINAL_ART_COOLDOWN, FINAL_ART_SOULS, FINAL_ART_FINAL_HITS;
     public static final ForgeConfigSpec.DoubleValue FINAL_ART_DAMAGE;
     public static final ForgeConfigSpec.BooleanValue FINAL_ART_DAMAGE_ALL_NON_ALLIES;
+    public static final ForgeConfigSpec.IntValue CHAOS_METEOR_CAST, CHAOS_METEOR_COOLDOWN, CHAOS_METEOR_SOULS;
+    public static final ForgeConfigSpec.DoubleValue CHAOS_METEOR_DAMAGE;
     static {
         ForgeConfigSpec.Builder b = new ForgeConfigSpec.Builder();
         b.push("guard_focus");
@@ -33,8 +35,8 @@ public final class SpellConfig {
         GUARD_BLACKLIST = b.comment("以下实体造成的伤害不可格挡。")
                 .defineListAllowEmpty("entity_blacklist", List.of("minecraft:area_effect_cloud", "goety:hellfire"),
                         v -> v instanceof String s && ResourceLocation.tryParse(s) != null);
-        GUARD_INVULNERABILITY = b.comment("格挡成功获得的受击无敌时间，单位tick。")
-                .defineInRange("hurt_invulnerability_ticks", 20, 0, 1200);
+        GUARD_INVULNERABILITY = b.comment("格挡成功获得的额外无敌时间(tick)")
+                .defineInRange("hurt_invulnerability_ticks", 10, 0, 1200);
         GUARD_DAMAGE_REDUCTION = b.comment("格挡减伤比例 1.0为取消伤害")
                 .defineInRange("damage_reduction", 1.0D, 0.0D, 1.0D);
         GUARD_COOLDOWN = b.comment("聚晶冷却时间，单位tick。结束施法时结算；成功格挡则免除冷却。")
@@ -62,6 +64,12 @@ public final class SpellConfig {
         FINAL_ART_DAMAGE = b.comment("每段额外魔法伤害。").defineInRange("damage_per_hit", 10D, 0D, 1000000D);
         FINAL_ART_FINAL_HITS = b.comment("终结爆炸的伤害段数。").defineInRange("final_hit_count", 5, 1, 200);
         FINAL_ART_DAMAGE_ALL_NON_ALLIES = b.comment("黑洞会伤害所有非友方生物").define("damage_all_non_allies", false);
+        b.pop();
+        b.push("chaose_meteor_focus");
+        CHAOS_METEOR_CAST = b.comment("基础施法时间，单位tick。").defineInRange("cast_duration_ticks", 40, 1, 12000);
+        CHAOS_METEOR_COOLDOWN = b.comment("基础冷却，单位tick。").defineInRange("cooldown_ticks", 300, 0, 1728000);
+        CHAOS_METEOR_SOULS = b.comment("基础灵魂消耗。").defineInRange("soul_cost", 250, 0, 100000000);
+        CHAOS_METEOR_DAMAGE = b.comment("每段爆炸的狱火伤害").defineInRange("damage_per_hit", 15D, 0D, 1000000D);
         b.pop();
         SPEC = b.build();
     }

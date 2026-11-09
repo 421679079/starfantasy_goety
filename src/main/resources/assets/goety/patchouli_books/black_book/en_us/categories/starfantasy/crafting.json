@@ -1,0 +1,7 @@
+{
+  "name": "Crafting",
+  "description": "Crafting recipes added by Star Fantasy.",
+  "icon": "minecraft:crafting_table",
+  "parent": "goety:starfantasy",
+  "sortnum": 5
+}

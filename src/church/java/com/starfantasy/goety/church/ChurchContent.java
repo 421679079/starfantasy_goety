@@ -26,6 +26,11 @@ public final class ChurchContent {
             new UnderworldAltarBlock(BlockBehaviour.Properties.copy(Blocks.CHISELED_POLISHED_BLACKSTONE)
                     .strength(-1, 3600000).noLootTable()));
     public static final RegistryObject<Item> ALTAR_ITEM = ITEMS.register("underworld_altar", () -> new BlockItem(ALTAR.get(), new Item.Properties()));
+    public static final RegistryObject<AscianAltarBlock> ASCIAN_ALTAR = BLOCKS.register("ascian_altar", () ->
+            new AscianAltarBlock(BlockBehaviour.Properties.copy(Blocks.CRYING_OBSIDIAN).strength(50,1200)));
+    public static final RegistryObject<Item> ASCIAN_ALTAR_ITEM = ITEMS.register("ascian_altar", () -> new BlockItem(ASCIAN_ALTAR.get(),new Item.Properties().rarity(Rarity.RARE)));
+    public static final RegistryObject<BlockEntityType<AscianAltarEntity>> ASCIAN_ALTAR_ENTITY = BLOCK_ENTITIES.register("ascian_altar", () ->
+            BlockEntityType.Builder.of(AscianAltarEntity::new,ASCIAN_ALTAR.get()).build(null));
     public static final RegistryObject<EternalRespawnAnchorBlock> ETERNAL_RESPAWN_ANCHOR = BLOCKS.register("eternal_respawn_anchor", () ->
             new EternalRespawnAnchorBlock(BlockBehaviour.Properties.copy(Blocks.RESPAWN_ANCHOR).lightLevel(state -> 15)));
     public static final RegistryObject<Item> ETERNAL_RESPAWN_ANCHOR_ITEM = ITEMS.register("eternal_respawn_anchor", () ->

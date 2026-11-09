@@ -23,6 +23,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import top.theillusivec4.curios.api.SlotContext;
+import top.theillusivec4.curios.api.SlotAttribute;
 import top.theillusivec4.curios.api.type.capability.ICurioItem;
 
 /** Apostle and Hades halos worn in Curios' head slot. */
@@ -52,6 +53,9 @@ public final class HaloCurioItem extends Item implements ICurioItem {
         return new HaloCurioItem(new Item.Properties().m_41487_(1), null, true);
     }
 
+    @Override public boolean hasCraftingRemainingItem(ItemStack stack) { return true; }
+    @Override public ItemStack getCraftingRemainingItem(ItemStack stack) { return stack.m_255036_(1); }
+
     @Override
     public boolean m_41386_(net.minecraft.world.damagesource.DamageSource source) {
         return false;
@@ -59,7 +63,7 @@ public final class HaloCurioItem extends Item implements ICurioItem {
 
     @Override
     public boolean canEquip(SlotContext slotContext, ItemStack stack) {
-        return "head".equals(slotContext.identifier());
+        return "head".equals(slotContext.identifier())&&com.starfantasy.goety.combat.HaloEquipRules.allows(slotContext);
     }
 
     @Override
@@ -69,11 +73,28 @@ public final class HaloCurioItem extends Item implements ICurioItem {
                 || player.m_9236_().f_46443_ || !player.m_6084_()) {
             return;
         }
+        if (!hades && HaloProtection.inherited(player, this)) return;
+        applyEffects(player);
+        if (hades) for (Item stored : com.starfantasy.goety.halo.HadesHaloContents.items(stack)) {
+            boolean potions=com.starfantasy.goety.halo.HadesHaloContents.potionsEnabled(stack,stored);
+            if(!potions)HaloPotionEffects.removeOwned(stored,player,com.starfantasy.goety.halo.HadesHaloContents.potionSources(stack));
+            if (stored instanceof HaloCurioItem halo) halo.applyEffects(player,potions);
+        }
+    }
+
+    /** Functional effects only. Curios attributes are never queried for stored halos. */
+    public void applyEffects(Player player) {
+        applyEffects(player,true,false);
+    }
+    public void applyEffects(Player player,boolean potions) {
+        applyEffects(player,potions,true);
+    }
+    public void applyEffects(Player player,boolean potions,boolean inherited) {
         if (this == HaloItemRegistry.HALO_OF_THE_PYRE_LORD.get()) {
             player.m_20095_();
         }
         HaloProtection.clearBlockedEffects(this, player);
-        HaloPotionEffects.apply(this, player);
+        if(potions){if(inherited)HaloPotionEffects.applyInherited(this,player);else HaloPotionEffects.apply(this, player);}
         if (this == HaloItemRegistry.HALO_OF_THE_PROFANE.get()
                 && player.f_19797_ % 20 == 0) {
             FoodData foodData = player.m_36324_();
@@ -85,13 +106,17 @@ public final class HaloCurioItem extends Item implements ICurioItem {
             }
         } else if (this == HaloItemRegistry.HALO_OF_THE_GLORIOUS.get()
                 && player.f_19797_ % 200 == 0) {
-            player.m_7292_(new MobEffectInstance(MobEffects.f_19617_, 300, 0));
+            player.m_7292_(new MobEffectInstance(MobEffects.f_19617_, 300, 0, false, true, false));
         }
     }
 
     @Override
     public void m_7373_(ItemStack stack, Level level, List<Component> tooltip, TooltipFlag flag) {
         super.m_7373_(stack, level, tooltip, flag);
+        if (hades) {
+            tooltip.add(Component.m_237115_("tooltip.starfantasy_goety.halo_of_hades.storage").m_130940_(ChatFormatting.GRAY));
+            com.starfantasy.goety.halo.HadesHaloTooltip.append(stack,tooltip);
+        }
         if (this == HaloItemRegistry.HALO_OF_THE_PROFANE.get()) {
             tooltip.add(Component.m_237115_("tooltip.starfantasy_goety.halo_of_the_profane.food")
                     .m_130940_(ChatFormatting.GREEN));
@@ -119,6 +144,13 @@ public final class HaloCurioItem extends Item implements ICurioItem {
             tooltip.add(Component.m_237115_("tooltip.starfantasy_goety.halo_of_the_great_shadow")
                     .m_130940_(ChatFormatting.GRAY));
         }
+        HaloPotionEffects.appendTooltip(stack, tooltip);
+    }
+
+    @Override public net.minecraft.world.InteractionResultHolder<ItemStack> m_7203_(Level level, Player player, net.minecraft.world.InteractionHand hand) {
+        if (!hades) return super.m_7203_(level, player, hand);
+        com.starfantasy.goety.halo.HadesHaloContent.openHand(player, hand);
+        return net.minecraft.world.InteractionResultHolder.m_19092_(player.m_21120_(hand), level.f_46443_);
     }
 
     @Override
@@ -137,6 +169,10 @@ public final class HaloCurioItem extends Item implements ICurioItem {
                     modifier(slotUuid, "school_cooldown_reduction", COOLDOWN_REDUCTION,
                             AttributeModifier.Operation.MULTIPLY_TOTAL));
         } else if (this.hades) {
+            if ("head".equals(slotContext.identifier()) && !slotContext.cosmetic()) {
+                modifiers.put(SlotAttribute.getOrCreate("head"),
+                        modifier(slotUuid, "head_slot", 1, AttributeModifier.Operation.ADDITION));
+            }
             modifiers.put(
                     SpellAttributeRegistry.SPELL_POWER.get(),
                     modifier(slotUuid, "spell_power", SPELL_POWER,

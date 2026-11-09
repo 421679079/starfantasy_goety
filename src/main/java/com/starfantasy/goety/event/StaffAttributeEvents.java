@@ -71,6 +71,10 @@ public final class StaffAttributeEvents {
             StaffAttributeEvents.addModifier(event, SpellAttributeRegistry.SPELL_POWER.get(), (Double)StaffConfig.FINAL_SPELL_POWER.get(), id, "spell_power", AttributeModifier.Operation.ADDITION);
             StaffAttributeEvents.addModifier(event, SpellAttributeRegistry.COOLDOWN_REDUCTION.get(), (Double)StaffConfig.FINAL_COOLDOWN_REDUCTION.get(), id, "cooldown_reduction", AttributeModifier.Operation.MULTIPLY_TOTAL);
         }
+        if (StaffItemRegistry.ASCIAN_STAFF.equals(id)) {
+            addModifier(event,SpellAttributeRegistry.SPELL_POWER.get(),StaffConfig.ASCIAN_SPELL_POWER.get(),id,"spell_power",AttributeModifier.Operation.ADDITION);
+            addModifier(event,SpellAttributeRegistry.COOLDOWN_REDUCTION.get(),StaffConfig.ASCIAN_COOLDOWN_REDUCTION.get(),id,"cooldown_reduction",AttributeModifier.Operation.MULTIPLY_TOTAL);
+        }
     }
 
     private static void addModifier(ItemAttributeModifierEvent event, Attribute attribute, double value, ResourceLocation itemId, String key, AttributeModifier.Operation operation) {

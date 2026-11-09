@@ -9,17 +9,18 @@ import com.Polarice3.Goety.common.magic.SpellStat;
 import java.util.List;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.Level;
 import com.starfantasy.goety.magic.focus.entity.FlowerCastingEntity;
 
 /** Normal Goety casts; results launch independent server-owned timelines. */
-public final class BattleFocusSpell implements ISpell {
-    public static final BattleFocusSpell FLOWER = new BattleFocusSpell(true);
-    public static final BattleFocusSpell EVERNIGHT = new BattleFocusSpell(false);
+public abstract class BattleFocusSpell implements ISpell {
+    public static final BattleFocusSpell FLOWER = new BloomsAndPlumesSpell();
+    public static final BattleFocusSpell EVERNIGHT = new EvernightSpell();
     private final boolean flower;
-    private BattleFocusSpell(boolean flower) { this.flower = flower; }
+    protected BattleFocusSpell(boolean flower) { this.flower = flower; }
     @Override public int defaultSoulCost() {
         return flower ? SpellConfig.FLOWER_SOULS.get() : SpellConfig.EVERNIGHT_SOULS.get();
     }
@@ -39,7 +40,11 @@ public final class BattleFocusSpell implements ISpell {
         if (!flower) ISpell.super.useParticle(level, caster, staff);
     }
     @Override public void useSpell(ServerLevel level, LivingEntity caster, ItemStack staff, int ticks, SpellStat stats) {
-        if (flower) FlowerCastingEntity.refresh(level, caster, ticks, staff.getUseDuration());
+        if (flower) {
+            int duration = caster instanceof Player && caster.isUsingItem() && caster.getUseItem() == staff
+                    ? staff.getUseDuration() : castDuration(caster, staff);
+            FlowerCastingEntity.refresh(level, caster, ticks, duration);
+        }
     }
     @Override public void stopSpell(ServerLevel level, LivingEntity caster, ItemStack staff, ItemStack focus, int ticks, SpellStat stats) {
         if (flower) FlowerCastingEntity.finish(level, caster);

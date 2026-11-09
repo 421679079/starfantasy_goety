@@ -2,13 +2,10 @@ package com.starfantasy.goety.entity;
 
 import net.minecraft.world.entity.Mob;
 import com.starfantasy.goety.combat.ApollyonSpellSupport;
-import com.Polarice3.Goety.client.particles.GatherFrostParticleOption;
 import com.Polarice3.Goety.common.effects.GoetyEffects;
-import com.Polarice3.Goety.common.entities.projectiles.IceChunk;
 import com.Polarice3.Goety.init.ModSounds;
 import com.Polarice3.Goety.utils.ModDamageSource;
 import com.starfantasy.goety.combat.ApollyonDamageSources;
-import com.Polarice3.Goety.utils.ServerParticleUtil;
 import com.starfantasy.library.vfx.StarFantasyVfx;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
@@ -24,7 +21,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 /** Goety IceChunk visuals with Apollyon-owned movement, warning and frozen damage. */
-public final class ApollyonIceChunkEntity extends IceChunk {
+public final class ApollyonIceChunkEntity extends LocalIceChunkEntity {
     private static final float FROST_DAMAGE = 30.0F;
     private static final int STUN_DURATION_TICKS = 40;
     private static final int FORMATION_TICKS = 15;
@@ -69,10 +66,9 @@ public final class ApollyonIceChunkEntity extends IceChunk {
 
     @Override
     public void m_8119_() {
+        this.clientFormation();
         if (this.timelineTick >= NATIVE_IMPACT_TICK) {
-            // Enter Goety's native collision/impact path only for the final fall.
-            // This preserves its hit sound, ice burst, shock and AoE shape while
-            // damageTargets below keeps damage ownership in this addon.
+            // Keep the original circular damage plane; clients receive one impact message.
             this.hovering = 101;
             if (!this.m_9236_().f_46443_ && !this.customImpactApplied) {
                 this.customImpactApplied = true;
@@ -84,7 +80,8 @@ public final class ApollyonIceChunkEntity extends IceChunk {
             } else if (this.m_20184_().f_82480_ > -TRACKING_HEIGHT / FALL_TICKS) {
                 this.m_20256_(new Vec3(0.0D, -TRACKING_HEIGHT / FALL_TICKS, 0.0D));
             }
-            super.m_8119_();
+            this.m_6034_(this.m_20185_(), this.groundY, this.m_20189_());
+            if (!this.m_9236_().f_46443_) { this.impact(1); this.m_146870_(); }
             ++this.timelineTick;
             return;
         }
@@ -177,11 +174,6 @@ public final class ApollyonIceChunkEntity extends IceChunk {
         }
         if (this.timelineTick == 0) {
             this.m_5496_((SoundEvent) ModSounds.ICE_CHUNK_IDLE.get(), 1.0F, 1.0F);
-        }
-        if (this.timelineTick < FORMATION_TICKS) {
-            ServerParticleUtil.outerCircleParticles(level,
-                    new GatherFrostParticleOption(this.m_20182_().m_82520_(0.0D, 1.0D, 0.0D)),
-                    this, 4.0F);
         }
         if (this.timelineTick == TRACKING_END_TICK) {
             Entity owner = this.m_269323_();

@@ -37,7 +37,9 @@ public final class ApollyonServantGeoModel extends GeoModel<ApollyonServantEntit
     @Override public void setCustomAnimations(ApollyonServantEntity entity, long id,
                                               AnimationState<ApollyonServantEntity> state) {
         if (entity.isPigVariant()) return;
-        boolean seated = entity.isStaying() && entity.m_6084_();
+        boolean seated = (entity.isStaying() || entity.isSittingOnGoetySeat()) && entity.m_6084_();
+        // Both sitting animations own the pose. The external-seat animation scales
+        // Throne to zero; ordinary standby restores it to one.
         this.getBone("Throne").ifPresent(bone -> bone.setHidden(!seated));
         if (seated) return;
         // Sitting animates the root, skirt, hair and lower legs as well as arms.

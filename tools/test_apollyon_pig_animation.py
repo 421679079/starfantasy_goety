@@ -16,7 +16,7 @@ with ZipFile(gecko) as jar:
     (out / 'mclib.jar').write_bytes(jar.read('META-INF/jarjar/mclib-20.jar'))
 # The build's broad compile path also contains older Minecraft libraries. Use 1.20.1's
 # FastUtil first when executing GeckoLib (8.2.1 lacks ObjectArrayList.of).
-fastutil = Path('D:/MC/.minecraft/libraries/it/unimi/dsi/fastutil/8.5.9/fastutil-8.5.9.jar')
+fastutil = Path(__import__('os').environ['STARFANTASY_MC_ROOT']) / 'libraries/it/unimi/dsi/fastutil/8.5.9/fastutil-8.5.9.jar'
 classpath = os.pathsep.join((str(out), str(out / 'mclib.jar'), str(fastutil), classpath))
 stub = out / 'com/starfantasy/goety/entity/ApollyonServantEntity.java'
 stub.parent.mkdir(parents=True)

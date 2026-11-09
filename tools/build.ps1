@@ -2,7 +2,7 @@
 param(
     [string]$MinecraftRoot = $env:STARFANTASY_MC_ROOT,
     [string]$GradlePath = $env:STARFANTASY_GRADLE,
-    [string]$Version = '0.8.42'
+    [string]$Version = '0.9.1'
 )
 
 $ErrorActionPreference = 'Stop'

@@ -1,6 +1,5 @@
 package com.starfantasy.goety.client;
 
-import com.Polarice3.Goety.client.render.IceChunkRenderer;
 import com.Polarice3.Goety.client.render.BlossomThornRenderer;
 import com.starfantasy.goety.StarFantasyGoetyMod;
 import com.starfantasy.goety.registry.ApollyonParticleRegistry;
@@ -31,8 +30,12 @@ public final class ClientModEvents {
 
     @SubscribeEvent
     public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
+        event.registerEntityRenderer(com.starfantasy.goety.registry.AscianKingRegistry.ASCIAN_KING.get(), AscianKingRenderer::new);
+        event.registerEntityRenderer(com.starfantasy.goety.registry.AscianKingRegistry.PROJECTILE.get(), AscianProjectileRenderer::new);
+        event.registerEntityRenderer(com.starfantasy.goety.registry.AscianKingRegistry.PHANTOM_BLADE.get(), AscianPhantomBladeRenderer::new);
+        event.registerEntityRenderer(com.starfantasy.goety.registry.AscianKingRegistry.VOID_RIFT.get(), AscianVoidRiftRenderer::new);
         event.registerEntityRenderer(com.Polarice3.Goety.common.entities.ModEntityType.APOSTLE.get(),
-                com.starfantasy.goety.client.apostle.ConfigurableApostleRenderer::new);
+                com.starfantasy.goety.client.apostle.ApostleRendererFactory::create);
         event.registerEntityRenderer(ApollyonEntityRegistry.APOSTLE_FANG.get(), ApostleFangRenderer::new);
         event.registerEntityRenderer(ApollyonEntityRegistry.APOLLYON_FANG.get(), ApostleFangRenderer::new);
         event.registerEntityRenderer(ApollyonEntityRegistry.APOSTLE_METEOR.get(), ApostleMeteorRenderer::new);
@@ -56,8 +59,8 @@ public final class ClientModEvents {
                 ApollyonEntityRegistry.HADES_DIVE_RAY_LASER.get(),
                 HadesDiveRayLaserRenderer::new);
         event.registerEntityRenderer(
-                ApollyonEntityRegistry.APOLLYON_ICE_CHUNK.get(), IceChunkRenderer::new);
-        event.registerEntityRenderer(ApollyonEntityRegistry.APOSTLE_ICE_CHUNK.get(), IceChunkRenderer::new);
+                ApollyonEntityRegistry.APOLLYON_ICE_CHUNK.get(), LocalIceChunkRenderer::new);
+        event.registerEntityRenderer(ApollyonEntityRegistry.APOSTLE_ICE_CHUNK.get(), LocalIceChunkRenderer::new);
         event.registerEntityRenderer(
                 ApollyonEntityRegistry.APOLLYON_SECTOR_EFFECT.get(),
                 ApollyonSectorEffectRenderer::new);
@@ -132,6 +135,8 @@ public final class ClientModEvents {
 
     @SubscribeEvent
     public static void registerParticleProviders(RegisterParticleProvidersEvent event) {
+        event.registerSpriteSet(ApollyonParticleRegistry.ASCIAN_PURPLE_FLAME.get(),
+                AscianDeathFlameProvider::new);
         event.registerSpriteSet(ApollyonParticleRegistry.CASTING_SMOKE.get(),
                 ApollyonCastingSmokeParticle.Provider::new);
         event.registerSpriteSet(ApollyonParticleRegistry.PROFANE_SPELL.get(),

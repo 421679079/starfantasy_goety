@@ -13,7 +13,7 @@ EXPECTED = {
     "blooms_and_plumes_focus": ("magic", "goety:sonic_boom_focus", [
         "starfantasy_goety:halo_of_hades", "goety:arrow_rain_focus", "goety:mystic_core", "goety:corruption_focus"]),
     "evernight_focus": ("necroturgy", "goety:ghost_fire_focus", [
-        "starfantasy_goety:halo_of_the_risen", "minecraft:wither_rose", "minecraft:wither_rose", "goety:cryptic_eye"]),
+        "starfantasy_goety:halo_of_the_risen", "starfantasy_goety:ascian_mask", "minecraft:wither_rose", "goety:cryptic_eye"]),
 }
 
 

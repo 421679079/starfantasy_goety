@@ -31,6 +31,9 @@ methods = '\n'.join(method(entity, m) for m in [
     'protected void m_6475_(',
     'public float clampFinalDamage(',
 ])
+# This fixture supplies ordinary generic sources only. Keep kill-source normalization
+# at an identity boundary here; the real entity/kill path is covered by ChurchFixTests.
+methods = methods.replace('com.starfantasy.goety.combat.ApollyonDamageRules', 'ApollyonDamageRules')
 fixture = r'''
 import com.starfantasy.library.combat.*;
 public class CombatHealthRegression {
@@ -46,6 +49,9 @@ public class CombatHealthRegression {
  }
  static class Mth {static double m_14008_(double a,double b,double c){return Math.max(b,Math.min(c,a));}}
  static class DamageSource {Object m_7639_(){return this;}}
+ static class ApollyonDamageRules {
+  static DamageSource ordinaryKill(Object victim,DamageSource source,float amount){return source;}
+ }
  static class Level extends net.minecraft.world.level.Level {}
  static class Pageant {boolean protectedNow;boolean isInvulnerable(){return protectedNow;}}
  static abstract class Base extends net.minecraft.world.entity.LivingEntity {

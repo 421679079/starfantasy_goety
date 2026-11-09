@@ -40,6 +40,7 @@ import com.starfantasy.library.vfx.StarFantasyVfx;
 import com.starfantasy.library.combat.StarFantasyTrueKillHelper;
 import com.starfantasy.library.vfx.entity.GroundRectangleWarningEntity;
 import com.starfantasy.library.vfx.particle.WarningColor;
+import com.starfantasy.library.vfx.particle.GroundWarningDecoration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.ArrayList;
@@ -869,7 +870,8 @@ public final class ApollyonPageantController {
             }
             StarFantasyVfx.groundWarningCircleOwnedStatic(
                     this.boss, this.boss.arenaHomePosition().m_82520_(0.0D, 0.06D, 0.0D),
-                    GLORIOUS_CAST_TICKS, ApollyonEntity.ARENA_RADIUS, WarningColor.YELLOW);
+                    GLORIOUS_CAST_TICKS, ApollyonEntity.ARENA_RADIUS, WarningColor.YELLOW,
+                    GroundWarningDecoration.OUTWARD_ARROWS);
             Component message = Component.m_237115_(
                     "message.starfantasy_goety.apollyon.glorious_warning")
                     .m_130940_(ChatFormatting.YELLOW);
@@ -878,6 +880,7 @@ public final class ApollyonPageantController {
                 player.m_213846_(message);
             }
         }
+        this.updateGloriousDeath(level);
         int gloriousCastAge = this.stateTicks - GLORIOUS_SUMMON_TICK;
         if (gloriousCastAge > 0 && gloriousCastAge < GLORIOUS_CAST_TICKS
                 && gloriousCastAge % GLORIOUS_CAST_SOUND_INTERVAL == 0) {
@@ -926,8 +929,6 @@ public final class ApollyonPageantController {
                 0.1D, 10, ApollyonEntity.ARENA_RADIUS);
         ApollyonGloriousSphereEntity.spawn(this.boss, home.m_82520_(0.0D, 1.0D, 0.0D));
 
-        boolean reducedKnockback = glorious != null
-                && glorious.m_21223_() <= glorious.m_21233_() * 0.1F;
         this.gloriousSlides.clear();
         for (LivingEntity player : this.arenaLivingTargets(level)) {
             double dx = player.m_20185_() - home.f_82479_;
@@ -935,9 +936,7 @@ public final class ApollyonPageantController {
             double distance = Math.sqrt(dx * dx + dz * dz);
             double directionX = distance > 1.0E-7D ? dx / distance : 1.0D;
             double directionZ = distance > 1.0E-7D ? dz / distance : 0.0D;
-            double knockDistance = reducedKnockback
-                    ? Math.max(0.0D, ApollyonEntity.ARENA_RADIUS - distance) * 0.8D
-                    : GLORIOUS_FAILURE_KNOCK_DISTANCE;
+            double knockDistance = gloriousKnockDistance(glorious, distance);
             this.gloriousSlides.put(player.m_20148_(), new PlayerSlide(
                     directionX, directionZ, knockDistance));
             player.m_20256_(Vec3.f_82478_);
@@ -960,6 +959,27 @@ public final class ApollyonPageantController {
                     this.boss, this.actorPositions[i], GLORIOUS_DEPART_TICK - GLORIOUS_RESOLVE_TICK);
         }
         this.playSummonStartSound(level, home);
+    }
+
+    private static double gloriousKnockDistance(ApollyonPageantApostleEntity glorious, double distance) {
+        boolean safe = glorious == null || !glorious.m_6084_() || !(glorious.m_21223_() > 0.0F)
+                || glorious.m_21223_() <= glorious.m_21233_() * 0.1F;
+        return safe ? Math.max(0.0D, ApollyonEntity.ARENA_RADIUS - distance) * 0.8D
+                : GLORIOUS_FAILURE_KNOCK_DISTANCE;
+    }
+
+    private void updateGloriousDeath(ServerLevel level) {
+        if (this.gloriousUuid == null) return;
+        ApollyonPageantApostleEntity glorious = actor(level, this.gloriousUuid);
+        if (glorious != null && glorious.m_6084_() && glorious.m_21223_() > 0.0F) return;
+        if (glorious != null) {
+            this.departActor(level, this.gloriousUuid);
+        } else {
+            // Removed entities no longer have a position to query; Glory stands at the arena home.
+            this.playDepartureEffect(level, this.boss.arenaHomePosition());
+            this.spawnDepartedHalo(level, this.boss.arenaHomePosition(), ApollyonPageantApostleEntity.GLORIOUS);
+        }
+        this.gloriousUuid = null; // Also prevents duplicate departure effects at the scheduled end.
     }
 
     private void tickGloriousSlides(int slideTick) {
@@ -1576,7 +1596,7 @@ public final class ApollyonPageantController {
                 this.boss,
                 this.boss.arenaHomePosition().m_82520_(0.0D, 0.06D, 0.0D),
                 fourthAtrociousWarningTicks(), ApollyonEntity.ARENA_RADIUS,
-                WarningColor.YELLOW);
+                WarningColor.YELLOW, GroundWarningDecoration.OUTWARD_ARROWS);
         this.sendPageantMessage(
                 players,
                 "message.starfantasy_goety.apollyon.fourth_stage_warning",

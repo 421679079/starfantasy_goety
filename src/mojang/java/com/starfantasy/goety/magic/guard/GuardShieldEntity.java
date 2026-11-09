@@ -32,8 +32,7 @@ public final class GuardShieldEntity extends Entity {
         super.tick();
         LivingEntity owner = owner();
         if (owner != null) setPos(owner.getEyePosition().add(owner.getLookAngle().scale(1.5D)));
-        if (!level().isClientSide && (owner == null || !owner.isAlive() || !owner.isUsingItem()
-                || !GuardChannel.isGuardStaff(owner.getUseItem()))) discard();
+        if (!level().isClientSide && (owner == null || !GuardChannel.isActive(owner))) discard();
     }
     @Override protected void readAdditionalSaveData(CompoundTag tag) {}
     @Override protected void addAdditionalSaveData(CompoundTag tag) {}

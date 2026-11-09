@@ -6,7 +6,8 @@ import net.minecraftforge.common.ForgeConfigSpec;
 /** Common combat tuning for Apollyon. */
 public final class ApollyonConfig {
     private static final List<String> DEFAULT_DEATH_DROPS = List.of(
-            "starfantasy_goety:halo_of_hades");
+            "starfantasy_goety:halo_of_hades", "minecraft:netherite_block:1-2", "minecraft:netherite_ingot:4-18",
+            "goety:night_beacon:1", "goety:unholy_blood:6{Pure:1b}", "minecraft:nether_star:4-8");
 
     public static final double DEFAULT_BOSS_HEALTH = 666.0D;
     public static final double DEFAULT_ARMOR = 8.0D;

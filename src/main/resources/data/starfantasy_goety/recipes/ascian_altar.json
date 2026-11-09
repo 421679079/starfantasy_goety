@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "OOO",
+    "ONO",
+    "OOO"
+  ],
+  "key": {
+    "O": {
+      "item": "minecraft:crying_obsidian"
+    },
+    "N": {
+      "item": "minecraft:nether_star"
+    }
+  },
+  "result": {
+    "item": "starfantasy_goety:ascian_altar"
+  }
+}

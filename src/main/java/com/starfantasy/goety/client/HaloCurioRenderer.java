@@ -15,12 +15,14 @@ import org.joml.Matrix4f;
 import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.client.ICurioRenderer;
 
-/** The original model's halo texture on a fixed, double-sided plane behind the head. */
+/** Original halo artwork; apostle pose follows UnholyHatModel, Hades retains its eye mount. */
 public final class HaloCurioRenderer implements ICurioRenderer {
     private final ResourceLocation texture;
     private final float u0, v0, u1, v1, width, height;
+    private final boolean hades;
 
     public HaloCurioRenderer(String id) {
+        hades=id.equals("halo_of_hades");
         if (id.equals("halo_of_hades")) {
             texture = new ResourceLocation("starfantasy_goety", "textures/entity/hades/hades.png");
             // hades_apollyon_eye_halo: use its original 47 x 19 atlas region and aspect ratio.
@@ -36,7 +38,7 @@ public final class HaloCurioRenderer implements ICurioRenderer {
             // All twelve halo1 planes use UV (192, 0), size (64, 64), on their own entity atlas.
             u0 = 192F / atlasWidth; v0 = 0;
             u1 = 256F / atlasWidth; v1 = 64 / 512F;
-            width = height = 12 / 16F;
+            width = height = 1F;
         }
     }
 
@@ -48,22 +50,43 @@ public final class HaloCurioRenderer implements ICurioRenderer {
         if (!context.visible() || !(parent.m_7200_() instanceof HeadedModel headModel)) return;
         pose.m_85836_();
         headModel.m_5585_().m_104299_(pose);
-        // Apostle a_head -> halo: pivot delta (0, +12, +5) in Bedrock model units.
-        // Minecraft's model Y points down; +Z stays behind the head. No bob, tilt or spin.
-        pose.m_85837_(0, -12 / 16D, 5 / 16D);
+        renderAtHead(context.entity(),partialTick,pose,buffer,stack);
+        pose.m_85849_();
+    }
+
+    public void renderAtHead(LivingEntity entity,float partialTick,PoseStack pose,MultiBufferSource buffer,ItemStack stack) {
+        // Hades keeps its old mount. Only apostle halos adopt the reference tilt and spin.
+        if(hades)pose.m_85837_(0, -12 / 16D, 5 / 16D);
+        else com.starfantasy.goety.halo.client.ApostleHaloPose.apply(pose,entity.f_19797_+partialTick);
+        renderMesh(entity,partialTick,pose,buffer);
+        if(hades)com.starfantasy.goety.halo.client.HadesHaloOrbitRenderer.render(stack,entity.f_19797_+partialTick,pose,buffer,width,height);
+    }
+
+    public void renderYsm(LivingEntity entity,float partialTick,PoseStack pose,MultiBufferSource buffer,
+                          com.starfantasy.goety.halo.client.HaloYsmMount.Frames frames,ItemStack stack) {
+        com.starfantasy.goety.halo.client.HaloYsmMount.apply(pose,frames,hades);
+        if(!hades){
+            com.starfantasy.goety.halo.client.ApostleHaloPose.apply(pose,entity.f_19797_+partialTick);
+            float size=com.starfantasy.goety.halo.client.HaloYsmMount.APOSTLE_SIZE;
+            pose.m_85841_(size,size,size);
+        }
+        renderMesh(entity,partialTick,pose,buffer);
+        if(hades)com.starfantasy.goety.halo.client.HadesHaloOrbitRenderer.render(stack,entity.f_19797_+partialTick,pose,buffer,width,height);
+    }
+
+    private void renderMesh(LivingEntity entity,float partialTick,PoseStack pose,MultiBufferSource buffer) {
         Matrix4f matrix = pose.m_85850_().m_252922_();
         Matrix3f normal = pose.m_85850_().m_252943_();
         strip(buffer.m_6299_(HaloCurioRenderType.get(texture, false)), matrix, normal, 0, 1, 1, 1);
 
         // At most two coplanar strips brighten the same UVs. No new texture, mesh or particles.
-        float time = context.entity().f_19797_ + partialTick;
+        float time = entity.f_19797_ + partialTick;
         float center = (time % 120) / 120F * 1.4F - 0.2F;
         if (center + 0.16F > 0 && center - 0.16F < 1) {
             VertexConsumer glow = buffer.m_6299_(HaloCurioRenderType.get(texture, true));
             strip(glow, matrix, normal, center - 0.16F, center, 0, 0.55F);
             strip(glow, matrix, normal, center, center + 0.16F, 0.55F, 0);
         }
-        pose.m_85849_();
     }
 
     private void strip(VertexConsumer out, Matrix4f matrix, Matrix3f normal,
