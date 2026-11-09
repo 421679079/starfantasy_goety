@@ -79,6 +79,10 @@ public final class AscianCombatController {
         long spellEpoch=spells.epoch();
         LivingEntity castTarget=boss.m_5448_();
         if(castTarget==null||skip(castTarget))spells.stopCasting();
+        else for(ServerPlayer player:players()) {
+            if(player.m_20280_(boss)<=AscianCombatTuning.DEBUFF_RADIUS*AscianCombatTuning.DEBUFF_RADIUS)
+                com.starfantasy.goety.combat.ApollyonArenaFlight.suppressFlight(player);
+        }
         ensurePosture();
         if(transitioning()) {
             ++transitionAge;

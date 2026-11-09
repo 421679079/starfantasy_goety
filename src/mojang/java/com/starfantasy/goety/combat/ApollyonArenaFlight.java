@@ -24,15 +24,20 @@ public final class ApollyonArenaFlight {
             if (dx * dx + dz * dz > radius * radius
                     || player.position().distanceToSqr(home) > combatDistanceSqr) continue;
 
-            // Also covers survival flight granted by another mod. Keep the ability
-            // entitlement untouched so leaving the encounter needs no restoration.
-            if (player.getAbilities().flying) {
-                player.getAbilities().flying = false;
-                player.onUpdateAbilities();
-            }
-            if (isTooHigh(player, estimatedJumpHeight(player) + HEIGHT_ALLOWANCE)) {
-                forceQuickFall(player);
-            }
+            suppressFlight(player);
+        }
+    }
+
+    /** Shared by encounters after their own active-player and range checks. */
+    public static void suppressFlight(ServerPlayer player) {
+        if (!player.isAlive() || player.isCreative() || player.isSpectator()) return;
+        // Keep the entitlement so leaving combat needs no ability restoration.
+        if (player.getAbilities().flying) {
+            player.getAbilities().flying = false;
+            player.onUpdateAbilities();
+        }
+        if (isTooHigh(player, estimatedJumpHeight(player) + HEIGHT_ALLOWANCE)) {
+            forceQuickFall(player);
         }
     }
 
